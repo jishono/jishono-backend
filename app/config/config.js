@@ -6,10 +6,10 @@ const config = {
     },
     db: {
       host: process.env.DB_HOST,
-      user: process.env.DB_USER,
+      user: process.env.DB_USER_ADMIN,
       port: process.env.DB_PORT,
       database: process.env.DB_NAME,
-      password: process.env.DB_PASS
+      password: process.env.DB_PASS_ADMIN
     },
     jwt: {
       secret: process.env.JWT_SECRET
