@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-/* const cors = require("cors"); */
+const cors = require("cors");
 const app = express();
 const middleware = require("./app/routes/middleware");
 
@@ -18,13 +18,13 @@ var corsOptions = {
 
 app.use(cors(corsOptions)); */
 
-/* var corsOptions = {
+var corsOptions = {
   origin: "https://admin.jisho.no"
 };
 
-app.use(cors(corsOptions)); */
+app.use(cors(corsOptions));
 
-app.use(cors({origin: '*'}))
+/* app.use(cors({origin: '*'})) */
 
 /* app.use(cors()) */
 
