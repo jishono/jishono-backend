@@ -4,13 +4,20 @@ const bodyParser = require("body-parser");
 const app = express();
 const middleware = require("./app/routes/middleware");
 
-/* var corsOptions = {
-  origin: "http://localhost:8080"
-}; */
+const whitelist = ["https://admin.jisho.no", "http://localhost:8080"]
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
 
-/* app.use(cors(corsOptions)); */
+app.use(cors(corsOptions));
 
-/* app.use(cors()); */
+app.use(cors());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
