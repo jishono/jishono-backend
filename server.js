@@ -18,7 +18,13 @@ var corsOptions = {
 
 app.use(cors(corsOptions)); */
 
-app.use(cors())
+var corsOptions = {
+  origin: "https://admin.jisho.no"
+};
+
+app.use(cors(corsOptions));
+
+/* app.use(cors()) */
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
