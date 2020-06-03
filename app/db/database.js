@@ -1,22 +1,11 @@
 const config = require("../config/config.js");
 const mysql = require('mysql2/promise');
 
-const opts = {
-  host: config.db.host,
-  user: 'root',
-  //port: config.db.port,
-  database: config.db.name,
-  password: '',
-  /* password: config.db.password, */
-};
-
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  //port: config.db.port,
-  database: 'jisho',
-  password: '',
-  /* password: config.db.password, */
+  host: config.db.host,
+  user: config.db.user,
+  database: config.db.name,
+  password: config.db.password
 })
 
 module.exports = {
