@@ -4,7 +4,8 @@ const bodyParser = require("body-parser");
 const app = express();
 const middleware = require("./app/routes/middleware");
 
-const whitelist = ["https://admin.jisho.no", "http://localhost:8080"]
+/* const whitelist = ["https://admin.jisho.no", "http://localhost:8080"]
+
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
@@ -15,7 +16,9 @@ var corsOptions = {
   }
 }
 
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); */
+
+app.use(cors())
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
