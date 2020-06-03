@@ -1,1 +1,1 @@
-[![Codeship Status for jishono/japansk-norsk](https://app.codeship.com/projects/ac2ad5d0-7cf6-0138-e2bf-0680689a7f02/status?branch=master)](https://app.codeship.com/projects/397042)
+[![Codeship Status for jishono/jishono-backend](https://app.codeship.com/projects/ded95290-87ed-0138-d992-42a99bb27b73/status?branch=master)](https://app.codeship.com/projects/398821)
