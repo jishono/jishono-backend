@@ -38,7 +38,7 @@ app.use(function (req, res, next) {
     if (middleware.verifyToken(req.get('Authorization'))) {
       next()
     } else {
-      res.status(401).send("Token authentication failed")
+      res.status(401).send("Token authentication failed.")
     }
   }
 })
