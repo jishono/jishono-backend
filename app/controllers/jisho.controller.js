@@ -108,7 +108,8 @@ module.exports = {
       query += ' AND o.boy_tabell IN (?)'
       params.push(posarray)
     }
-    console.log(posarray)
+    /* query += ' LIMIT 100' */
+
     try {
       const result = await db.query(query, params)
       res.status(200).send(result)
@@ -121,13 +122,9 @@ module.exports = {
     const id = req.params.id;
     try {
       const oppslag = await db.query('SELECT * FROM oppslag WHERE lemma_id = ?', [id])
-      console.log(oppslag)
       const boy_tabell = oppslag[0].boy_tabell + '_boy'
-
       const query = `SELECT * FROM ?? WHERE lemma_id = ?`
-
       const result = await db.query(query, [boy_tabell, id])
-      console.log(result)
       res.status(200).send(result)
     } catch (error) {
       console.log(error)
@@ -221,7 +218,8 @@ module.exports = {
   login: async (req, res) => {
     console.log(req.body.username + " trying to log in...")
     let user = await db.query('SELECT * FROM brukere WHERE brukernavn = ?', [req.body.username])
-
+    
+    console.log(user)
     if (user.length === 0) {
       return res.status(401).send({ auth: false, token: null })
     }
@@ -231,7 +229,7 @@ module.exports = {
       return res.status(401).send({ auth: false, token: null })
     }
 
-    let token = jwt.sign({ id: user.username }, config.jwt.secret, {
+    let token = jwt.sign({ user: user.brukernavn }, config.jwt.secret, {
       expiresIn: '30d'
     })
     res.status(200).send({ auth: true, token: token, user: user.brukernavn });

@@ -14,7 +14,6 @@ module.exports = {
       const start = Date.now()
       const [result, fields] = await pool.query(text, params)
       const duration = Date.now() - start
-      console.log(result)
       console.log('executed query', { text, duration, rows: result.length })
       return result
     } catch (error) {
