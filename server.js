@@ -24,9 +24,9 @@ app.use(cors(corsOptions)); */
 
 app.use(cors(corsOptions)); */
 
-app.use(cors({origin: '*'}))
+/* app.use(cors({origin: '*'})) */
 
-/* app.use(cors()) */
+app.use(cors())
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -38,7 +38,7 @@ app.use(function (req, res, next) {
     if (middleware.verifyToken(req.get('Authorization'))) {
       next()
     } else {
-      res.status(401).send("Token authentication failed.")
+      res.status(401).send("Token authentication failed")
     }
   }
 })
