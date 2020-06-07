@@ -5,11 +5,11 @@ const config = {
       port: 3000
     },
     db: {
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER_ADMIN,
-      port: process.env.DB_PORT,
-      database: process.env.DB_NAME,
-      password: process.env.DB_PASS_ADMIN
+      host: process.env.DB_HOST_NODE,
+      user: process.env.DB_USER_ADMIN_NODE,
+      port: process.env.DB_PORT_NODE,
+      database: process.env.DB_NAME_NODE,
+      password: process.env.DB_PASS_ADMIN_NODE
     },
     jwt: {
       secret: process.env.JWT_SECRET
