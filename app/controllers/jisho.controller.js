@@ -214,17 +214,8 @@ module.exports = {
     }
     res.status(200).send("Oppdatert")
   },
+
   login: async (req, res) => {
-    console.log(req.body.username + " trying to log in...")
-
-    try {
-      res.status(200).send("funker dette");
-    } catch (error) {
-      console.log(error)
-    }
-  },
-
-  /* login: async (req, res) => {
     console.log(req.body.username + " trying to log in...")
 
     try {
@@ -246,5 +237,5 @@ module.exports = {
     } catch (error) {
       console.log(error)
     }
-  } */
+  }
 }
