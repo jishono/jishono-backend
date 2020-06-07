@@ -217,21 +217,25 @@ module.exports = {
 
   login: async (req, res) => {
     console.log(req.body.username + " trying to log in...")
-    let user = await db.query('SELECT * FROM brukere WHERE brukernavn = ?', [req.body.username])
-    
-    console.log(user)
-    if (user.length === 0) {
-      return res.status(401).send({ auth: false, token: null })
-    }
-    user = user[0]
-    let passwordIsValid = bcrypt.compareSync(req.body.password, user.passord_hash)
-    if (!passwordIsValid || !user) {
-      return res.status(401).send({ auth: false, token: null })
-    }
 
-    let token = jwt.sign({ user: user.brukernavn }, config.jwt.secret, {
-      expiresIn: '30d'
-    })
-    res.status(200).send({ auth: true, token: token, user: user.brukernavn });
+    try {
+      let user = await db.query('SELECT * FROM brukere WHERE brukernavn = ?', [req.body.username])
+    
+      if (user.length === 0) {
+        return res.status(401).send({ auth: false, token: null })
+      }
+      user = user[0]
+      let passwordIsValid = bcrypt.compareSync(req.body.password, user.passord_hash)
+      if (!passwordIsValid || !user) {
+        return res.status(401).send({ auth: false, token: null })
+      }
+  
+      let token = jwt.sign({ user: user.brukernavn }, config.jwt.secret, {
+        expiresIn: '30d'
+      })
+      res.status(200).send({ auth: true, token: token, user: user.brukernavn });
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
