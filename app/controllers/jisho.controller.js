@@ -278,23 +278,44 @@ module.exports = {
 
     try {
       const user_data = req.body
+      let validated = true
       if (user_data.check != 'elleve') {
         res.status(401).send("Feil svar")
+        validated = false
       }
       const email = user_data.email
-      if (!email) { res.status(400).send('E-post-adresse mangler') }
-      if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) { res.status(400).send('Ugyldig e-post-adresse') }
+      if (!email) {
+        res.status(400).send('E-post-adresse mangler')
+        validated = false
+      }
+      if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+        res.status(400).send('Ugyldig e-post-adresse')
+        validated = false
+      }
 
       const username = user_data.username
-      if (!username) { res.status(400).send('Fornavn mangler') }
-      if (username.length < 6 && username.length < 13) { res.status(400).send('Ugyldig brukernavn. Brukernavnet må være mellom 6 og 12 tegn') }
+      if (!username) {
+        res.status(400).send('Fornavn mangler')
+        validated = false
+      }
+      if (username.length < 6 && username.length < 13) {
+        res.status(400).send('Ugyldig brukernavn. Brukernavnet må være mellom 6 og 12 tegn')
+        validated = false
+      }
 
       const password = user_data.password
-      if (!password) { res.status(400).send('Passord mangler') }
-      if (password.length < 6) { res.status(400).send('Ugyldig passord. Passordet må ha 6 tegn eller mer') }
-
-      await module.exports.opprettBruker(user_data)
-      res.status(201).send("Bruker opprettet. Du kan nå logge inn.")
+      if (!password) {
+        res.status(400).send('Passord mangler')
+        validated = false
+      }
+      if (password.length < 6) {
+        res.status(400).send('Ugyldig passord. Passordet må ha 6 tegn eller mer')
+        validated = false
+      }
+      if (validated) {
+        await module.exports.opprettBruker(user_data)
+        res.status(201).send("Bruker opprettet. Du kan nå logge inn.")
+      }
     } catch (error) {
       console.log(error)
       if (error.errno === 1062) {
@@ -304,6 +325,7 @@ module.exports = {
       }
     }
   },
+
   opprettBruker: async (user_data) => {
     user_data["password"] = bcrypt.hashSync(user_data["password"], 10)
 
@@ -323,17 +345,17 @@ module.exports = {
     }
   },
   getAllForslag: async (req, res) => {
-
+    const user_id = res.locals.user_id
     try {
       const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn,
                     IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
-                    f.opprettet
+                    f.opprettet, (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme
                     FROM forslag AS f
                     INNER JOIN oppslag AS o USING (lemma_id)
                     INNER JOIN brukere AS b USING (user_id)
                     LEFT OUTER JOIN stemmer AS s USING (forslag_id)
                     GROUP BY f.forslag_id`
-      oppslag = await db.query(query)
+      oppslag = await db.query(query, [user_id])
       res.status(200).send(oppslag)
     } catch (error) {
       console.log(error)
@@ -351,26 +373,28 @@ module.exports = {
                     `
       result = await db.query(query1, [user_id, forslag_id])
 
-      if (result.length > 0) {
+      /* if (result.length > 0) {
         res.status(400).send('Du har allerede stemt på dette forslaget')
-      } else {
-        const query2 = `INSERT INTO stemmer (forslag_id, user_id, type)
-                   VALUES (?, ?, ?)
+      } else { */
+      const query2 = `INSERT INTO stemmer (forslag_id, user_id, type)
+                      VALUES (?, ?, ?)
+                      ON DUPLICATE KEY UPDATE
+                      type = VALUES (type)
                       `
-        await db.query(query2, [forslag_id, user_id, type])
+      await db.query(query2, [forslag_id, user_id, type])
 
-        const query3 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes
+      const query3 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes
         FROM stemmer AS s
         WHERE forslag_id = ?`
-        const upvotes = await db.query(query3, [forslag_id])
+      const upvotes = await db.query(query3, [forslag_id])
 
-        if (upvotes.length >= 5) {
-          await module.exports.godkjennForslag(forslag_id)
-          res.status(200).send('Forslaget er herved akseptert og lagt til i ordboka')
-        } else {
-          res.status(200).send('Stemme mottatt')
-        }
+      if (upvotes.length >= 5) {
+        await module.exports.godkjennForslag(forslag_id)
+        res.status(200).send('Forslaget er herved akseptert og lagt til i ordboka')
+      } else {
+        res.status(200).send('Stemme mottatt')
       }
+      /*  } */
     } catch (error) {
       console.log(error)
       res.status(500).send("Noe gikk galt")
@@ -432,7 +456,7 @@ module.exports = {
       const results = await db.query(query)
       const amount = results.length
       let anbefalinger = []
-      for (let i = 0; i < 10; i++) {        
+      for (let i = 0; i < 10; i++) {
         let random_index = Math.floor(Math.random() * amount)
         let random_result = results[random_index]
         if (!anbefalinger.some(item => item.lemma_id === random_result.lemma_id)) {
