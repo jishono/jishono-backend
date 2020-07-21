@@ -18,7 +18,7 @@ var corsOptions = {
 app.use(cors(corsOptions)); */
 
 let corsOptions = {}
-
+console.log(process.env.NODE_ENV)
 if (process.env.NODE_ENV = 'development') {
   corsOptions = {
     origin: "http://localhost:8080"
