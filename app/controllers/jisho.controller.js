@@ -3,9 +3,6 @@ const config = require("../config/config")
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-
-// Finn enkeltoppslag med tilhørende data
-
 module.exports = {
   getOppslag: async (req, res) => {
     const lemma_id = req.params.id
@@ -108,7 +105,6 @@ module.exports = {
       query += ' AND o.boy_tabell IN (?)'
       params.push(posarray)
     }
-    /* query += ' LIMIT 100' */
 
     try {
       const result = await db.query(query, params)
@@ -133,6 +129,7 @@ module.exports = {
 
   update: async (req, res) => {
     const lemma_id = req.params.id;
+    const user_id = res.locals.user_id
     uttale = req.body.oppslag.uttale
     defs = req.body.oppslag.definisjon
     kommentar = req.body.oppslag.kommentar
@@ -176,12 +173,12 @@ module.exports = {
           pri++
         })
 
-        const query4 = `INSERT INTO definisjon (def_id, lemma_id, prioritet, definisjon)
+        const query4 = `INSERT INTO definisjon (def_id, lemma_id, prioritet, definisjon, oversatt_av)
         VALUES ?
         ON DUPLICATE KEY UPDATE
         prioritet = VALUES (prioritet),
         definisjon = VALUES (definisjon)`
-        await db.query(query4, [defs.map(def => [def.def_id, def.lemma_id, def.prioritet, def.definisjon])])
+        await db.query(query4, [defs.map(def => [def.def_id, def.lemma_id, def.prioritet, def.definisjon, user_id])])
 
       } catch (error) {
         console.log(error)
@@ -207,7 +204,7 @@ module.exports = {
         console.log(error)
       }
     }
-    res.status(200).send("Oppdatert")
+    res.status(200).send("Oppdatert!")
   },
 
   addKommentar: async (kommentar) => {
@@ -228,25 +225,29 @@ module.exports = {
   addForslag: async (req, res) => {
 
     const oppslag = req.body.oppslag
-    console.log(res.locals)
     const user_id = res.locals.user_id
-    console.log(oppslag)
     try {
-      if (oppslag.definisjon.length > 0) {
-        const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
-                      VALUES ?`
-        await db.query(query, [oppslag.definisjon.map(def => [def.lemma_id, user_id, def.definisjon])])
+      const query1 = `SELECT definisjon FROM definisjon
+                      WHERE lemma_id = ?`
 
+      const current_defs = await db.query(query1, [oppslag.lemma_id])
+      if (current_defs.length > 0) {
+        res.status(403).send("Du kan ikke legge til forslag i ord med eksisterende definisjoner")
+      } else {
+        if (oppslag.definisjon.length > 0) {
+          const query2 = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
+                        VALUES ?`
+          await db.query(query2, [oppslag.definisjon.map(def => [def.lemma_id, user_id, def.definisjon])])
+
+        }
+        if (oppslag.kommentar.length > 0) {
+          await module.exports.addKommentar(oppslag.kommentar)
+        }
+        res.status(200).send("Forslag lagt til.")
       }
-      if (oppslag.kommentar.length > 0) {
-        await module.exports.addKommentar(oppslag.kommentar)
-      }
-      res.status(200).send("Forslag lagt til.")
     } catch (error) {
       console.log(error)
     }
-
-
   },
 
   loggInn: async (req, res) => {
@@ -286,14 +287,14 @@ module.exports = {
 
       const username = user_data.username
       if (!username) { res.status(400).send('Fornavn mangler') }
-      if (username.length < 6) { res.status(400).send('Ugyldig brukernavn. Brukernavnet må ha 6 tegn eller mer') }
+      if (username.length < 6 && username.length < 13) { res.status(400).send('Ugyldig brukernavn. Brukernavnet må være mellom 6 og 12 tegn') }
 
       const password = user_data.password
       if (!password) { res.status(400).send('Passord mangler') }
       if (password.length < 6) { res.status(400).send('Ugyldig passord. Passordet må ha 6 tegn eller mer') }
 
-      await module.exports.opprett_bruker(user_data)
-      res.status(201).send("Bruker opprettet")
+      await module.exports.opprettBruker(user_data)
+      res.status(201).send("Bruker opprettet. Du kan nå logge inn.")
     } catch (error) {
       console.log(error)
       if (error.errno === 1062) {
@@ -303,7 +304,7 @@ module.exports = {
       }
     }
   },
-  opprett_bruker: async (user_data) => {
+  opprettBruker: async (user_data) => {
     user_data["password"] = bcrypt.hashSync(user_data["password"], 10)
 
     let user_data_array = []
@@ -324,7 +325,7 @@ module.exports = {
   getAllForslag: async (req, res) => {
 
     try {
-      const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, f.forslag_definisjon, b.brukernavn,
+      const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn,
                     IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                     f.opprettet
                     FROM forslag AS f
@@ -388,7 +389,7 @@ module.exports = {
   },
   godkjennForslag: async (forslag_id) => {
     try {
-      const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon
+      const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id
                       FROM forslag
                       WHERE forslag_id = ?`
       let forslag = await db.query(query1, [forslag_id])
@@ -399,9 +400,9 @@ module.exports = {
       let result = await db.query(query2, [forslag.lemma_id])
 
       const max_pri = result[0]['max_pri'] + 1
-      const query3 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon)
-                      VALUES (?, ?, ?)`
-      await db.query(query3, [forslag.lemma_id, max_pri, forslag.forslag_definisjon])
+      const query3 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av)
+                      VALUES (?, ?, ?, ?)`
+      await db.query(query3, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
 
       const query4 = `DELETE FROM forslag
                       WHERE forslag_id = ?`
@@ -414,6 +415,35 @@ module.exports = {
       await db.query(query5, [forslag.forslag_id])
     } catch (error) {
       throw error
+    }
+  },
+  getAnbefalinger: async (req, res) => {
+    const query = `SELECT f.score, o.lemma_id, o.oppslag, o.boy_tabell
+                  FROM frekvens AS f 
+                  INNER JOIN oppslag AS o ON o.oppslag = f.lemma
+                  WHERE o.oppslag NOT IN 
+                    (SELECT oppslag FROM definisjon AS d
+                      INNER JOIN oppslag AS o
+                      USING (lemma_id))
+                  ORDER BY f.score ASC
+                  LIMIT 500
+                  `
+    try {
+      const results = await db.query(query)
+      const amount = results.length
+      let anbefalinger = []
+      for (let i = 0; i < 10; i++) {        
+        let random_index = Math.floor(Math.random() * amount)
+        let random_result = results[random_index]
+        if (!anbefalinger.some(item => item.lemma_id === random_result.lemma_id)) {
+          anbefalinger.push(random_result)
+        }
+      }
+      console.log(anbefalinger)
+      res.status(200).send(anbefalinger)
+    } catch (error) {
+      console.log(error)
+      res.status(500).send("Noe gikk galt.")
     }
   }
 }
