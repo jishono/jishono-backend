@@ -366,35 +366,37 @@ module.exports = {
     const forslag_id = req.params.id
     const type = req.body.type
     try {
-      const query1 = `SELECT stemme_id 
+      const query1 = `SELECT stemme_id, type 
                     FROM stemmer AS s
                     WHERE user_id = ?
                     AND forslag_id = ?
                     `
       result = await db.query(query1, [user_id, forslag_id])
-
-      /* if (result.length > 0) {
-        res.status(400).send('Du har allerede stemt på dette forslaget')
-      } else { */
-      const query2 = `INSERT INTO stemmer (forslag_id, user_id, type)
-                      VALUES (?, ?, ?)
-                      ON DUPLICATE KEY UPDATE
-                      type = VALUES (type)
-                      `
-      await db.query(query2, [forslag_id, user_id, type])
-
-      const query3 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes
-        FROM stemmer AS s
-        WHERE forslag_id = ?`
-      const upvotes = await db.query(query3, [forslag_id])
-
-      if (upvotes.length >= 5) {
-        await module.exports.godkjennForslag(forslag_id)
-        res.status(200).send('Forslaget er herved akseptert og lagt til i ordboka')
+      if (result.length > 0 && result[0].type == type) {
+        const query2 = `DELETE FROM stemmer
+                        WHERE user_id = ? AND forslag_id = ?`
+        await db.query(query2, [user_id, forslag_id])
+        res.status(200).send("Stemme fjernet")
       } else {
-        res.status(200).send('Stemme mottatt')
+        const query3 = `INSERT INTO stemmer (forslag_id, user_id, type)
+                        VALUES (?, ?, ?)
+                        ON DUPLICATE KEY UPDATE
+                        type = VALUES (type)
+                        `
+        await db.query(query3, [forslag_id, user_id, type])
+  
+        const query4 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes
+          FROM stemmer AS s
+          WHERE forslag_id = ?`
+        const upvotes = await db.query(query4, [forslag_id])
+  
+        if (upvotes.length >= 5) {
+          await module.exports.godkjennForslag(forslag_id)
+          res.status(200).send('Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka')
+        } else {
+          res.status(200).send('Stemme mottatt')
+        }
       }
-      /*  } */
     } catch (error) {
       console.log(error)
       res.status(500).send("Noe gikk galt")
