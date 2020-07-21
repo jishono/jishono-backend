@@ -1,8 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-/* const cors = require("cors"); */
+const cors = require("cors");
 const app = express();
-const middleware = require("./app/routes/middleware");
 
 /* const whitelist = ["https://admin.jisho.no", "http://localhost:8080"]
 
@@ -18,11 +17,13 @@ var corsOptions = {
 
 app.use(cors(corsOptions)); */
 
-/* var corsOptions = {
-  origin: "https://admin.jisho.no"
-};
+if (process.env.NODE_ENV = 'development') {
+  var corsOptions = {
+    origin: "http://localhost:8080"
+  }
+  app.use(cors(corsOptions))
+}
 
-app.use(cors(corsOptions)); */
 
 /* app.use(cors({origin: '*'})) */
 
@@ -37,17 +38,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
   next();
 }); */
 
-app.use(function (req, res, next) {
-  if (req.url == '/login') {
-    next()
-  } else {
-    if (middleware.verifyToken(req.get('Authorization'))) {
-      next()
-    } else {
-      res.status(401).send("Token authentication failed")
-    }
-  }
-})
+
 
 require("./app/routes/routes")(app);
 

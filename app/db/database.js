@@ -17,7 +17,7 @@ module.exports = {
       console.log('executed query', { text, duration, rows: result.length })
       return result
     } catch (error) {
-      console.log(error)
+      throw error
     }
   }
 }
