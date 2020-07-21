@@ -7,7 +7,7 @@ module.exports = {
   getOppslag: async (req, res) => {
     const lemma_id = req.params.id
     try {
-      const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.notis, 
+      const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, 
       (SELECT IFNULL(
         (SELECT JSON_ARRAYAGG(
           JSON_OBJECT('def_id', d.def_id,
