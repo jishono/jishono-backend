@@ -17,19 +17,13 @@ var corsOptions = {
 
 app.use(cors(corsOptions)); */
 
-let corsOptions = {}
-console.log(process.env.NODE_ENV)
+console.log("Environment:", process.env.NODE_ENV)
 if (process.env.NODE_ENV = 'development') {
-  corsOptions = {
+  const corsOptions = {
     origin: "http://localhost:8080"
   }
-} else {
-  corsOptions = {
-    origin: "https://admin.jisho.no"
-  }
-}
-
-app.use(cors(corsOptions))
+  app.use(cors(corsOptions))
+} 
 
 /* app.use(cors({origin: '*'})) */
 
