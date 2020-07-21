@@ -158,10 +158,10 @@ module.exports = {
 
     try {
       const query3 = `UPDATE oppslag
-                   SET ledd = ?, notis = ?
+                   SET ledd = ?
                    WHERE lemma_id = ?`
 
-      await db.query(query3, [oppslag.ledd, oppslag.notis, oppslag.lemma_id])
+      await db.query(query3, [oppslag.ledd, oppslag.lemma_id])
     } catch (error) {
       console.log(error)
     }
