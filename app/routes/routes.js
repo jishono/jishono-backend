@@ -34,6 +34,8 @@ module.exports = app => {
     router.get("/forslag", auth, jisho.getAllForslag)
 
     router.post("/forslag/:id/stem", auth, jisho.stemForslag)
+
+    router.post("/forslag/:id/godkjenn", auth, admin, jisho.adminGodkjennForslag)
   
     app.use('/', router);
   };

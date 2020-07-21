@@ -21,9 +21,13 @@ if (process.env.NODE_ENV = 'development') {
   var corsOptions = {
     origin: "http://localhost:8080"
   }
-  app.use(cors(corsOptions))
+} else {
+  var corsOptions = {
+    origin: "https://admin.jisho.no"
+  }
 }
 
+app.use(cors(corsOptions))
 
 /* app.use(cors({origin: '*'})) */
 

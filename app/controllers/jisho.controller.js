@@ -362,8 +362,9 @@ module.exports = {
         FROM stemmer AS s
         WHERE forslag_id = ?`
         const upvotes = await db.query(query3, [forslag_id])
-        
-        if (upvotes.length >= 1) {
+
+        if (upvotes.length >= 5) {
+          await module.exports.godkjennForslag(forslag_id)
           res.status(200).send('Forslaget er herved akseptert og lagt til i ordboka')
         } else {
           res.status(200).send('Stemme mottatt')
@@ -371,6 +372,48 @@ module.exports = {
       }
     } catch (error) {
       console.log(error)
+      res.status(500).send("Noe gikk galt")
     }
   },
+  adminGodkjennForslag: async (req, res) => {
+    const forslag_id = req.params.id
+    try {
+      await module.exports.godkjennForslag(forslag_id)
+      res.status(200).send("Forslag godkjent og lagt til i ordboka")
+    } catch (error) {
+      console.log(error)
+      res.status(500).send("Noe gikk galt")
+    }
+
+  },
+  godkjennForslag: async (forslag_id) => {
+    try {
+      const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon
+                      FROM forslag
+                      WHERE forslag_id = ?`
+      let forslag = await db.query(query1, [forslag_id])
+      console.log(forslag)
+      forslag = forslag[0]
+
+      const query2 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = ?`
+      let result = await db.query(query2, [forslag.lemma_id])
+
+      const max_pri = result[0]['max_pri'] + 1
+      const query3 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon)
+                      VALUES (?, ?, ?)`
+      await db.query(query3, [forslag.lemma_id, max_pri, forslag.forslag_definisjon])
+
+      const query4 = `DELETE FROM forslag
+                      WHERE forslag_id = ?`
+
+      await db.query(query4, [forslag.forslag_id])
+
+      const query5 = `DELETE FROM stemmer
+                      WHERE forslag_id = ?`
+
+      await db.query(query5, [forslag.forslag_id])
+    } catch (error) {
+      throw error
+    }
+  }
 }
