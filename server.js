@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const app = express();
+const config = require("./app/config/config.js")
 
 /* const whitelist = ["https://admin.jisho.no", "http://localhost:8080"]
 
@@ -17,8 +18,8 @@ var corsOptions = {
 
 app.use(cors(corsOptions)); */
 
-console.log("Environment:", process.env.NODE_ENV)
-if (process.env.NODE_ENV = 'development') {
+console.log("Environment:", config.app.node_env)
+if (config.app.node_env = 'development') {
   const corsOptions = {
     origin: "http://localhost:8080"
   }
