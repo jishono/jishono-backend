@@ -430,7 +430,7 @@ module.exports = {
                       VALUES (?, ?, ?, ?)`
       await db.query(query3, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
 
-      await module.exports.fjernForslag(forslag_id)
+      await module.exports.slettForslagFraDB(forslag_id, null)
     } catch (error) {
       throw error
     }
