@@ -269,7 +269,7 @@ module.exports = {
       let token = jwt.sign({ user: user.brukernavn, user_id: user.user_id, admin: user.admin }, config.jwt.secret, {
         expiresIn: '30d'
       })
-      res.status(200).send({ auth: true, token: token, user: user.brukernavn, admin: user.admin });
+      res.status(200).send({ auth: true, token: token, user_id: user.user_id, username: user.brukernavn, admin: user.admin });
     } catch (error) {
       console.log(error)
     }
@@ -347,7 +347,7 @@ module.exports = {
   getAllForslag: async (req, res) => {
     const user_id = res.locals.user_id
     try {
-      const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn,
+      const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn, b.user_id,
                     IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                     f.opprettet, (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme
                     FROM forslag AS f
@@ -384,12 +384,12 @@ module.exports = {
                         type = VALUES (type)
                         `
         await db.query(query3, [forslag_id, user_id, type])
-  
+
         const query4 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes
           FROM stemmer AS s
           WHERE forslag_id = ?`
         const upvotes = await db.query(query4, [forslag_id])
-  
+
         if (upvotes.length >= 5) {
           await module.exports.godkjennForslag(forslag_id)
           res.status(200).send('Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka')
@@ -430,15 +430,49 @@ module.exports = {
                       VALUES (?, ?, ?, ?)`
       await db.query(query3, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
 
-      const query4 = `DELETE FROM forslag
+      await module.exports.fjernForslag(forslag_id)
+    } catch (error) {
+      throw error
+    }
+  },
+  avvisForslag: async (req, res) => {
+
+    const forslag_id = req.params.id
+    try {
+      await module.exports.slettForslagFraDB(forslag_id, null)
+      res.status(200).send("Forslag avvist")
+    } catch (error) {
+      console.log(error)
+      res.status(500).send("Kunne ikke fjerne forslag")
+    }
+  },
+  fjernForslag: async (req, res) => {
+
+    const forslag_id = req.params.id
+    const user_id = res.locals.user_id
+
+    try {
+      await module.exports.slettForslagFraDB(forslag_id, user_id)
+      res.status(200).send("Forslag fjernet")
+    } catch (error) {
+      console.log(error)
+      res.status(500).send("Kunne ikke fjerne forslag")
+    }
+  },
+  
+  slettForslagFraDB: async (forslag_id, user_id) => {
+    try {
+      let query1 = `DELETE FROM forslag
+                    WHERE forslag_id = ?`
+      if (user_id) {
+        query1 += `AND user_id = ?`
+      }     
+      await db.query(query1, [forslag_id, user_id])
+
+      const query2 = `DELETE FROM stemmer
                       WHERE forslag_id = ?`
+      await db.query(query2, [forslag_id])
 
-      await db.query(query4, [forslag.forslag_id])
-
-      const query5 = `DELETE FROM stemmer
-                      WHERE forslag_id = ?`
-
-      await db.query(query5, [forslag.forslag_id])
     } catch (error) {
       throw error
     }
