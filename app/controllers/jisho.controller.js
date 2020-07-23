@@ -222,33 +222,6 @@ module.exports = {
     }
   },
 
-  addForslag: async (req, res) => {
-
-    const oppslag = req.body.oppslag
-    const user_id = res.locals.user_id
-    try {
-      const query1 = `SELECT definisjon FROM definisjon
-                      WHERE lemma_id = ?`
-
-      const current_defs = await db.query(query1, [oppslag.lemma_id])
-      if (current_defs.length > 0) {
-        res.status(403).send("Du kan ikke legge til forslag i ord med eksisterende definisjoner")
-      } else {
-        if (oppslag.definisjon.length > 0) {
-          const query2 = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
-                        VALUES ?`
-          await db.query(query2, [oppslag.definisjon.map(def => [def.lemma_id, user_id, def.definisjon])])
-
-        }
-        if (oppslag.kommentar.length > 0) {
-          await module.exports.addKommentar(oppslag.kommentar)
-        }
-        res.status(200).send("Forslag lagt til.")
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  },
 
   loggInn: async (req, res) => {
     console.log(req.body.username + " trying to log in...")
@@ -344,6 +317,34 @@ module.exports = {
       throw error
     }
   },
+
+  addForslag: async (req, res) => {
+
+    const oppslag = req.body.oppslag
+    const user_id = res.locals.user_id
+    try {
+      const query1 = `SELECT definisjon FROM definisjon
+                      WHERE lemma_id = ?`
+
+      const current_defs = await db.query(query1, [oppslag.lemma_id])
+      if (current_defs.length > 0) {
+        res.status(403).send("Du kan ikke legge til forslag i ord med eksisterende definisjoner")
+      } else {
+        if (oppslag.definisjon.length > 0 && oppslag.definisjon[0]['definisjon'] != '') {
+          const query2 = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
+                        VALUES ?`
+          await db.query(query2, [oppslag.definisjon.map(def => [def.lemma_id, user_id, def.definisjon])])
+          res.status(200).send("Forslag lagt til. Videresender til forslagsoversikt...")
+
+        } else {
+          res.status(400).send("Du må komme med minst ett forslag")
+        }
+      }
+    } catch (error) {
+      console.log(error)
+      res.status(500).send("Noe gikk galt")
+    }
+  },
   getAllForslag: async (req, res) => {
     const user_id = res.locals.user_id
     try {
@@ -404,8 +405,9 @@ module.exports = {
   },
   adminGodkjennForslag: async (req, res) => {
     const forslag_id = req.params.id
+    const redigert_forslag = req.body.redigert_forslag
     try {
-      await module.exports.godkjennForslag(forslag_id)
+      await module.exports.godkjennForslag(forslag_id, redigert_forslag)
       res.status(200).send("Forslag godkjent og lagt til i ordboka")
     } catch (error) {
       console.log(error)
@@ -413,15 +415,16 @@ module.exports = {
     }
 
   },
-  godkjennForslag: async (forslag_id) => {
+  godkjennForslag: async (forslag_id, redigert_forslag=null) => {
     try {
       const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id
                       FROM forslag
                       WHERE forslag_id = ?`
       let forslag = await db.query(query1, [forslag_id])
-      console.log(forslag)
       forslag = forslag[0]
-
+      if (redigert_forslag) {
+        forslag.forslag_definisjon = redigert_forslag
+      }
       const query2 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = ?`
       let result = await db.query(query2, [forslag.lemma_id])
 
@@ -459,14 +462,14 @@ module.exports = {
       res.status(500).send("Kunne ikke fjerne forslag")
     }
   },
-  
+
   slettForslagFraDB: async (forslag_id, user_id) => {
     try {
       let query1 = `DELETE FROM forslag
                     WHERE forslag_id = ?`
       if (user_id) {
         query1 += `AND user_id = ?`
-      }     
+      }
       await db.query(query1, [forslag_id, user_id])
 
       const query2 = `DELETE FROM stemmer
@@ -485,6 +488,8 @@ module.exports = {
                     (SELECT oppslag FROM definisjon AS d
                       INNER JOIN oppslag AS o
                       USING (lemma_id))
+                      AND o.lemma_id NOT IN 
+                      (SELECT lemma_id FROM forslag AS f)
                   ORDER BY f.score ASC
                   LIMIT 500
                   `
@@ -499,7 +504,6 @@ module.exports = {
           anbefalinger.push(random_result)
         }
       }
-      console.log(anbefalinger)
       res.status(200).send(anbefalinger)
     } catch (error) {
       console.log(error)

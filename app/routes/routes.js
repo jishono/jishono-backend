@@ -2,6 +2,7 @@
 
 module.exports = app => {
     const jisho = require("../controllers/jisho.controller.js");
+    const appController = require("../controllers/appController.js");
     const { auth } = require("../routes/auth.js")
     const admin = require("../routes/admin.js")
   
@@ -42,6 +43,8 @@ module.exports = app => {
     router.post("/forslag/:id/avvis", auth, admin, jisho.avvisForslag)
 
     router.post("/forslag/:id/fjern", auth, jisho.fjernForslag)
+
+    router.get("/statistikk", auth, appController.getStatistikk)
   
     app.use('/', router);
   };
