@@ -232,21 +232,24 @@ module.exports = {
       let user = await db.query('SELECT * FROM brukere WHERE brukernavn = ?', [req.body.username.toLowerCase()])
 
       if (user.length === 0) {
-        return res.status(401).send({ auth: false, token: null })
+        return res.status(401).send('Feil brukernavn eller passord')
       }
       user = user[0]
       let passwordIsValid = bcrypt.compareSync(req.body.password, user.passord_hash)
       if (!passwordIsValid || !user) {
-        console.log("invalid password")
-        return res.status(401).send({ auth: false, token: null })
+        return res.status(401).send('Feil brukernavn eller passord')
       }
-
       let token = jwt.sign({ user: user.brukernavn, user_id: user.user_id, admin: user.admin }, config.jwt.secret, {
         expiresIn: '30d'
       })
+      const query = `UPDATE brukere 
+                    SET sist_innlogget = CURRENT_TIMESTAMP 
+                    WHERE user_id = ?`
+      await db.query(query, [user.user_id])
       res.status(200).send({ auth: true, token: token, user_id: user.user_id, username: user.brukernavn, admin: user.admin });
     } catch (error) {
       console.log(error)
+      res.status(500).send("Noe gikk galt")
     }
   },
   registrer: async (req, res) => {
