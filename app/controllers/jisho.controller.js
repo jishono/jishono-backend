@@ -106,6 +106,8 @@ module.exports = {
       params.push(posarray)
     }
 
+    query += ` ORDER BY oppslag`
+
     try {
       const result = await db.query(query, params)
       res.status(200).send(result)
@@ -490,6 +492,7 @@ module.exports = {
                       USING (lemma_id))
                       AND o.lemma_id NOT IN 
                       (SELECT lemma_id FROM forslag AS f)
+                      AND o.boy_tabell NOT IN ('symbol','forkorting')
                   ORDER BY f.score ASC
                   LIMIT 500
                   `
