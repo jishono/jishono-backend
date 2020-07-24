@@ -179,7 +179,8 @@ module.exports = {
         VALUES ?
         ON DUPLICATE KEY UPDATE
         prioritet = VALUES (prioritet),
-        definisjon = VALUES (definisjon)`
+        definisjon = VALUES (definisjon),
+        sist_endret = CURRENT_TIMESTAMP`
         await db.query(query4, [defs.map(def => [def.def_id, def.lemma_id, def.prioritet, def.definisjon, user_id])])
 
       } catch (error) {
