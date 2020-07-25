@@ -258,7 +258,7 @@ module.exports = {
     try {
       const user_data = req.body
       let validated = true
-      if (user_data.check != 'elleve') {
+      if (user_data.check.toLowerCase() != 'elleve') {
         res.status(401).send("Feil svar")
         validated = false
       }
@@ -383,27 +383,35 @@ module.exports = {
         const query2 = `DELETE FROM stemmer
                         WHERE user_id = ? AND forslag_id = ?`
         await db.query(query2, [user_id, forslag_id])
-        res.status(200).send("Stemme fjernet")
-      } else {
-        const query3 = `INSERT INTO stemmer (forslag_id, user_id, type)
+        return res.status(200).send("Stemme fjernet")
+      }
+      const query3 = `INSERT INTO stemmer (forslag_id, user_id, type)
                         VALUES (?, ?, ?)
                         ON DUPLICATE KEY UPDATE
                         type = VALUES (type)
                         `
-        await db.query(query3, [forslag_id, user_id, type])
+      await db.query(query3, [forslag_id, user_id, type])
 
-        const query4 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes
+      const query4 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes,
+      IFNULL(SUM(s.type = 0),0) AS downvotes
           FROM stemmer AS s
           WHERE forslag_id = ?`
-        const upvotes = await db.query(query4, [forslag_id])
+      
+      let votes = await db.query(query4, [forslag_id])
+      votes = votes[0]
+      console.log(votes)
 
-        if (upvotes.length >= 5) {
-          await module.exports.godkjennForslag(forslag_id)
-          res.status(200).send('Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka')
-        } else {
-          res.status(200).send('Stemme mottatt')
-        }
+      if (votes.upvotes >= 5) {
+        await module.exports.godkjennForslag(forslag_id)
+        return res.status(200).send('Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka')
       }
+      if (votes.downvotes >= 2) {
+        await module.exports.slettForslagFraDB(forslag_id)
+        return res.status(200).send('Forslaget har fått mer enn 5 downvotes og er derfor slettet')
+      }
+
+      res.status(200).send('Stemme mottatt')
+
     } catch (error) {
       console.log(error)
       res.status(500).send("Noe gikk galt")
@@ -421,7 +429,7 @@ module.exports = {
     }
 
   },
-  godkjennForslag: async (forslag_id, redigert_forslag=null) => {
+  godkjennForslag: async (forslag_id, redigert_forslag = null) => {
     try {
       const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id
                       FROM forslag
