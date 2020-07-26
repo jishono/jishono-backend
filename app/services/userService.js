@@ -30,22 +30,6 @@ module.exports = {
             throw error
         }
     },
-    getBrukerforslagFraDB: async (user_id) => {
-        const query = `SELECT f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon,
-                            IFNULL (SUM(s.type = 1), 0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
-                            f.status, f.opprettet 
-                            FROM forslag AS f
-                            INNER JOIN oppslag AS o USING(lemma_id)
-                            LEFT OUTER JOIN stemmer AS s USING(forslag_id)
-                            WHERE f.user_id = ?
-                            GROUP BY f.forslag_id`
-        try {
-            const brukerforslag = await db.query(query, [user_id])
-            return brukerforslag
-        } catch (error) {
-            throw error
-        }
-    },
     updateEpostDB: async (user_id, epost) => {
 
         const query = `UPDATE brukere

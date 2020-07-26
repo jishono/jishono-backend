@@ -39,6 +39,8 @@ module.exports = app => {
 
     router.get("/forslag", auth, forslagController.getAllForslag)
 
+    router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag)
+    
     router.post("/forslag/:id/stem", auth, forslagController.stemForslag)
 
     router.post("/forslag/:id/godkjenn", auth, admin, forslagController.adminGodkjennForslag)
@@ -47,12 +49,9 @@ module.exports = app => {
 
     router.post("/forslag/:id/fjern", auth, forslagController.fjernForslag)
 
-
     // Bruker-ruter
     
     router.get("/bruker/:id", auth, userController.getBruker)
-
-    router.get("/bruker/:id/forslag", auth, userController.getBrukerforslag)
 
     router.post("/bruker/:id/oppdater", auth, userController.updateBrukerdata)
 

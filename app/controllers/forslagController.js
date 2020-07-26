@@ -47,6 +47,18 @@ module.exports = {
             console.log(error)
         }
     },
+    getBrukerforslag: async (req, res) => {
+        const user_id = res.locals.user_id
+        try {
+            const brukerforslag = await Forslag.getBrukerforslagFraDB(user_id)
+            console.log(brukerforslag)
+            res.status(200).send(brukerforslag)
+
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Noe gikk galt.")
+        }
+    },
     stemForslag: async (req, res) => {
         const user_id = res.locals.user_id
         const forslag_id = req.params.id

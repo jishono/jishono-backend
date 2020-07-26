@@ -9,18 +9,6 @@ module.exports = {
         res.status(200).send(brukerdata)
 
     },
-    getBrukerforslag: async (req, res) => {
-        const user_id = res.locals.user_id
-        try {
-            const brukerforslag = await User.getBrukerforslagFraDB(user_id)
-            console.log(brukerforslag)
-            res.status(200).send(brukerforslag)
-
-        } catch (error) {
-            console.log(error)
-            res.status(500).send("Noe gikk galt.")
-        }
-    },
     updateBrukerdata: async (req, res) => {
         const user_id = res.locals.user_id
         const gammelt_passord = req.body.gammelt_passord
