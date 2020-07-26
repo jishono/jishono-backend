@@ -112,9 +112,10 @@ module.exports = {
     adminGodkjennForslag: async (req, res) => {
         const forslag_id = req.params.id
         const redigert_forslag = req.body.redigert_forslag
+        const endret = req.body.endret
         try {
             await Forslag.leggForslagTilDB(forslag_id, redigert_forslag)
-            if (redigert_forslag) {
+            if (endret) {
                 await Forslag.settStatusForslag(forslag_id, 3)
             } else {
                 await Forslag.settStatusForslag(forslag_id, 2)
