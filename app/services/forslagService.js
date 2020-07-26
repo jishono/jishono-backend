@@ -41,14 +41,17 @@ module.exports = {
             forslag = forslag[0]
             if (redigert_forslag) {
                 forslag.forslag_definisjon = redigert_forslag
+                const query2 = `UPDATE forslag SET forslag_definisjon = ?
+                                WHERE forslag_id = ?`
+                await db.query(query2, [redigert_forslag, forslag_id] )
             }
-            const query2 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = ?`
-            let result = await db.query(query2, [forslag.lemma_id])
+            const query3 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = ?`
+            let result = await db.query(query3, [forslag.lemma_id])
 
             const max_pri = result[0]['max_pri'] + 1
-            const query3 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av)
+            const query4 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av)
                           VALUES (?, ?, ?, ?)`
-            await db.query(query3, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
+            await db.query(query4, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
 
             //await module.exports.slettForslagFraDB(forslag_id, null)
 

@@ -98,7 +98,7 @@ module.exports = {
                 return res.status(200).send('Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka')
             }
             if (votes.downvotes >= 2) {
-                await Forslag.settStatusForslag(forslag_id, 3)
+                await Forslag.settStatusForslag(forslag_id, 4)
                 return res.status(200).send('Forslaget har fått mer enn 5 downvotes og er derfor slettet')
             }
 
@@ -114,7 +114,11 @@ module.exports = {
         const redigert_forslag = req.body.redigert_forslag
         try {
             await Forslag.leggForslagTilDB(forslag_id, redigert_forslag)
-            await Forslag.settStatusForslag(forslag_id, 2)
+            if (redigert_forslag) {
+                await Forslag.settStatusForslag(forslag_id, 3)
+            } else {
+                await Forslag.settStatusForslag(forslag_id, 2)
+            }
             res.status(200).send("Forslag godkjent og lagt til i ordboka")
         } catch (error) {
             console.log(error)
