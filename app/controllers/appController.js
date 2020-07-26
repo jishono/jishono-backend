@@ -1,5 +1,4 @@
 
-const config = require("../config/config")
 const App = require("../services/appService")
 
 module.exports = {

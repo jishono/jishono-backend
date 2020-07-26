@@ -1,8 +1,10 @@
+const forslagController = require("../controllers/forslagController.js");
 
 
 module.exports = app => {
     const jisho = require("../controllers/jisho.controller.js");
     const appController = require("../controllers/appController.js");
+    const userController = require("../controllers/userController.js");
     const { auth } = require("../routes/auth.js")
     const admin = require("../routes/admin.js")
   
@@ -25,24 +27,36 @@ module.exports = app => {
   
     // Oppdater data om et oppslag
     router.put("/update/:id", auth, admin, jisho.update);
-
-    router.post("/forslag/:id", auth, jisho.addForslag);
   
     router.post("/logg_inn", jisho.loggInn)
 
     router.post("/registrer", jisho.registrer)
 
-    router.get("/forslag", auth, jisho.getAllForslag)
-
     router.get("/anbefalinger", auth, jisho.getAnbefalinger)
 
-    router.post("/forslag/:id/stem", auth, jisho.stemForslag)
+    //Forslags-ruter
+    router.post("/forslag/:id", auth, forslagController.addForslag);
 
-    router.post("/forslag/:id/godkjenn", auth, admin, jisho.adminGodkjennForslag)
+    router.get("/forslag", auth, forslagController.getAllForslag)
 
-    router.post("/forslag/:id/avvis", auth, admin, jisho.avvisForslag)
+    router.post("/forslag/:id/stem", auth, forslagController.stemForslag)
 
-    router.post("/forslag/:id/fjern", auth, jisho.fjernForslag)
+    router.post("/forslag/:id/godkjenn", auth, admin, forslagController.adminGodkjennForslag)
+
+    router.post("/forslag/:id/avvis", auth, admin, forslagController.avvisForslag)
+
+    router.post("/forslag/:id/fjern", auth, forslagController.fjernForslag)
+
+
+    // Bruker-ruter
+    
+    router.get("/bruker/:id", auth, userController.getBruker)
+
+    router.get("/bruker/:id/forslag", auth, userController.getBrukerforslag)
+
+    router.post("/bruker/:id/oppdater", auth, userController.updateBrukerdata)
+
+    // Andre app-ruter
 
     router.get("/statistikk", auth, appController.getStatistikk)
   
