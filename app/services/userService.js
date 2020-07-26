@@ -37,6 +37,7 @@ module.exports = {
                             FROM forslag AS f
                             INNER JOIN oppslag AS o USING(lemma_id)
                             LEFT OUTER JOIN stemmer AS s USING(forslag_id)
+                            WHERE f.user_id = ?
                             GROUP BY f.forslag_id`
         try {
             const brukerforslag = await db.query(query, [user_id])
