@@ -2,7 +2,7 @@ const db = require("../db/database")
 
 module.exports = {
     getBrukerforslagFraDB: async (user_id) => {
-        const query = `SELECT f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, f.user_id,
+        const query = `SELECT f.lemma_id, f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, f.user_id,
                             IFNULL (SUM(s.type = 1), 0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                             f.status, f.opprettet 
                             FROM forslag AS f
