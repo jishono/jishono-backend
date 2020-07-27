@@ -9,6 +9,7 @@ module.exports = {
             statistikk['oppslag_info'] = await App.getOppslagInfo()
             statistikk['nye_oversettelser'] = await App.getNyeOversettelser()
             statistikk['nye_forslag'] = await App.getNyeForslag()
+            statistikk['antall_kommentarer'] = await App.getAntallKommentarer()
             res.status(200).send(statistikk)
             
         } catch (error) {

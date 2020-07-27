@@ -40,13 +40,11 @@ module.exports = {
     },
     getNyeOversettelser: async () => {
         try {
-
              const query = `SELECT DATE_FORMAT(opprettet, '%d-%c') AS dato, count(*) AS antall
                              FROM definisjon AS d
                              WHERE opprettet BETWEEN NOW() - INTERVAL 30 DAY AND NOW()
                              GROUP BY dato
                              `
-
             const nye_oversettelser = await db.query(query)
 
             return nye_oversettelser
@@ -56,16 +54,28 @@ module.exports = {
     },
     getNyeForslag: async () => {
         try {
-
              const query = `SELECT DATE_FORMAT(opprettet, '%d-%c') AS dato, count(*) AS antall
                              FROM forslag AS f
                              WHERE opprettet BETWEEN NOW() - INTERVAL 30 DAY AND NOW()
                              GROUP BY dato
                              `
-
             const nye_forslag = await db.query(query)
 
             return nye_forslag
+        } catch (error) {
+            throw error
+        }
+    },
+    getAntallKommentarer: async () => {
+        try {
+             const query = `SELECT DATE_FORMAT(opprettet, '%d-%c') AS dato, count(*) AS antall
+                             FROM forslag_kommentarer AS fk
+                             WHERE opprettet BETWEEN NOW() - INTERVAL 30 DAY AND NOW()
+                             GROUP BY dato
+                             `
+            const antall_kommentarer = await db.query(query)
+
+            return antall_kommentarer
         } catch (error) {
             throw error
         }
