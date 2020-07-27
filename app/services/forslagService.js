@@ -1,12 +1,31 @@
 const db = require("../db/database")
 
 module.exports = {
+    getAktiveForslagFraDB: async (user_id) => {
+        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn, b.user_id,
+                        IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
+                        f.opprettet, (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
+                        (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer
+                        FROM forslag AS f
+                        INNER JOIN oppslag AS o USING (lemma_id)
+                        INNER JOIN brukere AS b USING (user_id)
+                        LEFT OUTER JOIN stemmer AS s USING (forslag_id)
+                        WHERE f.status = 0
+                        GROUP BY f.forslag_id`
+        try {
+            const forslag = await db.query(query, [user_id])
+            return forslag
+        } catch (error) {
+            throw error
+        }
+    },
     getBrukerforslagFraDB: async (user_id) => {
         const query = `SELECT f.lemma_id, f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, f.user_id,
                             IFNULL (SUM(s.type = 1), 0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
-                            f.status, f.opprettet 
+                            f.status, f.opprettet, IFNULL(COUNT(fk.forslag_id),0) AS antall_kommentarer
                             FROM forslag AS f
                             INNER JOIN oppslag AS o USING(lemma_id)
+                            LEFT OUTER JOIN forslag_kommentarer AS fk USING(forslag_id)
                             LEFT OUTER JOIN stemmer AS s USING(forslag_id)
                             WHERE f.user_id = ?
                             GROUP BY f.forslag_id`

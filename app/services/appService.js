@@ -54,4 +54,20 @@ module.exports = {
             throw error
         }
     },
+    getNyeForslag: async () => {
+        try {
+
+             const query = `SELECT DATE_FORMAT(opprettet, '%d-%c') AS dato, count(*) AS antall
+                             FROM forslag AS f
+                             WHERE opprettet BETWEEN NOW() - INTERVAL 30 DAY AND NOW()
+                             GROUP BY dato
+                             `
+
+            const nye_forslag = await db.query(query)
+
+            return nye_forslag
+        } catch (error) {
+            throw error
+        }
+    },
 }

@@ -32,17 +32,9 @@ module.exports = {
     getAllForslag: async (req, res) => {
         const user_id = res.locals.user_id
         try {
-            const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn, b.user_id,
-                        IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
-                        f.opprettet, (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme
-                        FROM forslag AS f
-                        INNER JOIN oppslag AS o USING (lemma_id)
-                        INNER JOIN brukere AS b USING (user_id)
-                        LEFT OUTER JOIN stemmer AS s USING (forslag_id)
-                        WHERE f.status = 0
-                        GROUP BY f.forslag_id`
-            oppslag = await db.query(query, [user_id])
-            res.status(200).send(oppslag)
+            let forslag = await Forslag.getAktiveForslagFraDB(user_id)
+            console.log(forslag)
+            res.status(200).send(forslag)
         } catch (error) {
             console.log(error)
         }
