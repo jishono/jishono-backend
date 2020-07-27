@@ -36,6 +36,67 @@ module.exports = {
             throw error
         }
     },
+    settInnStemmeDB: async (forslag_id, user_id, type) => {
+        const query = `INSERT INTO stemmer (forslag_id, user_id, type)
+                        VALUES (?, ?, ?)
+                        ON DUPLICATE KEY UPDATE
+                        type = VALUES (type)
+                        `
+        try {
+            await db.query(query, [forslag_id, user_id, type])
+
+        } catch (error) {
+            throw error
+        }
+    },
+    slettStemmeFraDB: async (forslag_id, user_id) => {
+        const query = `DELETE FROM stemmer
+                        WHERE forslag_id = ? 
+                        AND user_id = ?`
+        try {
+            await db.query(query, [forslag_id, user_id])
+
+        } catch (error) {
+            throw error
+        }
+    },
+    hentAntallStemmerPaaForslagFraDB: async (forslag_id) => {
+        const query = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes,
+                        IFNULL(SUM(s.type = 0),0) AS downvotes
+                        FROM stemmer AS s
+                        WHERE forslag_id = ?`
+        try {
+            const stemmer = await db.query(query, [forslag_id])
+            return stemmer[0]
+        } catch (error) {
+            throw error
+        }
+    },
+    hentForslagseierFraDB: async (forslag_id) => {
+        const query = `SELECT user_id FROM forslag
+                        WHERE forslag_id = ?`
+        try {
+            const forslagseier = await db.query(query, [forslag_id])
+            return forslagseier[0]
+        } catch (error) {
+            throw error
+        }
+    },
+    hentStemmerFraBruker: async (forslag_id, user_id) => {
+        try {
+            let query = `SELECT s.stemme_id, s.type
+                        FROM stemmer AS s
+                        WHERE s.forslag_id = ?
+                        AND s.user_id = ?
+                        `
+            const stemmer = await db.query(query, [forslag_id, user_id])
+            console.log(stemmer)
+            return stemmer
+
+        } catch (error) {
+            throw error
+        }
+    },
     slettForslagFraDB: async (forslag_id, user_id) => {
         try {
             let query1 = `DELETE FROM forslag
@@ -51,7 +112,17 @@ module.exports = {
             throw error
         }
     },
-    leggForslagTilDB: async (forslag_id, redigert_forslag = null) => {
+    leggForslagTilDB: async (forslag) => {
+        try {
+            const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
+                            VALUES ?`
+            await db.query(query, [forslag])
+
+        } catch (error) {
+            throw error
+        }
+    },
+    gjorForslagTilDefinisjonDB: async (forslag_id, redigert_forslag = null) => {
         try {
             const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id
                           FROM forslag
@@ -72,8 +143,6 @@ module.exports = {
                           VALUES (?, ?, ?, ?)`
             await db.query(query4, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
 
-            //await module.exports.slettForslagFraDB(forslag_id, null)
-
         } catch (error) {
             throw error
         }
@@ -83,7 +152,7 @@ module.exports = {
             const query = `UPDATE forslag SET status = ?
                             WHERE forslag_id = ?`
 
-            const result = await db.query(query, [statuskode, forslag_id])
+            await db.query(query, [statuskode, forslag_id])
 
         } catch (error) {
             throw error

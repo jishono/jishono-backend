@@ -1,41 +1,30 @@
-const forslagController = require("../controllers/forslagController.js");
+
 
 
 module.exports = app => {
-    const jisho = require("../controllers/jisho.controller.js");
     const appController = require("../controllers/appController.js");
     const userController = require("../controllers/userController.js");
+    const oppslagController = require("../controllers/oppslagController.js");
+    const forslagController = require("../controllers/forslagController.js");
     const { auth } = require("../routes/auth.js")
     const admin = require("../routes/admin.js")
   
     var router = require("express").Router();
   
-    // Legg til helt nytt oppslag
-    //router.post("/", jisho.create);
+    router.get("/search", auth, oppslagController.searchOppslag);
   
-    // Vis alle oppslag og søk
-    router.get("/search", auth, jisho.searchOppslag);
+    router.get("/oppslag/:id", auth, oppslagController.getOppslag);
+
+    router.get("/kommentarer/:id", auth, oppslagController.getKommentarer);
+
+    router.get("/boyning/:id", auth, oppslagController.findBoyning);
   
-    // Vis enkelt oppslag med all data
-    router.get("/oppslag/:id", auth, jisho.getOppslag);
-
-    // Hent kommentarer for enkeltoppslag
-    router.get("/kommentarer/:id", auth, jisho.getKommentarer);
-
-    // Hent bøyningsmønstre
-    router.get("/boyning/:id", auth, jisho.findBoyning);
+    router.put("/update/:id", auth, admin, oppslagController.oppdaterOppslag);
   
-    // Oppdater data om et oppslag
-    router.put("/update/:id", auth, admin, jisho.update);
-  
-    router.post("/logg_inn", jisho.loggInn)
-
-    router.post("/registrer", jisho.registrer)
-
-    router.get("/anbefalinger", auth, jisho.getAnbefalinger)
+    router.get("/anbefalinger", auth, appController.getAnbefalinger)
 
     //Forslags-ruter
-    router.post("/forslag/:id", auth, forslagController.addForslag);
+    router.post("/oppslag/:id/nytt_forslag", auth, forslagController.addForslag);
 
     router.get("/forslag", auth, forslagController.getAllForslag)
 
@@ -56,6 +45,10 @@ module.exports = app => {
     router.post("/forslag/:id/fjern", auth, forslagController.fjernForslag)
 
     // Bruker-ruter
+
+    router.post("/logg_inn", userController.loggInn)
+
+    router.post("/registrer", userController.registrerBruker)
     
     router.get("/bruker/:id", auth, userController.getBruker)
 

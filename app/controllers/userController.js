@@ -9,6 +9,48 @@ module.exports = {
         res.status(200).send(brukerdata)
 
     },
+    loggInn: async (req, res) => {
+        console.log(req.body.username + " trying to log in...")
+
+        try {
+            let bruker = await User.hentBrukerMedBrukernavn(req.body.username)
+
+            if (bruker.length === 0) {
+                return res.status(401).send('Feil brukernavn eller passord')
+            }
+            bruker = bruker[0]
+            const passord_gyldig = User.sjekkPassordBcrypt(req.body.password, bruker.passord_hash)
+            if (!passord_gyldig || !bruker) {
+                return res.status(401).send('Feil brukernavn eller passord')
+            }
+            const token = User.genererJWT(bruker)
+            await User.oppdaterSistInnlogget(bruker.user_id)
+            res.status(200).send({ auth: true, token: token, user_id: bruker.user_id, username: bruker.brukernavn, admin: bruker.admin });
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Noe gikk galt under innlogging")
+        }
+    },
+
+    registrerBruker: async (req, res) => {
+        try {
+            const ny_brukerdata = req.body
+            const validert = User.validerNyBrukerdata(ny_brukerdata)
+
+            if (!validert.gyldig) {
+                return res.status(validert.status).send(validert.melding)
+            }
+            await User.opprettBrukerDB(ny_brukerdata)
+            res.status(201).send("Bruker opprettet. Du kan nå logge inn.")
+        } catch (error) {
+            console.log(error)
+            if (error.errno === 1062) {
+                res.status(500).send("Brukernavn eller e-post finnes allerede i systemet")
+            } else {
+                res.status(500).send("Noe gikk galt")
+            }
+        }
+    },
     updateBrukerdata: async (req, res) => {
         const user_id = res.locals.user_id
         const gammelt_passord = req.body.gammelt_passord
@@ -17,7 +59,7 @@ module.exports = {
         let message = 'Profil oppdatert.'
 
         try {
-            const korrekt_passord = await User.sjekkPassord(gammelt_passord, user_id)
+            const korrekt_passord = await User.sjekkPassordmedID(gammelt_passord, user_id)
             if (!korrekt_passord) {
                 return res.status(401).send("Feil passord")
             }

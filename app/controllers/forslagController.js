@@ -1,39 +1,33 @@
 const Forslag = require("../services/forslagService")
-const db = require("../db/database")
+const Oppslag = require("../services/oppslagService")
 
 module.exports = {
     addForslag: async (req, res) => {
 
-        const oppslag = req.body.oppslag
+        const forslag_definisjoner = req.body.forslag_definisjoner
+        const lemma_id = req.body.lemma_id
         const user_id = res.locals.user_id
         try {
-            const query1 = `SELECT definisjon FROM definisjon
-                          WHERE lemma_id = ?`
 
-            const current_defs = await db.query(query1, [oppslag.lemma_id])
+            const current_defs = await Oppslag.hentAlleDefinisjonerPaaOppslag(lemma_id)
             if (current_defs.length > 0) {
-                res.status(403).send("Du kan ikke legge til forslag i ord med eksisterende definisjoner")
-            } else {
-                if (oppslag.definisjon.length > 0 && oppslag.definisjon[0]['definisjon'] != '') {
-                    const query2 = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
-                            VALUES ?`
-                    await db.query(query2, [oppslag.definisjon.map(def => [def.lemma_id, user_id, def.definisjon])])
-                    res.status(200).send("Forslag lagt til. Videresender til forslagsoversikt...")
-
-                } else {
-                    res.status(400).send("Du må komme med minst ett forslag")
-                }
+                return res.status(403).send("Du kan ikke legge til forslag i ord med eksisterende definisjoner")
             }
+            if (forslag_definisjoner.length > 0 && forslag_definisjoner[0]['definisjon'] != '') {
+                await Forslag.leggForslagTilDB(forslag_definisjoner.map(def => [lemma_id, user_id, def]))
+                return res.status(200).send("Forslag lagt til. Videresender til forslagsoversikt...")
+            }
+            res.status(400).send("Du må komme med minst ett forslag")
+
         } catch (error) {
             console.log(error)
-            res.status(500).send("Noe gikk galt")
+            res.status(500).send("Kunne ikke legge til forslag")
         }
     },
     getAllForslag: async (req, res) => {
         const user_id = res.locals.user_id
         try {
             let forslag = await Forslag.getAktiveForslagFraDB(user_id)
-            console.log(forslag)
             res.status(200).send(forslag)
         } catch (error) {
             console.log(error)
@@ -47,7 +41,7 @@ module.exports = {
 
         } catch (error) {
             console.log(error)
-            res.status(500).send("Noe gikk galt.")
+            res.status(500).send("Noe gikk galt under henting av forslag")
         }
     },
     stemForslag: async (req, res) => {
@@ -55,57 +49,36 @@ module.exports = {
         const forslag_id = req.params.id
         const type = req.body.type
         try {
-            const query1 = `SELECT s.stemme_id, s.type
-                        FROM stemmer AS s
-                        WHERE s.user_id = ?
-                        AND s.forslag_id = ?
-                        `
-            result = await db.query(query1, [user_id, forslag_id])
-            console.log(result)
 
-            if (result.length > 0 && result[0].type == type) {
-                const query2 = `DELETE FROM stemmer
-                            WHERE user_id = ? AND forslag_id = ?`
-                await db.query(query2, [user_id, forslag_id])
+            const stemmer_bruker = await Forslag.hentStemmerFraBruker(forslag_id, user_id)
+
+            if (stemmer_bruker.length > 0 && stemmer_bruker[0].type == type) {
+                await Forslag.slettStemmeFraDB(forslag_id, user_id)
                 return res.status(200).send("Stemme fjernet")
             }
-            const query3 = `SELECT user_id FROM forslag
-                            WHERE forslag_id = ?`
-            const forslag_user_id = await db.query(query3, [forslag_id])
-            if (user_id == forslag_user_id[0].user_id) {
+            const forslagseier = await Forslag.hentForslagseierFraDB(forslag_id)
+            if (user_id == forslagseier.user_id) {
                 return res.status(400).send("Du kan ikke stemme på ditt eget forslag.")
             }
 
-            const query4 = `INSERT INTO stemmer (forslag_id, user_id, type)
-                            VALUES (?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                            type = VALUES (type)
-                            `
-            await db.query(query4, [forslag_id, user_id, type])
+            await Forslag.settInnStemmeDB(forslag_id, user_id, type)
 
-            const query5 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes,
-                            IFNULL(SUM(s.type = 0),0) AS downvotes
-                            FROM stemmer AS s
-                            WHERE forslag_id = ?`
+            const antall_stemmer = await Forslag.hentAntallStemmerPaaForslagFraDB(forslag_id)
 
-            let votes = await db.query(query5, [forslag_id])
-            votes = votes[0]
-
-            if (votes.upvotes >= 5) {
-                await Forslag.leggForslagTilDB(forslag_id)
+            if (antall_stemmer.upvotes >= 5) {
+                await Forslag.gjorForslagTilDefinisjonDB(forslag_id)
                 await Forslag.settStatusForslag(forslag_id, 1)
                 return res.status(200).send('Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka')
             }
-            if (votes.downvotes >= 2) {
+            if (antall_stemmer.downvotes >= 2) {
                 await Forslag.settStatusForslag(forslag_id, 4)
                 return res.status(200).send('Forslaget har fått mer enn 5 downvotes og er derfor slettet')
             }
-
             res.status(200).send('Stemme mottatt')
 
         } catch (error) {
             console.log(error)
-            res.status(500).send("Noe gikk galt")
+            res.status(500).send("Noe gikk galt under stemming på forslag")
         }
     },
     adminGodkjennForslag: async (req, res) => {
@@ -122,7 +95,7 @@ module.exports = {
             res.status(200).send("Forslag godkjent og lagt til i ordboka")
         } catch (error) {
             console.log(error)
-            res.status(500).send("Noe gikk galt")
+            res.status(500).send("Kunne ikke godkjenne forslag")
         }
 
     },
@@ -136,7 +109,7 @@ module.exports = {
             res.status(200).send("Forslag redigert og stemmer nullstilt.")
         } catch (error) {
             console.log(error)
-            res.status(500).send("Noe gikk galt")
+            res.status(500).send("Kunne ikke redigere forslag")
         }
 
     },
@@ -144,7 +117,6 @@ module.exports = {
     avvisForslag: async (req, res) => {
         const forslag_id = req.params.id
         try {
-            //await module.exports.slettForslagFraDB(forslag_id, null)
             await Forslag.settStatusForslag(forslag_id, 4)
             res.status(200).send("Forslag avvist")
         } catch (error) {
@@ -168,7 +140,6 @@ module.exports = {
     getForslagKommentarer: async (req, res) => {
 
         const forslag_id = req.params.id
-
         try {
             const kommentarer = await Forslag.hentForslagKommentarerFraDB(forslag_id)
             res.status(200).send(kommentarer)
@@ -191,6 +162,4 @@ module.exports = {
             res.status(500).send("Kunne ikke legge til kommentar")
         }
     },
-
-
 }
