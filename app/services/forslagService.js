@@ -2,7 +2,7 @@ const db = require("../db/database")
 
 module.exports = {
     getBrukerforslagFraDB: async (user_id) => {
-        const query = `SELECT f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon,
+        const query = `SELECT f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, f.user_id,
                             IFNULL (SUM(s.type = 1), 0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                             f.status, f.opprettet 
                             FROM forslag AS f
@@ -43,7 +43,7 @@ module.exports = {
                 forslag.forslag_definisjon = redigert_forslag
                 const query2 = `UPDATE forslag SET forslag_definisjon = ?
                                 WHERE forslag_id = ?`
-                await db.query(query2, [redigert_forslag, forslag_id] )
+                await db.query(query2, [redigert_forslag, forslag_id])
             }
             const query3 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = ?`
             let result = await db.query(query3, [forslag.lemma_id])
@@ -65,7 +65,60 @@ module.exports = {
                             WHERE forslag_id = ?`
 
             const result = await db.query(query, [statuskode, forslag_id])
-            console.log(result)
+
+        } catch (error) {
+            throw error
+        }
+    },
+    hentForslagKommentarerFraDB: async (forslag_id) => {
+        try {
+            const query = `SELECT fk.forslag_kommentar_id, fk.forslag_id, b.brukernavn,
+                            fk.opprettet, fk.kommentar
+                            FROM forslag_kommentarer AS fk
+                            INNER JOIN brukere AS b USING(user_id)
+                            WHERE forslag_id = ?
+                            ORDER BY fk.opprettet DESC
+                           `
+
+            const kommentarer = await db.query(query, [forslag_id])
+            return kommentarer
+
+        } catch (error) {
+            throw error
+        }
+    },
+    leggForslagKommentarTilDB: async (forslag_id, user_id, kommentar) => {
+        try {
+            const query = `INSERT INTO forslag_kommentarer (forslag_id, user_id, kommentar) 
+                            VALUES (?, ?, ?)
+                           `
+
+            await db.query(query, [forslag_id, user_id, kommentar])
+
+        } catch (error) {
+            throw error
+        }
+    },
+    endreForslagDB: async (forslag_id, user_id, nytt_forslag) => {
+        try {
+            const query = `UPDATE forslag SET forslag_definisjon = ?
+                            WHERE forslag_id = ?
+                            AND user_id = ?
+                           `
+            await db.query(query, [nytt_forslag, forslag_id, user_id])
+
+        } catch (error) {
+            throw error
+        }
+    },
+    nullstillStemmerDB: async (forslag_id, user_id) => {
+        try {
+            const query = `DELETE s FROM stemmer AS s
+                            INNER JOIN forslag AS f USING(forslag_id)
+                            WHERE s.forslag_id = ?
+                            AND f.user_id = ?
+                           `
+            await db.query(query, [forslag_id, user_id])
 
         } catch (error) {
             throw error

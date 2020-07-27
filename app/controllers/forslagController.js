@@ -51,7 +51,6 @@ module.exports = {
         const user_id = res.locals.user_id
         try {
             const brukerforslag = await Forslag.getBrukerforslagFraDB(user_id)
-            console.log(brukerforslag)
             res.status(200).send(brukerforslag)
 
         } catch (error) {
@@ -64,33 +63,41 @@ module.exports = {
         const forslag_id = req.params.id
         const type = req.body.type
         try {
-            const query1 = `SELECT stemme_id, type 
+            const query1 = `SELECT s.stemme_id, s.type
                         FROM stemmer AS s
-                        WHERE user_id = ?
-                        AND forslag_id = ?
+                        WHERE s.user_id = ?
+                        AND s.forslag_id = ?
                         `
             result = await db.query(query1, [user_id, forslag_id])
+            console.log(result)
+
             if (result.length > 0 && result[0].type == type) {
                 const query2 = `DELETE FROM stemmer
                             WHERE user_id = ? AND forslag_id = ?`
                 await db.query(query2, [user_id, forslag_id])
                 return res.status(200).send("Stemme fjernet")
             }
-            const query3 = `INSERT INTO stemmer (forslag_id, user_id, type)
+            const query3 = `SELECT user_id FROM forslag
+                            WHERE forslag_id = ?`
+            const forslag_user_id = await db.query(query3, [forslag_id])
+            if (user_id == forslag_user_id[0].user_id) {
+                return res.status(400).send("Du kan ikke stemme på ditt eget forslag.")
+            }
+
+            const query4 = `INSERT INTO stemmer (forslag_id, user_id, type)
                             VALUES (?, ?, ?)
                             ON DUPLICATE KEY UPDATE
                             type = VALUES (type)
                             `
-            await db.query(query3, [forslag_id, user_id, type])
+            await db.query(query4, [forslag_id, user_id, type])
 
-            const query4 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes,
+            const query5 = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes,
                             IFNULL(SUM(s.type = 0),0) AS downvotes
                             FROM stemmer AS s
                             WHERE forslag_id = ?`
 
-            let votes = await db.query(query4, [forslag_id])
+            let votes = await db.query(query5, [forslag_id])
             votes = votes[0]
-            console.log(votes)
 
             if (votes.upvotes >= 5) {
                 await Forslag.leggForslagTilDB(forslag_id)
@@ -127,7 +134,21 @@ module.exports = {
         }
 
     },
-   
+    redigerForslag: async (req, res) => {
+        const forslag_id = req.params.id
+        const user_id = res.locals.user_id
+        const redigert_forslag = req.body.redigert_forslag
+        try {
+            await Forslag.endreForslagDB(forslag_id, user_id, redigert_forslag)
+            await Forslag.nullstillStemmerDB(forslag_id, user_id)
+            res.status(200).send("Forslag redigert og stemmer nullstilt.")
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Noe gikk galt")
+        }
+
+    },
+
     avvisForslag: async (req, res) => {
         const forslag_id = req.params.id
         try {
@@ -145,13 +166,39 @@ module.exports = {
         const user_id = res.locals.user_id
 
         try {
-            await module.exports.slettForslagFraDB(forslag_id, user_id)
+            await Forslag.slettForslagFraDB(forslag_id, user_id)
             res.status(200).send("Forslag fjernet")
         } catch (error) {
             console.log(error)
             res.status(500).send("Kunne ikke fjerne forslag")
         }
     },
+    getForslagKommentarer: async (req, res) => {
 
-    
+        const forslag_id = req.params.id
+
+        try {
+            const kommentarer = await Forslag.hentForslagKommentarerFraDB(forslag_id)
+            res.status(200).send(kommentarer)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Kunne ikke legge til kommentar")
+        }
+    },
+    postForslagKommentar: async (req, res) => {
+
+        const forslag_id = req.params.id
+        const user_id = res.locals.user_id
+        const ny_kommentar = req.body.ny_kommentar
+
+        try {
+            await Forslag.leggForslagKommentarTilDB(forslag_id, user_id, ny_kommentar)
+            res.status(200).send("Kommentar lagt til")
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Kunne ikke legge til kommentar")
+        }
+    },
+
+
 }

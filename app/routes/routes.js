@@ -40,10 +40,16 @@ module.exports = app => {
     router.get("/forslag", auth, forslagController.getAllForslag)
 
     router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag)
+
+    router.get("/forslag/:id/kommentarer", auth, forslagController.getForslagKommentarer)
+
+    router.post("/forslag/:id/ny_kommentar", auth, forslagController.postForslagKommentar)
     
     router.post("/forslag/:id/stem", auth, forslagController.stemForslag)
 
     router.post("/forslag/:id/godkjenn", auth, admin, forslagController.adminGodkjennForslag)
+
+    router.post("/forslag/:id/rediger", auth, forslagController.redigerForslag)
 
     router.post("/forslag/:id/avvis", auth, admin, forslagController.avvisForslag)
 
