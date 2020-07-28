@@ -13,7 +13,7 @@ module.exports = {
             if (current_defs.length > 0) {
                 return res.status(403).send("Du kan ikke legge til forslag i ord med eksisterende definisjoner")
             }
-            if (forslag_definisjoner.length > 0 && forslag_definisjoner[0]['definisjon'] != '') {
+            if (forslag_definisjoner.length > 0 && forslag_definisjoner[0] != '') {
                 await Forslag.leggForslagTilDB(forslag_definisjoner.map(def => [lemma_id, user_id, def]))
                 return res.status(200).send("Forslag lagt til. Videresender til forslagsoversikt...")
             }
