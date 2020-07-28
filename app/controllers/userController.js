@@ -25,7 +25,7 @@ module.exports = {
             }
             const token = User.genererJWT(bruker)
             await User.oppdaterSistInnlogget(bruker.user_id)
-            res.status(200).send({ auth: true, token: token, user_id: bruker.user_id, username: bruker.brukernavn, admin: bruker.admin });
+            res.status(200).send({ auth: true, token: token, user_id: bruker.user_id, username: bruker.brukernavn, admin: bruker.admin, locale: bruker.locale });
         } catch (error) {
             console.log(error)
             res.status(500).send("Noe gikk galt under innlogging")
@@ -56,10 +56,11 @@ module.exports = {
         const gammelt_passord = req.body.gammelt_passord
         const nytt_passord = req.body.nytt_passord
         const epost = req.body.epost
+        const locale = req.body.locale
         let message = 'Profil oppdatert.'
 
         try {
-            const korrekt_passord = await User.sjekkPassordmedID(gammelt_passord, user_id)
+            const korrekt_passord = await User.sjekkPassordMedID(gammelt_passord, user_id)
             if (!korrekt_passord) {
                 return res.status(401).send("Feil passord")
             }
@@ -74,6 +75,12 @@ module.exports = {
                 return res.status(400).send('Ugyldig e-post-adresse')
             }
             await User.updateEpostDB(user_id, epost)
+            
+            if (!locale == 'no' || !locale == 'jp') {
+                return res.status(400).send('Ugyldig språkvalg.')
+            }
+            await User.updateLocaleDB(user_id, locale)
+
             res.status(200).send(message)
         } catch (error) {
             console.log(error)

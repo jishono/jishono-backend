@@ -38,7 +38,7 @@ module.exports = {
         }
     },
     genererJWT: (bruker) => {
-        const token = jwt.sign({ user: bruker.brukernavn, user_id: bruker.user_id, admin: bruker.admin }, config.jwt.secret, {
+        const token = jwt.sign({ user: bruker.brukernavn, user_id: bruker.user_id, admin: bruker.admin, locale: bruker.locale }, config.jwt.secret, {
             expiresIn: '30d'
         })
         return token
@@ -84,7 +84,7 @@ module.exports = {
         }
     },
     getBrukerdataFraDB: async (user_id) => {
-        const query = `SELECT user_id, brukernavn, epost, admin
+        const query = `SELECT user_id, brukernavn, epost, locale, admin
                         FROM brukere
                         WHERE user_id = ?`
         try {
@@ -104,7 +104,17 @@ module.exports = {
         } catch (error) {
             throw error
         }
+    },
+    updateLocaleDB: async (user_id, locale) => {
 
+        const query = `UPDATE brukere
+                    SET locale = ?
+                    WHERE user_id = ?`
+        try {
+            await db.query(query, [locale, user_id])
+        } catch (error) {
+            throw error
+        }
     },
     updatePassordDB: async (user_id, nytt_passord) => {
         const kryptert_passord = module.exports.krypterPassord(nytt_passord)
