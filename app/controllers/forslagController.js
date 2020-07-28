@@ -86,7 +86,7 @@ module.exports = {
         const redigert_forslag = req.body.redigert_forslag
         const endret = req.body.endret
         try {
-            await Forslag.leggForslagTilDB(forslag_id, redigert_forslag)
+            await Forslag.gjorForslagTilDefinisjonDB(forslag_id, redigert_forslag)
             if (endret) {
                 await Forslag.settStatusForslag(forslag_id, 3)
             } else {
