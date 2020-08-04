@@ -49,13 +49,13 @@ module.exports = {
         try {
 
             let oppslag_info = []
-            const query1 = `SELECT 'Oversatte ord' AS tittel, COUNT(DISTINCT lemma_id) AS antall
+            const query1 = `SELECT 'Ord med oversettelser' AS tittel, COUNT(DISTINCT lemma_id) AS antall
                             FROM definisjon AS d
                             `
             const result1 = await db.query(query1)
             oppslag_info.push(result1[0])
 
-            const query2 = `SELECT 'Ord uten oversettelse' AS tittel, 
+            const query2 = `SELECT 'Ord uten oversettelser' AS tittel, 
                             COUNT(DISTINCT lemma_id) AS antall
                             FROM oppslag AS o
                             WHERE lemma_id NOT IN (SELECT lemma_id FROM definisjon)
