@@ -1,5 +1,5 @@
-
 const App = require("../services/appService")
+const msg = require('../locale/msg.json')
 
 module.exports = {
     getStatistikk: async (req, res) => {
@@ -14,7 +14,7 @@ module.exports = {
 
         } catch (error) {
             console.log(error)
-            res.status(500).send("Kunne ikke hente statistikk")
+            res.status(500).send(msg.generell_error)
         }
     },
     getAnbefalinger: async (req, res) => {
@@ -23,7 +23,7 @@ module.exports = {
             res.status(200).send(anbefalinger)
         } catch (error) {
             console.log(error)
-            res.status(500).send("Noe gikk galt under henting av anbefalinger")
+            res.status(500).send(msg.generell_error)
         }
     }
 }

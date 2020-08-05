@@ -1,0 +1,128 @@
+{
+    "generell_error": {
+        "no": "Ooops, noe gikk galt.",
+        "ja": "あらまあ、なんかエラー発生したみたい"
+    },
+    "oppdatert": {
+        "no": "Oppdatert!",
+        "ja": "更新されました！"
+    },
+    "user": {
+        "logg_inn_error": {
+            "no": "Feil brukernavn eller passord",
+            "ja": "ユーザー名かパスワードが間違っています"
+        },
+        "registrer": {
+            "ok": {
+                "no": "Bruker opprettet. Videresender til innlogging...",
+                "ja": "ユーザー登録が完了されました。まもなくログインに転送されます。"
+            },
+            "finnes": {
+                "no": "Brukernavn eller e-post finnes allerede i systemet.",
+                "ja": "ユーザーかメールアドレスがすでに登録されています。"
+            },
+            "feil_svar": {
+                "no": "Feil svar.",
+                "ja": "答えが間違っています。"
+            },
+            "mangler_epost": {
+                "no": "E-postadresse mangler.",
+                "ja": "メールアドレスを入力してください。"
+            },
+            "ugyldig_epost": {
+                "no": "Ugyldig e-post-adresse.",
+                "ja": "有効なアドレスを使用してください。"
+            },
+            "mangler_brukernavn": {
+                "no": "Brukernavn mangler.",
+                "ja": "ユーザー名を入力してください。"
+            },
+            "ugyldig_brukernavn": {
+                "no": "Brukernavnet må være mellom 6 og 12 tegn",
+                "ja": "ユーザー名は6文字から12文字までにしてください。"
+            },
+            "mangler_passord": {
+                "no": "Passord mangler.",
+                "ja": "パスワードを入力してください。"
+            },
+            "ugyldig_passord": {
+                "no": "Passordet må ha 6 tegn eller mer",
+                "ja": "パスワードは6文字以上にしてください。"
+            }
+        },
+        "profil": {
+            "feil_passord": {
+                "no": "Feil passord",
+                "ja": "パスワードが間違っています。"
+            },
+            "oppdatert": {
+                "no": "Profil oppdatert.",
+                "ja": "プロフィール情報が更新されました。"
+            },
+            "passord_oppdatert": {
+                "no": " Nytt passord registrert.",
+                "ja": "新しいパスワードが登録されました。"
+            },
+            "ugyldig_språk": {
+                "no": "Ugyldig språkvalg.",
+                "ja": ""
+            }
+        }
+    },
+    "forslag": {
+        "eksisterende_def": {
+            "no": "Du kan ikke legge til forslag i ord med eksisterende definisjoner",
+            "ja": ""
+        },
+        "lagt_til": {
+            "no": "Forslag lagt til. Videresender til forslagsoversikt...",
+            "ja": "提案が登録されました。提案一覧に転送されます。。。"
+        },
+        "minst_ett": {
+            "no": "Du må komme med minst ett forslag",
+            "ja": "一つ以上の意味の提案を書いてください。"
+        },
+        "stemme_fjernet": {
+            "no": "Stemme fjernet",
+            "ja": "投票を取り消しました。"
+        },
+        "eget_forslag": {
+            "no": "Du kan ikke stemme på ditt eget forslag.",
+            "ja": "自分の提案に投票できません。"
+        },
+        "godkjent_upvotes": {
+            "no": "Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka",
+            "ja": ""
+        },
+        "avvist_downvotes": {
+            "no": "Forslaget har fått mer enn 5 downvotes og er derfor slettet",
+            "ja": ""
+        },
+        "stemme_mottatt": {
+            "no": "Stemme mottatt",
+            "ja": "投票が登録されました。"
+        },
+        "godkjent": {
+            "no": "Forslag godkjent og lagt til i ordboka",
+            "ja": "提案を承認し、辞書に追加しました。"
+        },
+        "redigert_nullstilt": {
+            "no": "Forslag redigert og stemmer nullstilt.",
+            "ja": "提案が編集されて、投票数がリセットされました。"
+        },
+        "avvist": {
+            "no": "Forslag avvist",
+            "ja": "提案を却下しました。"
+        },
+        "fjernet": {
+            "no": "Forslag fjernet",
+            "ja": "提案を取り消しました。"
+        }
+    },
+    "kommentarer": {
+        "lagt_til": {
+            "no": "Kommentar lagt til.",
+            "ja": "コメントが登録されました。"
+        }
+    }
+}

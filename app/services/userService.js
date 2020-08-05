@@ -2,6 +2,8 @@ const db = require("../db/database")
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require("../config/config")
+const msg = require('../locale/msg.json')
+
 
 module.exports = {
     krypterPassord: (passord) => {
@@ -45,30 +47,30 @@ module.exports = {
     },
     validerNyBrukerdata: (ny_brukerdata) => {
         if (ny_brukerdata.check.toLowerCase() != 'elleve') {
-            return { gyldig: false, status: 401, melding: 'Feil svar' }
+            return { gyldig: false, status: 401, melding: msg.user.registrer.feil_svar  }
         }
         const email = ny_brukerdata.email
         if (!email) {
-            return { gyldig: false, status: 400, melding: 'E-post-adresse mangler' }
+            return { gyldig: false, status: 400, melding: msg.user.registrer.mangler_epost }
         }
         if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
-            return { gyldig: false, status: 400, melding: 'Ugyldig e-post-adresse' }
+            return { gyldig: false, status: 400, melding: msg.user.registrer.ugyldig_epost }
         }
 
         const username = ny_brukerdata.username
         if (!username) {
-            return { gyldig: false, status: 400, melding: 'Fornavn mangler' }
+            return { gyldig: false, status: 400, melding: msg.user.registrer.mangler_brukernavn }
         }
-        if (username.length < 6 && username.length < 13) {
-            return { gyldig: false, status: 400, melding: 'Ugyldig brukernavn. Brukernavnet må være mellom 6 og 12 tegn' }
+        if (username.length < 6 || username.length > 13) {
+            return { gyldig: false, status: 400, melding: msg.user.registrer.ugyldig_brukernavn }
         }
 
         const password = ny_brukerdata.password
         if (!password) {
-            return { gyldig: false, status: 400, melding: 'Passord mangler' }
+            return { gyldig: false, status: 400, melding: msg.user.registrer.mangler_passord }
         }
         if (password.length < 6) {
-            return { gyldig: false, status: 400, melding: 'Ugyldig passord. Passordet må ha 6 tegn eller mer' }
+            return { gyldig: false, status: 400, melding: msg.user.registrer.ugyldig_passord }
         }
         return { gyldig: true }
     },

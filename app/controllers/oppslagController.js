@@ -1,6 +1,6 @@
 const db = require("../db/database")
 const Oppslag = require("../services/oppslagService")
-
+const msg = require('../locale/msg.json')
 
 module.exports = {
   getOppslag: async (req, res) => {
@@ -12,7 +12,7 @@ module.exports = {
       res.status(200).send(oppslag)
     } catch (error) {
       console.log(error)
-      res.status(500).send("Kunne ikke hente oppslag")
+      res.status(500).send(msg.generell_error)
     }
   },
   getKommentarer: async (req, res) => {
@@ -22,7 +22,7 @@ module.exports = {
       res.status(200).send(kommentarer)
     } catch (error) {
       console.log(error)
-      res.status(500).send("Kunne ikke hente kommentarer")
+      res.status(500).send(msg.generell_error)
     }
   },
   searchOppslag: async (req, res) => {
@@ -32,7 +32,7 @@ module.exports = {
       res.status(200).send(treff)
     } catch (error) {
       console.log(error)
-      res.status(500).send("Noe gikk galt")
+      res.status(500).send(msg.generell_error)
     }
   },
 
@@ -46,6 +46,7 @@ module.exports = {
       res.status(200).send(result)
     } catch (error) {
       console.log(error)
+      res.status(500).send(msg.generell_error)
     }
   },
 
@@ -63,7 +64,7 @@ module.exports = {
         await Oppslag.slettDefinisjonerFraDB(deldata.def)
       } catch (error) {
         console.log(error)
-        return res.status(500).send("Noe gikk galt under sletting av definisjoner")
+        return res.status(500).send(msg.generell_error)
       }
     }
 
@@ -72,7 +73,7 @@ module.exports = {
         await Oppslag.slettUttaleFraDB(deldata.uttale)
       } catch (error) {
         console.log(error)
-        return res.status(500).send("Noe gikk galt under sletting av uttaler")
+        return res.status(500).send(msg.generell_error)
       }
     }
 
@@ -80,7 +81,7 @@ module.exports = {
       await Oppslag.oppdaterLeddOppslagDB(oppslag.ledd, oppslag.lemma_id)
     } catch (error) {
       console.log(error)
-      return res.status(500).send("Noe gikk galt under oppdatering av ledd")
+      return res.status(500).send(msg.generell_error)
     }
     let pri = 1
     if (defs.length > 0) {
@@ -94,7 +95,7 @@ module.exports = {
 
       } catch (error) {
         console.log(error)
-        return res.status(500).send("Noe gikk galt under oppdatering av definisjoner")
+        return res.status(500).send(msg.generell_error)
       }
     }
 
@@ -104,7 +105,7 @@ module.exports = {
 
       } catch (error) {
         console.log(error)
-        return res.status(500).send("Noe gikk galt under oppdatering av uttale")
+        return res.status(500).send(msg.generell_error)
       }
     }
     console.log(ny_kommentar)
@@ -113,9 +114,9 @@ module.exports = {
         await Oppslag.leggTilOppslagKommentarDB(lemma_id, user_id, ny_kommentar)
       } catch (error) {
         console.log(error)
-        return res.status(500).send("Noe gikk galt under oppretting av ny kommentar")
+        return res.status(500).send(msg.generell_error)
       }
     }
-    res.status(200).send("Oppdatert!")
+    res.status(200).send(msg.oppdatert)
   }
 }

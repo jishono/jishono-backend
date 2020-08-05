@@ -1,5 +1,6 @@
 const Forslag = require("../services/forslagService")
 const Oppslag = require("../services/oppslagService")
+const msg = require('../locale/msg.json')
 
 module.exports = {
     addForslag: async (req, res) => {
@@ -11,17 +12,17 @@ module.exports = {
 
             const current_defs = await Oppslag.hentAlleDefinisjonerPaaOppslag(lemma_id)
             if (current_defs.length > 0) {
-                return res.status(403).send("Du kan ikke legge til forslag i ord med eksisterende definisjoner")
+                return res.status(403).send(msg.forslag.eksisterende_def)
             }
             if (forslag_definisjoner.length > 0 && forslag_definisjoner[0] != '') {
                 await Forslag.leggForslagTilDB(forslag_definisjoner.map(def => [lemma_id, user_id, def]))
-                return res.status(200).send("Forslag lagt til. Videresender til forslagsoversikt...")
+                return res.status(200).send(msg.forslag.lagt_til)
             }
-            res.status(400).send("Du må komme med minst ett forslag")
+            res.status(400).send(msg.forslag.minst_ett)
 
         } catch (error) {
             console.log(error)
-            res.status(500).send("Kunne ikke legge til forslag")
+            res.status(500).send(msg.generell_error)
         }
     },
     getAllForslag: async (req, res) => {
@@ -41,7 +42,7 @@ module.exports = {
 
         } catch (error) {
             console.log(error)
-            res.status(500).send("Noe gikk galt under henting av forslag")
+            res.status(500).send(msg.generell_error)
         }
     },
     stemForslag: async (req, res) => {
@@ -54,11 +55,11 @@ module.exports = {
 
             if (stemmer_bruker.length > 0 && stemmer_bruker[0].type == type) {
                 await Forslag.slettStemmeFraDB(forslag_id, user_id)
-                return res.status(200).send("Stemme fjernet")
+                return res.status(200).send(msg.forslag.stemme_fjernet)
             }
             const forslagseier = await Forslag.hentForslagseierFraDB(forslag_id)
             if (user_id == forslagseier.user_id) {
-                return res.status(400).send("Du kan ikke stemme på ditt eget forslag.")
+                return res.status(400).send(msg.forslag.eget_forslag)
             }
 
             await Forslag.settInnStemmeDB(forslag_id, user_id, type)
@@ -68,17 +69,17 @@ module.exports = {
             if (antall_stemmer.upvotes >= 5) {
                 await Forslag.gjorForslagTilDefinisjonDB(forslag_id)
                 await Forslag.settStatusForslag(forslag_id, 1)
-                return res.status(200).send('Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka')
+                return res.status(200).send(msg.forslag.godkjent_upvotes)
             }
             if (antall_stemmer.downvotes >= 2) {
                 await Forslag.settStatusForslag(forslag_id, 4)
-                return res.status(200).send('Forslaget har fått mer enn 5 downvotes og er derfor slettet')
+                return res.status(200).send(msg.forslag.avvist_downvotes)
             }
-            res.status(200).send('Stemme mottatt')
+            res.status(200).send(msg.forslag.stemme_mottatt)
 
         } catch (error) {
             console.log(error)
-            res.status(500).send("Noe gikk galt under stemming på forslag")
+            res.status(500).send(msg.generell_error)
         }
     },
     adminGodkjennForslag: async (req, res) => {
@@ -92,10 +93,10 @@ module.exports = {
             } else {
                 await Forslag.settStatusForslag(forslag_id, 2)
             }
-            res.status(200).send("Forslag godkjent og lagt til i ordboka")
+            res.status(200).send(msg.forslag.godkjent)
         } catch (error) {
             console.log(error)
-            res.status(500).send("Kunne ikke godkjenne forslag")
+            res.status(500).send(msg.generell_error)
         }
 
     },
@@ -106,10 +107,10 @@ module.exports = {
         try {
             await Forslag.endreForslagDB(forslag_id, user_id, redigert_forslag)
             await Forslag.nullstillStemmerDB(forslag_id, user_id)
-            res.status(200).send("Forslag redigert og stemmer nullstilt.")
+            res.status(200).send(msg.forslag.redigert_nullstilt)
         } catch (error) {
             console.log(error)
-            res.status(500).send("Kunne ikke redigere forslag")
+            res.status(500).send(msg.generell_error)
         }
 
     },
@@ -118,10 +119,10 @@ module.exports = {
         const forslag_id = req.params.id
         try {
             await Forslag.settStatusForslag(forslag_id, 4)
-            res.status(200).send("Forslag avvist")
+            res.status(200).send(msg.forslag.avvist)
         } catch (error) {
             console.log(error)
-            res.status(500).send("Kunne ikke avvise forslag")
+            res.status(500).send(msg.generell_error)
         }
     },
     fjernForslag: async (req, res) => {
@@ -131,10 +132,10 @@ module.exports = {
 
         try {
             await Forslag.slettForslagFraDB(forslag_id, user_id)
-            res.status(200).send("Forslag fjernet")
+            res.status(200).send(msg.forslag.avvist)
         } catch (error) {
             console.log(error)
-            res.status(500).send("Kunne ikke fjerne forslag")
+            res.status(500).send(msg.generell_error)
         }
     },
     getForslagKommentarer: async (req, res) => {
@@ -145,7 +146,7 @@ module.exports = {
             res.status(200).send(kommentarer)
         } catch (error) {
             console.log(error)
-            res.status(500).send("Kunne ikke legge til kommentar")
+            res.status(500).send(msg.generell_error)
         }
     },
     postForslagKommentar: async (req, res) => {
@@ -156,10 +157,10 @@ module.exports = {
 
         try {
             await Forslag.leggForslagKommentarTilDB(forslag_id, user_id, ny_kommentar)
-            res.status(200).send("Kommentar lagt til")
+            res.status(200).send(msg.kommentarer.lagt_til)
         } catch (error) {
             console.log(error)
-            res.status(500).send("Kunne ikke legge til kommentar")
+            res.status(500).send(msg.generell_error)
         }
     },
 }
