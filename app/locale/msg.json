@@ -1,7 +1,7 @@
 {
     "generell_error": {
         "no": "Ooops, noe gikk galt.",
-        "ja": "あらまあ、なんかエラー発生したみたい"
+        "ja": "あ、エラー出たみたいやわ。"
     },
     "oppdatert": {
         "no": "Oppdatert!",
@@ -15,11 +15,11 @@
         "registrer": {
             "ok": {
                 "no": "Bruker opprettet. Videresender til innlogging...",
-                "ja": "ユーザー登録が完了されました。まもなくログインに転送されます。"
+                "ja": "ユーザー登録が完了されました。まもなくログイン画面に転送されます..."
             },
             "finnes": {
                 "no": "Brukernavn eller e-post finnes allerede i systemet.",
-                "ja": "ユーザーかメールアドレスがすでに登録されています。"
+                "ja": "ユーザー名かメールアドレスがすでに登録されています。"
             },
             "feil_svar": {
                 "no": "Feil svar.",
@@ -65,18 +65,18 @@
             },
             "ugyldig_språk": {
                 "no": "Ugyldig språkvalg.",
-                "ja": ""
+                "ja": "使用不能な言語が選択されています。"
             }
         }
     },
     "forslag": {
         "eksisterende_def": {
             "no": "Du kan ikke legge til forslag i ord med eksisterende definisjoner",
-            "ja": ""
+            "ja": "登録済みの意味と重複する提案は追加できません。"
         },
         "lagt_til": {
             "no": "Forslag lagt til. Videresender til forslagsoversikt...",
-            "ja": "提案が登録されました。提案一覧に転送されます。。。"
+            "ja": "提案が登録されました。提案一覧に転送されます..."
         },
         "minst_ett": {
             "no": "Du må komme med minst ett forslag",
@@ -88,15 +88,15 @@
         },
         "eget_forslag": {
             "no": "Du kan ikke stemme på ditt eget forslag.",
-            "ja": "自分の提案に投票できません。"
+            "ja": "ご自身の提案には投票できません。"
         },
         "godkjent_upvotes": {
             "no": "Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka",
-            "ja": ""
+            "ja": "提案に賛成票が5つ以上集まり、辞書に登録されました。"
         },
         "avvist_downvotes": {
             "no": "Forslaget har fått mer enn 5 downvotes og er derfor slettet",
-            "ja": ""
+            "ja": "提案に反対票が5つ以上集まり、却下されました。"
         },
         "stemme_mottatt": {
             "no": "Stemme mottatt",
@@ -108,7 +108,7 @@
         },
         "redigert_nullstilt": {
             "no": "Forslag redigert og stemmer nullstilt.",
-            "ja": "提案が編集されて、投票数がリセットされました。"
+            "ja": "提案が編集され、投票数がリセットされました。"
         },
         "avvist": {
             "no": "Forslag avvist",
