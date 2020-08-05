@@ -110,4 +110,44 @@ module.exports = {
             throw error
         }
     },
+    hentAlleVegginnleggFraDB: async () => {
+        try {
+
+            const query = ` SELECT vi.innlegg_id, vi.parent_id, b.brukernavn,
+                            vi.opprettet, vi.innhold,
+                            (SELECT IFNULL(
+                            (SELECT JSON_ARRAYAGG(
+                                JSON_OBJECT('innlegg_id', vi2.innlegg_id,
+                                            'brukernavn', b2.brukernavn,
+                                            'innhold', vi2.innhold,
+                                            'opprettet', vi2.opprettet                    
+                                            ))
+                                FROM veggen_innlegg AS vi2
+                                INNER JOIN brukere AS b2 ON vi2.user_id = b2.user_id
+                                WHERE vi.innlegg_id = vi2.parent_id),
+                                JSON_ARRAY())
+                                ) AS svar
+                            FROM veggen_innlegg AS vi
+                            INNER JOIN brukere AS b ON vi.user_id = b.user_id
+                            WHERE parent_id IS NULL
+                            ORDER BY vi.opprettet DESC
+                        `
+            const result = await db.query(query)
+
+            return result
+        } catch (error) {
+            throw error
+        }
+    },
+    leggInnleggTilDB: async (parent_id, user_id, innhold) => {
+        try {
+            const query = `INSERT INTO veggen_innlegg (parent_id, user_id, innhold) 
+                            VALUES (?, ?, ?)
+                           `
+            await db.query(query, [parent_id, user_id, innhold])
+
+        } catch (error) {
+            throw error
+        }
+    },
 }

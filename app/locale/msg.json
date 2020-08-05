@@ -124,5 +124,11 @@
             "no": "Kommentar lagt til.",
             "ja": "コメントが登録されました。"
         }
+    },
+    "veggen": {
+        "innlegg_lagt_til": {
+            "no": "Innlegg lagt til.",
+            "ja": "投稿が登録されました。"
+        }
     }
 }
