@@ -18,6 +18,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 require("./app/routes/routes")(app);
 
+app.get("/", (req, res) => {
+  res.json({ message: "jisho.no admin-api" });
+});
+
 app.use((req, res, next) => {
   res.status(404).send({
     status: 404,
@@ -25,9 +29,7 @@ app.use((req, res, next) => {
   })
 })
 
-app.get("/", (req, res) => {
-  res.json({ message: "jisho.no admin-api" });
-});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
