@@ -38,8 +38,8 @@
                 "ja": "ユーザー名を入力してください。"
             },
             "ugyldig_brukernavn": {
-                "no": "Brukernavnet må være mellom 6 og 12 tegn",
-                "ja": "ユーザー名は6文字から12文字までにしてください。"
+                "no": "Brukernavnet må være kun små bokstaver og mellom 6 og 12 tegn",
+                "ja": "ユーザー名は小文字の半角英字のみ、6文字から12文字までにしてください。"
             },
             "mangler_passord": {
                 "no": "Passord mangler.",

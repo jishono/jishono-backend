@@ -61,7 +61,7 @@ module.exports = {
         if (!username) {
             return { gyldig: false, status: 400, melding: msg.user.registrer.mangler_brukernavn }
         }
-        if (username.length < 6 || username.length > 13) {
+        if (username.length < 6 || username.length > 13 || !(/^[a-zæøå]+$/.test(username))) {
             return { gyldig: false, status: 400, melding: msg.user.registrer.ugyldig_brukernavn }
         }
 
