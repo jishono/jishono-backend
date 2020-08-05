@@ -40,7 +40,9 @@ module.exports = {
         const parent_id = req.body.parent_id
         const user_id = res.locals.user_id
         const innhold = req.body.innhold
-
+        if (innhold.length > 1000) {
+            return res.status(400).send(msg.veggen.max_size)
+        }
         try {
             await App.leggInnleggTilDB(parent_id, user_id, innhold)
             res.status(200).send(msg.veggen.innlegg_lagt_til)

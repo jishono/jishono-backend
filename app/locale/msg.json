@@ -129,6 +129,10 @@
         "innlegg_lagt_til": {
             "no": "Innlegg lagt til.",
             "ja": "投稿が登録されました。"
+        },
+        "max_size": {
+            "no": "Innlegget kan ikke ha mer enn 500 tegn.",
+            "ja": "投稿の文字数を５００字以内にしてください"
         }
     }
 }
