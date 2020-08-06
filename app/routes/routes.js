@@ -28,6 +28,8 @@ module.exports = app => {
 
     router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag)
 
+    router.get("/forslag/:id", auth, forslagController.hentForslag)
+    
     router.get("/forslag/:id/kommentarer", auth, forslagController.getForslagKommentarer)
 
     router.post("/forslag/:id/ny_kommentar", auth, forslagController.postForslagKommentar)

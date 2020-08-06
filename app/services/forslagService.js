@@ -20,6 +20,20 @@ module.exports = {
             throw error
         }
     },
+    hentEnkeltForslagFraDB: async (forslag_id) => {
+        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, 
+                        f.forslag_definisjon, b.brukernavn, b.user_id, f.opprettet, f.status
+                        FROM forslag AS f
+                        INNER JOIN brukere AS b USING (user_id)
+                        INNER JOIN oppslag AS o USING (lemma_id)
+                        WHERE f.forslag_id = ?`
+        try {
+            const forslag = await db.query(query, [forslag_id])
+            return forslag[0]
+        } catch (error) {
+            throw error
+        }
+    },
     getBrukerforslagFraDB: async (user_id) => {
         const query = `SELECT f.lemma_id, f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, f.user_id,
                             IFNULL (SUM(s.type = 1), 0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,

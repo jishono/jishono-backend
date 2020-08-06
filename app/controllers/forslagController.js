@@ -34,6 +34,15 @@ module.exports = {
             console.log(error)
         }
     },
+    hentForslag: async (req, res) => {
+        const forslag_id = req.params.id
+        try {
+            let forslag = await Forslag.hentEnkeltForslagFraDB(forslag_id)
+            res.status(200).send(forslag)
+        } catch (error) {
+            console.log(error)
+        }
+    },
     getBrukerforslag: async (req, res) => {
         const user_id = res.locals.user_id
         try {
