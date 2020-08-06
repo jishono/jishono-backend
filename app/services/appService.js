@@ -118,6 +118,7 @@ module.exports = {
                             (SELECT JSON_ARRAYAGG(
                                 JSON_OBJECT('innlegg_id', vi2.innlegg_id,
                                             'brukernavn', b2.brukernavn,
+                                            'user_id', vi2.user_id,
                                             'innhold', vi2.innhold,
                                             'opprettet', vi2.opprettet,
                                             'endret', vi2.endret                    
