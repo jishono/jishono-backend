@@ -113,13 +113,14 @@ module.exports = {
     hentVegginnleggFraDB: async (innlegg_id) => {
         try {
             const query = ` SELECT vi.innlegg_id, vi.parent_id, b.brukernavn,
-                            vi.opprettet, vi.innhold,
+                            vi.opprettet, vi.innhold, vi.endret, vi.user_id,
                             (SELECT IFNULL(
                             (SELECT JSON_ARRAYAGG(
                                 JSON_OBJECT('innlegg_id', vi2.innlegg_id,
                                             'brukernavn', b2.brukernavn,
                                             'innhold', vi2.innhold,
-                                            'opprettet', vi2.opprettet                    
+                                            'opprettet', vi2.opprettet,
+                                            'endret', vi2.endret                    
                                             ))
                                 FROM veggen_innlegg AS vi2
                                 INNER JOIN brukere AS b2 ON vi2.user_id = b2.user_id
@@ -145,6 +146,19 @@ module.exports = {
                             VALUES (?, ?, ?)
                            `
             await db.query(query, [parent_id, user_id, innhold])
+
+        } catch (error) {
+            throw error
+        }
+    },
+    endreInnleggDB: async (innlegg_id, user_id, endret_innhold) => {
+        try {
+            const query = `UPDATE veggen_innlegg
+                            SET innhold = ?, endret = 1
+                            WHERE user_id = ?
+                            AND innlegg_id = ?
+                           `
+            await db.query(query, [endret_innhold, user_id, innlegg_id])
 
         } catch (error) {
             throw error

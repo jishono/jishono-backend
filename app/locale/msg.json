@@ -133,6 +133,10 @@
         "max_size": {
             "no": "Innlegget kan ikke ha mer enn 500 tegn.",
             "ja": "投稿の文字数を５００字以内にしてください"
+        },
+        "innlegg_endret": {
+            "no": "Innlegg endret.",
+            "ja": "投稿が編集されました。"
         }
     }
 }

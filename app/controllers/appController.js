@@ -45,7 +45,7 @@ module.exports = {
             res.status(500).send(msg.generell_error)
         }
     },
-    postNyttVeggeninnlegg: async (req, res) => {
+    postNyttVegginnlegg: async (req, res) => {
 
         const parent_id = req.body.parent_id
         const user_id = res.locals.user_id
@@ -56,6 +56,18 @@ module.exports = {
         try {
             await App.leggInnleggTilDB(parent_id, user_id, innhold)
             res.status(200).send(msg.veggen.innlegg_lagt_til)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    },
+    endreVegginnlegg: async (req, res) => {
+        try {            
+            const user_id = res.locals.user_id
+            const innlegg_id = req.params.id
+            const endret_innhold = req.body.endret_innhold
+            await App.endreInnleggDB(innlegg_id, user_id, endret_innhold)
+            res.status(200).send(msg.veggen.innlegg_endret)
         } catch (error) {
             console.log(error)
             res.status(500).send(msg.generell_error)
