@@ -118,7 +118,7 @@ module.exports = {
     avvisForslag: async (req, res) => {
         const forslag_id = req.params.id
         try {
-            await Forslag.settStatusForslag(forslag_id, 4)
+            await Forslag.settStatusForslag(forslag_id, 5)
             res.status(200).send(msg.forslag.avvist)
         } catch (error) {
             console.log(error)
