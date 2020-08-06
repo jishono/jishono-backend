@@ -26,9 +26,19 @@ module.exports = {
             res.status(500).send(msg.generell_error)
         }
     },
-    getAlleVeggeninnlegg: async (req, res) => {
+    /* getAlleVeggeninnlegg: async (req, res) => {
         try {
             const innlegg = await App.hentAlleVegginnleggFraDB()
+            res.status(200).send(innlegg)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    }, */
+    hentVegginnlegg: async (req, res) => {
+        try {            
+            const innlegg_id = (req.params.id === 'undefined') ? null : req.params.id
+            const innlegg = await App.hentVegginnleggFraDB(innlegg_id)
             res.status(200).send(innlegg)
         } catch (error) {
             console.log(error)

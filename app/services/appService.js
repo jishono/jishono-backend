@@ -110,9 +110,8 @@ module.exports = {
             throw error
         }
     },
-    hentAlleVegginnleggFraDB: async () => {
+    hentVegginnleggFraDB: async (innlegg_id) => {
         try {
-
             const query = ` SELECT vi.innlegg_id, vi.parent_id, b.brukernavn,
                             vi.opprettet, vi.innhold,
                             (SELECT IFNULL(
@@ -130,9 +129,10 @@ module.exports = {
                             FROM veggen_innlegg AS vi
                             INNER JOIN brukere AS b ON vi.user_id = b.user_id
                             WHERE parent_id IS NULL
+                            AND vi.innlegg_id = IFNULL(?, vi.innlegg_id)
                             ORDER BY vi.opprettet DESC
                         `
-            const result = await db.query(query)
+            const result = await db.query(query, [innlegg_id])
 
             return result
         } catch (error) {

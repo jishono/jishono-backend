@@ -56,8 +56,10 @@ module.exports = app => {
 
     router.get("/statistikk", auth, appController.getStatistikk)
 
-    router.get("/veggen/alle_innlegg", auth, appController.getAlleVeggeninnlegg)
+    //router.get("/veggen/alle_innlegg", auth, appController.getAlleVeggeninnlegg)
 
+    router.get("/veggen/innlegg/:id", auth, appController.hentVegginnlegg)
+    
     router.post("/veggen/nytt_innlegg", auth, appController.postNyttVeggeninnlegg)
   
     app.use('/', router);
