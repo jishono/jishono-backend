@@ -87,7 +87,7 @@
             "ja": "投票を取り消しました。"
         },
         "eget_forslag": {
-            "no": "Du kan ikke stemme på ditt eget forslag.",
+            "no": "Du kan ikke stemme på ditt eget forslag",
             "ja": "ご自身の提案には投票できません。"
         },
         "godkjent_upvotes": {
@@ -107,7 +107,7 @@
             "ja": "提案を承認し、辞書に追加しました。"
         },
         "redigert_nullstilt": {
-            "no": "Forslag redigert og stemmer nullstilt.",
+            "no": "Forslag redigert og stemmer nullstilt",
             "ja": "提案が編集され、投票数がリセットされました。"
         },
         "avvist": {
@@ -117,6 +117,10 @@
         "fjernet": {
             "no": "Forslag fjernet",
             "ja": "提案を取り消しました。"
+        },
+        "avsluttet": {
+            "no": "Avstemning på dette forslaget er avsluttet",
+            "ja": "この提案の投票は終了しました。"
         }
     },
     "kommentarer": {

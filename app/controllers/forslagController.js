@@ -60,15 +60,21 @@ module.exports = {
         const type = req.body.type
         try {
 
+            const forslagseier = await Forslag.hentForslagseierFraDB(forslag_id)
+            
+            if (forslagseier.status != 0) {
+                return res.status(400).send(msg.forslag.avsluttet)
+            }
+
+            if (user_id == forslagseier.user_id) {
+                return res.status(400).send(msg.forslag.eget_forslag)
+            }
+
             const stemmer_bruker = await Forslag.hentStemmerFraBruker(forslag_id, user_id)
 
             if (stemmer_bruker.length > 0 && stemmer_bruker[0].type == type) {
                 await Forslag.slettStemmeFraDB(forslag_id, user_id)
                 return res.status(200).send(msg.forslag.stemme_fjernet)
-            }
-            const forslagseier = await Forslag.hentForslagseierFraDB(forslag_id)
-            if (user_id == forslagseier.user_id) {
-                return res.status(400).send(msg.forslag.eget_forslag)
             }
 
             await Forslag.settInnStemmeDB(forslag_id, user_id, type)

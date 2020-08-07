@@ -32,7 +32,6 @@ module.exports = {
                         INNER JOIN oppslag AS o USING (lemma_id)
                         INNER JOIN brukere AS b USING (user_id)
                         LEFT OUTER JOIN stemmer AS s USING (forslag_id)
-                        WHERE f.status = 0
                         GROUP BY f.forslag_id`
         try {
             const forslag = await db.query(query, [user_id, user_id, user_id])
@@ -129,7 +128,7 @@ module.exports = {
         }
     },
     hentForslagseierFraDB: async (forslag_id) => {
-        const query = `SELECT user_id FROM forslag
+        const query = `SELECT user_id, status FROM forslag
                         WHERE forslag_id = ?`
         try {
             const forslagseier = await db.query(query, [forslag_id])
