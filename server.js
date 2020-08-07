@@ -26,10 +26,10 @@ app.get("/", (req, res) => {
   res.json({ message: "jisho.no admin-api" });
 })
 
-app.get("/testrender", (req, res) => {
+/* app.get("/testrender", (req, res) => {
   res.render('velkommen')
 })
-
+ */
 app.use((req, res, next) => {
   res.status(404).send({
     status: 404,
