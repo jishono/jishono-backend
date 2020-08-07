@@ -1,4 +1,5 @@
 const User = require("../services/userService")
+const App = require("../services/appService")
 const msg = require('../locale/msg.json')
 
 module.exports = {
@@ -42,6 +43,7 @@ module.exports = {
                 return res.status(validert.status).send(validert.melding)
             }
             await User.opprettBrukerDB(ny_brukerdata)
+            await App.sendEpost(ny_brukerdata.email, 'Velkommen til baksida.jisho.no', 'velkommen.ejs')
             res.status(201).send(msg.user.registrer.ok)
         } catch (error) {
             console.log(error)

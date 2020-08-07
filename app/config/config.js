@@ -15,6 +15,10 @@ const config = {
     jwt: {
       secret: process.env.JWT_SECRET
     },
+    epost: {
+      user: process.env.NODEMAILER_USER,
+      password: process.env.NODEMAILER_PASSWORD,
+    }
    };
 
 module.exports = config;

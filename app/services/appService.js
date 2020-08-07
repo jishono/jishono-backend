@@ -1,4 +1,8 @@
 const db = require("../db/database")
+const config = require("../config/config")
+const ejs = require("ejs")
+const nodemailer = require('nodemailer')
+const path = require("path")
 
 module.exports = {
     getAnbefalingerFraFrekvens: async () => {
@@ -7,12 +11,12 @@ module.exports = {
                             FROM frekvens AS f 
                             INNER JOIN oppslag AS o ON o.oppslag = f.lemma
                             WHERE o.oppslag NOT IN 
-                            (SELECT oppslag FROM definisjon AS d
+                                (SELECT oppslag FROM definisjon AS d
                                 INNER JOIN oppslag AS o
                                 USING (lemma_id))
-                                AND o.lemma_id NOT IN 
+                            AND o.lemma_id NOT IN 
                                 (SELECT lemma_id FROM forslag AS f)
-                                AND o.boy_tabell NOT IN ('symbol','forkorting')
+                            AND o.boy_tabell NOT IN ('symbol','forkorting')
                             ORDER BY f.score ASC
                             LIMIT 500
                             `
@@ -165,4 +169,32 @@ module.exports = {
             throw error
         }
     },
+    sendEpost: async (to, subject, template) => {
+        try {
+
+           /*  const html = ejs.render('index') */
+            const html = await ejs.renderFile(path.join(__dirname, '../views/') + template)
+            const transporter = nodemailer.createTransport({
+                host: 'smtp.webhuset.no',
+                port: 465,
+                secure: true,
+                auth: {
+                    user: config.epost.user,
+                    pass: config.epost.password
+                }
+            })
+
+            let mailOptions = {
+                from: '"Admin - jisho.no" <admin@jisho.no>',
+                to: to, // receiver Email
+                subject: subject, // Subject line
+                //body: body, // plain text body
+                html: html
+            }
+
+            await transporter.sendMail(mailOptions)
+        } catch (error) {
+            throw error
+        }
+    }
 }

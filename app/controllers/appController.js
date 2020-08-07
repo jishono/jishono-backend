@@ -36,7 +36,7 @@ module.exports = {
         }
     }, */
     hentVegginnlegg: async (req, res) => {
-        try {            
+        try {
             const innlegg_id = (req.params.id === 'undefined') ? null : req.params.id
             const innlegg = await App.hentVegginnleggFraDB(innlegg_id)
             res.status(200).send(innlegg)
@@ -62,12 +62,22 @@ module.exports = {
         }
     },
     endreVegginnlegg: async (req, res) => {
-        try {            
+        try {
             const user_id = res.locals.user_id
             const innlegg_id = req.params.id
             const endret_innhold = req.body.endret_innhold
             await App.endreInnleggDB(innlegg_id, user_id, endret_innhold)
             res.status(200).send(msg.veggen.innlegg_endret)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    },
+    sendEpost: async (req, res) => {
+        try {
+
+            await App.sendEpost('pergpau@gmail.com ', 'Velkommen til baksida.jisho.no', 'velkommen.ejs')
+            res.status(200).send('OK')
         } catch (error) {
             console.log(error)
             res.status(500).send(msg.generell_error)

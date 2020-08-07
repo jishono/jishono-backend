@@ -65,6 +65,8 @@ module.exports = app => {
     router.post("/veggen/nytt_innlegg", auth, appController.postNyttVegginnlegg)
 
     router.post("/veggen/innlegg/:id/endre", auth, appController.endreVegginnlegg)
+
+    router.get("/test", appController.sendEpost)
   
     app.use('/', router);
   };

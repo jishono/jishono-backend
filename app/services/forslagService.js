@@ -2,10 +2,17 @@ const db = require("../db/database")
 
 module.exports = {
     getAktiveForslagFraDB: async (user_id) => {
+        console.log(user_id)
         const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn, b.user_id,
                         IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                         f.opprettet, (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
                         (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
+                        CASE
+                            WHEN (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id) 
+                            > 
+                            IFNULL((SELECT MAX(opprettet) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id AND user_id = ?), 0) THEN true
+                            ELSE false
+                        END AS nyere,
                         f.status
                         FROM forslag AS f
                         INNER JOIN oppslag AS o USING (lemma_id)
@@ -14,7 +21,7 @@ module.exports = {
                         WHERE f.status = 0
                         GROUP BY f.forslag_id`
         try {
-            const forslag = await db.query(query, [user_id])
+            const forslag = await db.query(query, [user_id, user_id])
             return forslag
         } catch (error) {
             throw error
@@ -37,7 +44,13 @@ module.exports = {
     getBrukerforslagFraDB: async (user_id) => {
         const query = `SELECT f.lemma_id, f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, f.user_id,
                             IFNULL (SUM(s.type = 1), 0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
-                            f.status, f.opprettet, IFNULL(COUNT(fk.forslag_id),0) AS antall_kommentarer
+                            f.status, f.opprettet, IFNULL(COUNT(fk.forslag_id),0) AS antall_kommentarer,
+                            CASE
+                                WHEN (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id) 
+                                > 
+                                IFNULL((SELECT MAX(opprettet) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id AND user_id = ?), 0) THEN true
+                                ELSE false
+                            END AS nyere
                             FROM forslag AS f
                             INNER JOIN oppslag AS o USING(lemma_id)
                             LEFT OUTER JOIN forslag_kommentarer AS fk USING(forslag_id)
@@ -45,7 +58,7 @@ module.exports = {
                             WHERE f.user_id = ?
                             GROUP BY f.forslag_id`
         try {
-            const brukerforslag = await db.query(query, [user_id])
+            const brukerforslag = await db.query(query, [user_id, user_id])
             return brukerforslag
         } catch (error) {
             throw error
