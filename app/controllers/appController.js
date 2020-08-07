@@ -1,5 +1,5 @@
 const App = require("../services/appService")
-const msg = require('../locale/msg.json')
+/* const msg = require('../locale/msg.json') */
 
 module.exports = {
     getStatistikk: async (req, res) => {
@@ -73,7 +73,7 @@ module.exports = {
             res.status(500).send(msg.generell_error)
         }
     },
-    sendEpost: async (req, res) => {
+/*     sendEpost: async (req, res) => {
         try {
 
             await App.sendEpost('pergpau@gmail.com ', 'Velkommen til baksida.jisho.no', 'velkommen.ejs')
@@ -82,5 +82,5 @@ module.exports = {
             console.log(error)
             res.status(500).send(msg.generell_error)
         }
-    },
+    }, */
 }
