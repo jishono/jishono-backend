@@ -18,10 +18,13 @@ module.exports = {
                                     FROM forslag_kommentarer AS fk
                                     INNER JOIN forslag USING (forslag_id)
                                     WHERE fk.forslag_id = f.forslag_id
-                                    AND fk.user_id != f.user_id
-                                    AND f.user_id = ?) > 0                       
+                                    AND f.user_id = ?
+                                    AND f.user_id NOT IN (
+                                        SELECT user_id
+                                        FROM forslag_kommentarer
+                                        WHERE forslag_id = f.forslag_id
+                                        AND user_id = f.user_id )) > 0                       
                                 THEN true
-
                             ELSE false
                         END AS nyere,
                         f.status
@@ -57,9 +60,23 @@ module.exports = {
                             IFNULL (SUM(s.type = 1), 0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                             f.status, f.opprettet, IFNULL(COUNT(fk.forslag_id),0) AS antall_kommentarer,
                             CASE
-                                WHEN (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id) 
-                                > 
-                                IFNULL((SELECT MAX(opprettet) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id AND user_id = ?), 0) THEN true
+                                WHEN 
+                                    (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id) 
+                                    > 
+                                    (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id AND fk.user_id = ?)
+                                    THEN true
+                                WHEN
+                                    (SELECT COUNT(fk.forslag_id)
+                                        FROM forslag_kommentarer AS fk
+                                        INNER JOIN forslag USING (forslag_id)
+                                        WHERE fk.forslag_id = f.forslag_id
+                                        AND f.user_id = ?
+                                        AND f.user_id NOT IN (
+                                            SELECT user_id
+                                            FROM forslag_kommentarer
+                                            WHERE forslag_id = f.forslag_id
+                                            AND user_id = f.user_id )) > 0                       
+                                    THEN true
                                 ELSE false
                             END AS nyere
                             FROM forslag AS f
@@ -69,7 +86,7 @@ module.exports = {
                             WHERE f.user_id = ?
                             GROUP BY f.forslag_id`
         try {
-            const brukerforslag = await db.query(query, [user_id, user_id])
+            const brukerforslag = await db.query(query, [user_id, user_id, user_id])
             return brukerforslag
         } catch (error) {
             throw error
