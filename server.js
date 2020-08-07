@@ -7,7 +7,6 @@ const path = require("path")
 
 console.log("Environment:", config.app.node_env)
 if (config.app.node_env == 'development') {
-  console.log("Adding localhost:8080 to CORS")
   const corsOptions = {
     origin: "http://localhost:8080"
   }

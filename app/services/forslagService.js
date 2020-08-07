@@ -8,9 +8,20 @@ module.exports = {
                         f.opprettet, (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
                         (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
                         CASE
-                            WHEN (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id) 
-                            > 
-                            IFNULL((SELECT MAX(opprettet) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id AND user_id = ?), 0) THEN true
+                            WHEN 
+                                (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id) 
+                                > 
+                                (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id AND fk.user_id = ?)
+                                THEN true
+                            WHEN
+                                (SELECT COUNT(fk.forslag_id)
+                                    FROM forslag_kommentarer AS fk
+                                    INNER JOIN forslag USING (forslag_id)
+                                    WHERE fk.forslag_id = f.forslag_id
+                                    AND fk.user_id != f.user_id
+                                    AND f.user_id = ?) > 0                       
+                                THEN true
+
                             ELSE false
                         END AS nyere,
                         f.status
@@ -21,7 +32,7 @@ module.exports = {
                         WHERE f.status = 0
                         GROUP BY f.forslag_id`
         try {
-            const forslag = await db.query(query, [user_id, user_id])
+            const forslag = await db.query(query, [user_id, user_id, user_id])
             return forslag
         } catch (error) {
             throw error
