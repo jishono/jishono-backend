@@ -106,9 +106,9 @@
             "no": "Forslag godkjent og lagt til i ordboka",
             "ja": "提案を承認し、辞書に追加しました。"
         },
-        "redigert_nullstilt": {
-            "no": "Forslag redigert og stemmer nullstilt",
-            "ja": "提案が編集され、投票数がリセットされました。"
+        "endret": {
+            "no": "Forslag endret",
+            "ja": "提案が編集されました。"
         },
         "avvist": {
             "no": "Forslag avvist",

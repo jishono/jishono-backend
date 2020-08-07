@@ -122,8 +122,7 @@ module.exports = {
         const redigert_forslag = req.body.redigert_forslag
         try {
             await Forslag.endreForslagDB(forslag_id, user_id, redigert_forslag)
-            await Forslag.nullstillStemmerDB(forslag_id, user_id)
-            res.status(200).send(msg.forslag.redigert_nullstilt)
+            res.status(200).send(msg.forslag.endret)
         } catch (error) {
             console.log(error)
             res.status(500).send(msg.generell_error)

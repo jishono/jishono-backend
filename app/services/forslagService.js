@@ -2,10 +2,11 @@ const db = require("../db/database")
 
 module.exports = {
     getAktiveForslagFraDB: async (user_id) => {
-        console.log(user_id)
-        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn, b.user_id, f.status,
+        
+        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, 
+                        b.brukernavn, b.user_id, f.status, f.opprettet, f.endret,
                         IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
-                        f.opprettet, (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
+                        (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
                         (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,                        
                         CASE
                             WHEN 
@@ -242,13 +243,14 @@ module.exports = {
             throw error
         }
     },
-    endreForslagDB: async (forslag_id, user_id, nytt_forslag) => {
+    endreForslagDB: async (forslag_id, user_id, redigert_forslag) => {
         try {
-            const query = `UPDATE forslag SET forslag_definisjon = ?
+            const query = `UPDATE forslag 
+                            SET forslag_definisjon = ?, endret = 1
                             WHERE forslag_id = ?
                             AND user_id = ?
                            `
-            await db.query(query, [nytt_forslag, forslag_id, user_id])
+            await db.query(query, [redigert_forslag, forslag_id, user_id])
 
         } catch (error) {
             throw error
