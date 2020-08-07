@@ -3,10 +3,10 @@ const db = require("../db/database")
 module.exports = {
     getAktiveForslagFraDB: async (user_id) => {
         console.log(user_id)
-        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn, b.user_id,
+        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, b.brukernavn, b.user_id, f.status,
                         IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                         f.opprettet, (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
-                        (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
+                        (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,                        
                         CASE
                             WHEN 
                                 (SELECT MAX(opprettet) FROM forslag_kommentarer AS fk WHERE fk.forslag_id = f.forslag_id) 
@@ -26,8 +26,7 @@ module.exports = {
                                         AND user_id = f.user_id )) > 0                       
                                 THEN true
                             ELSE false
-                        END AS nyere,
-                        f.status
+                        END AS nyere                        
                         FROM forslag AS f
                         INNER JOIN oppslag AS o USING (lemma_id)
                         INNER JOIN brukere AS b USING (user_id)
@@ -54,7 +53,8 @@ module.exports = {
             throw error
         }
     },
-    getBrukerforslagFraDB: async (user_id) => {
+    // ikke i bruk
+    /* getBrukerforslagFraDB: async (user_id) => {
         const query = `SELECT f.lemma_id, f.forslag_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, f.user_id,
                             IFNULL (SUM(s.type = 1), 0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                             f.status, f.opprettet, IFNULL(COUNT(fk.forslag_id),0) AS antall_kommentarer,
@@ -90,7 +90,7 @@ module.exports = {
         } catch (error) {
             throw error
         }
-    },
+    }, */
     settInnStemmeDB: async (forslag_id, user_id, type) => {
         const query = `INSERT INTO stemmer (forslag_id, user_id, type)
                         VALUES (?, ?, ?)

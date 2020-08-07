@@ -26,7 +26,8 @@ module.exports = app => {
 
     router.get("/forslag", auth, forslagController.getAllForslag)
 
-    router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag)
+    // Ikke i bruk
+    /* router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag) */
 
     router.get("/forslag/:id", auth, forslagController.hentForslag)
     
