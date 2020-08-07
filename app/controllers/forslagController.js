@@ -155,9 +155,17 @@ module.exports = {
     },
     getForslagKommentarer: async (req, res) => {
 
+        const user_id = res.locals.user_id
         const forslag_id = req.params.id
         try {
             const kommentarer = await Forslag.hentForslagKommentarerFraDB(forslag_id)
+            console.log(kommentarer)
+           
+            if (kommentarer.length > 0) {
+                const kommentarer_sett = kommentarer.map(kommentar => [kommentar.forslag_kommentar_id, user_id])
+                await Forslag.settKommentarSomSettDB(kommentarer_sett)
+            }
+
             res.status(200).send(kommentarer)
         } catch (error) {
             console.log(error)
