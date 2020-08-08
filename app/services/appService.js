@@ -46,6 +46,7 @@ module.exports = {
                             ORDER BY antall_oversettelser DESC`
 
             const brukeroversettelser = await db.query(query)
+            
             return brukeroversettelser
         } catch (error) {
             throw error
