@@ -169,7 +169,7 @@ module.exports = {
             throw error
         }
     },
-    /* sendEpost: async (to, subject, template) => {
+    sendEpost: async (to, subject, template) => {
         try {
 
             const html = await ejs.renderFile(path.join(__dirname, '../views/') + template)
@@ -195,5 +195,5 @@ module.exports = {
         } catch (error) {
             throw error
         }
-    } */
+    }
 }
