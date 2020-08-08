@@ -18,6 +18,7 @@ module.exports = {
                                 (SELECT lemma_id FROM forslag AS f)
                             AND o.boy_tabell NOT IN ('symbol','forkorting')
                             AND LENGTH(o.oppslag) > 1
+                            AND o.oppslag NOT IN ('Æ','æ','Ø','ø','Å','å')
                             ORDER BY f.score ASC
                             LIMIT 500
                             `
