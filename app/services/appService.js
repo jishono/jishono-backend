@@ -82,7 +82,6 @@ module.exports = {
                              GROUP BY dato
                              `
             const nye_oversettelser = await db.query(query)
-
             return nye_oversettelser
         } catch (error) {
             throw error
