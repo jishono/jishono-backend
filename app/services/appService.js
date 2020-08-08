@@ -171,7 +171,7 @@ module.exports = {
     },
     sendEpost: async (to, subject, template) => {
         try {
-
+            console.log(config.epost.user)
             const html = await ejs.renderFile(path.join(__dirname, '../views/') + template)
             const transporter = nodemailer.createTransport({
                 host: 'smtp.webhuset.no',
