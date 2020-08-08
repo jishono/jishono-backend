@@ -47,6 +47,7 @@ module.exports = {
                         IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                         (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
                         (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
+                        IF((SELECT COUNT(lemma_id) FROM definisjon WHERE lemma_id = o.lemma_id) > 0, 1, 0) AS eksisterende_definisjoner,
                         IF(
                             (SELECT COUNT(*)
                                 FROM forslag_kommentarer AS fk
@@ -72,7 +73,18 @@ module.exports = {
     },
     hentEnkeltForslagFraDB: async (forslag_id) => {
         const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, 
-                        f.forslag_definisjon, b.brukernavn, b.user_id, f.opprettet, f.status
+                        f.forslag_definisjon, b.brukernavn, b.user_id, f.opprettet, f.status,
+                        (SELECT IFNULL(
+                            (SELECT JSON_ARRAYAGG(
+                            JSON_OBJECT('def_id', d.def_id,
+                                        'lemma_id', d.lemma_id,
+                                        'prioritet', d.prioritet,
+                                        'definisjon', d.definisjon                    
+                                        ))
+                            FROM definisjon AS d
+                            WHERE o.lemma_id = d.lemma_id),
+                            JSON_ARRAY())
+                            ) AS eksisterende_definisjoner
                         FROM forslag AS f
                         INNER JOIN brukere AS b USING (user_id)
                         INNER JOIN oppslag AS o USING (lemma_id)

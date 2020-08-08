@@ -1,5 +1,5 @@
 const Forslag = require("../services/forslagService")
-const Oppslag = require("../services/oppslagService")
+/* const Oppslag = require("../services/oppslagService") */
 const msg = require('../locale/msg.json')
 
 module.exports = {
@@ -10,10 +10,11 @@ module.exports = {
         const user_id = res.locals.user_id
         try {
 
-            const current_defs = await Oppslag.hentAlleDefinisjonerPaaOppslag(lemma_id)
+            // Fjernet for å se hvordan det går å legge til forslag på ord med defs
+            /* const current_defs = await Oppslag.hentAlleDefinisjonerPaaOppslag(lemma_id)
             if (current_defs.length > 0) {
                 return res.status(403).send(msg.forslag.eksisterende_def)
-            }
+            } */
             if (forslag_definisjoner.length > 0 && forslag_definisjoner[0] != '') {
                 await Forslag.leggForslagTilDB(forslag_definisjoner.map(def => [lemma_id, user_id, def]))
                 return res.status(200).send(msg.forslag.lagt_til)
