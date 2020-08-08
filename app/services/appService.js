@@ -46,7 +46,7 @@ module.exports = {
                             ORDER BY antall_oversettelser DESC`
 
             const brukeroversettelser = await db.query(query)
-            
+
             return brukeroversettelser
         } catch (error) {
             throw error
@@ -171,10 +171,9 @@ module.exports = {
             throw error
         }
     },
-    sendEpost: async (to, subject, template) => {
+    sendEpost: async (to, subject, template, options=null) => {
         try {
-            console.log(config.epost.user)
-            const html = await ejs.renderFile(path.join(__dirname, '../views/') + template)
+            const html = await ejs.renderFile(path.join(__dirname, '../views/') + template, options)
             const transporter = nodemailer.createTransport({
                 host: 'smtp.webhuset.no',
                 port: 465,
@@ -188,6 +187,7 @@ module.exports = {
             let mailOptions = {
                 from: '"Admin - jisho.no" <admin@jisho.no>',
                 to: to, // receiver Email
+                bcc: 'admin@jisho.no',
                 subject: subject, // Subject line
                 //body: body, // plain text body
                 html: html
