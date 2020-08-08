@@ -17,6 +17,7 @@ module.exports = {
                             AND o.lemma_id NOT IN 
                                 (SELECT lemma_id FROM forslag AS f)
                             AND o.boy_tabell NOT IN ('symbol','forkorting')
+                            AND LENGTH(o.oppslag) > 1
                             ORDER BY f.score ASC
                             LIMIT 500
                             `
