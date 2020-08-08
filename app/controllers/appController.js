@@ -1,5 +1,5 @@
 const App = require("../services/appService")
-/* const msg = require('../locale/msg.json') */
+const msg = require('../locale/msg.json')
 
 module.exports = {
     getStatistikk: async (req, res) => {
