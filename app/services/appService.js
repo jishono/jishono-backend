@@ -1,8 +1,8 @@
 const db = require("../db/database")
 const config = require("../config/config")
-/* const ejs = require("ejs")
+const ejs = require("ejs")
 const nodemailer = require('nodemailer')
-const path = require("path") */
+const path = require("path")
 
 module.exports = {
     getAnbefalingerFraFrekvens: async () => {
