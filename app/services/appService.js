@@ -116,7 +116,7 @@ module.exports = {
             throw error
         }
     },
-    hentVegginnleggFraDB: async (innlegg_id) => {
+    hentVegginnleggFraDB: async (innlegg_id = null) => {
         try {
             const query = ` SELECT vi.innlegg_id, vi.parent_id, b.brukernavn,
                             vi.opprettet, vi.innhold, vi.endret, vi.user_id,
@@ -171,7 +171,53 @@ module.exports = {
             throw error
         }
     },
-    sendEpost: async (to, subject, template, options=null) => {
+    hentAlleInnleggIDerFraDB: async () => {
+        try {
+            const query = `SELECT (innlegg_id)
+                            FROM veggen_innlegg
+                            `
+            
+            const result = await db.query(query)
+
+            return result
+        } catch (error) {
+            throw error
+        }
+    },
+    hentAntallUsetteVegginnleggFraDB: async (user_id) => {
+        try {
+            const query = `SELECT 
+                            (SELECT COUNT(*)
+                            FROM veggen_innlegg
+                            ) -
+                            (SELECT COUNT(*)
+                                FROM veggen_innlegg AS vi
+                                INNER JOIN veggen_innlegg_sett AS vis USING(innlegg_id)
+                                WHERE vis.user_id = ?
+                            ) AS usette_innlegg  
+                        `
+            
+            const result = await db.query(query, [user_id])
+
+            return result[0]
+        } catch (error) {
+            throw error
+        }
+    },
+    settInnleggSomSettDB: async (innlegg_sett) => {
+        try {
+            const query = `INSERT IGNORE INTO veggen_innlegg_sett (innlegg_id, user_id) 
+                            VALUES ?
+                           `
+
+            await db.query(query, [innlegg_sett])
+
+        } catch (error) {
+            throw error
+        }
+    },
+
+    sendEpost: async (to, subject, template, options = null) => {
         try {
             const html = await ejs.renderFile(path.join(__dirname, '../views/') + template, options)
             const transporter = nodemailer.createTransport({

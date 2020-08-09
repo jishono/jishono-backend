@@ -37,9 +37,27 @@ module.exports = {
     }, */
     hentVegginnlegg: async (req, res) => {
         try {
+            console.log("henter innlegg")
             const innlegg_id = (req.params.id === 'undefined') ? null : req.params.id
+            const user_id = res.locals.user_id
             const innlegg = await App.hentVegginnleggFraDB(innlegg_id)
+            const innlegg_ider = await App.hentAlleInnleggIDerFraDB()
+            if (innlegg_ider.length > 0) {
+                const innlegg_sett = innlegg_ider.map(innlegg => [innlegg.innlegg_id, user_id])
+                await App.settInnleggSomSettDB(innlegg_sett)
+            }
             res.status(200).send(innlegg)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    },
+    hentAntallUsetteVegginnlegg: async (req, res) => {
+        try {
+            const user_id = res.locals.user_id
+            console.log("henter antall")
+            const usette_innlegg = await App.hentAntallUsetteVegginnleggFraDB(user_id)
+            res.status(200).send(usette_innlegg)
         } catch (error) {
             console.log(error)
             res.status(500).send(msg.generell_error)
