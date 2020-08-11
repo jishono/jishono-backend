@@ -88,7 +88,7 @@ module.exports = {
                 await Forslag.settStatusForslag(forslag_id, 1)
                 return res.status(200).send(msg.forslag.godkjent_upvotes)
             }
-            if (antall_stemmer.downvotes >= 2) {
+            if (antall_stemmer.downvotes >= 5) {
                 await Forslag.settStatusForslag(forslag_id, 4)
                 return res.status(200).send(msg.forslag.avvist_downvotes)
             }
