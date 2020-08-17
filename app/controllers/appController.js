@@ -26,18 +26,9 @@ module.exports = {
             res.status(500).send(msg.generell_error)
         }
     },
-    /* getAlleVeggeninnlegg: async (req, res) => {
-        try {
-            const innlegg = await App.hentAlleVegginnleggFraDB()
-            res.status(200).send(innlegg)
-        } catch (error) {
-            console.log(error)
-            res.status(500).send(msg.generell_error)
-        }
-    }, */
+
     hentVegginnlegg: async (req, res) => {
         try {
-            console.log("henter innlegg")
             const innlegg_id = (req.params.id === 'undefined') ? null : req.params.id
             const user_id = res.locals.user_id
             const innlegg = await App.hentVegginnleggFraDB(innlegg_id)
@@ -55,7 +46,6 @@ module.exports = {
     hentAntallUsetteVegginnlegg: async (req, res) => {
         try {
             const user_id = res.locals.user_id
-            console.log("henter antall")
             const usette_innlegg = await App.hentAntallUsetteVegginnleggFraDB(user_id)
             res.status(200).send(usette_innlegg)
         } catch (error) {
@@ -74,6 +64,7 @@ module.exports = {
         try {
             await App.leggInnleggTilDB(parent_id, user_id, innhold)
             res.status(200).send(msg.veggen.innlegg_lagt_til)
+            await App.sendNotificationsAfterWallPost(parent_id, user_id)
         } catch (error) {
             console.log(error)
             res.status(500).send(msg.generell_error)
@@ -90,15 +81,5 @@ module.exports = {
             console.log(error)
             res.status(500).send(msg.generell_error)
         }
-    },
-/*     sendEpost: async (req, res) => {
-        try {
-
-            await App.sendEpost('pergpau@gmail.com ', 'Velkommen til baksida.jisho.no', 'velkommen.ejs')
-            res.status(200).send('OK')
-        } catch (error) {
-            console.log(error)
-            res.status(500).send(msg.generell_error)
-        }
-    }, */
+    }
 }

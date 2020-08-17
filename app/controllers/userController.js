@@ -5,9 +5,7 @@ const msg = require('../locale/msg.json')
 module.exports = {
     getBruker: async (req, res) => {
         const user_id = res.locals.user_id
-
         const brukerdata = await User.getBrukerdataFraDB(user_id)
-        console.log(brukerdata)
         res.status(200).send(brukerdata)
 
     },
@@ -43,7 +41,7 @@ module.exports = {
                 return res.status(validert.status).send(validert.melding)
             }
             await User.opprettBrukerDB(ny_brukerdata)
-            await App.sendEpost(ny_brukerdata.email, 'Velkommen til baksida.jisho.no', 'velkommen.ejs', {brukernavn: ny_brukerdata.username})
+            await App.sendEpost(ny_brukerdata.email, 'Velkommen til baksida.jisho.no', 'velkommen.ejs', 'admin@jisho.no', { brukernavn: ny_brukerdata.username })
             res.status(201).send(msg.user.registrer.ok)
         } catch (error) {
             console.log(error)
@@ -60,13 +58,24 @@ module.exports = {
         const nytt_passord = req.body.nytt_passord
         const epost = req.body.epost
         const locale = req.body.locale
+        const oppdateringer = req.body.oppdateringer
+        console.log(oppdateringer)
         let message = msg.user.profil.oppdatert
-        console.log(message)
 
         try {
             const korrekt_passord = await User.sjekkPassordMedID(gammelt_passord, user_id)
             if (!korrekt_passord) {
                 return res.status(401).send(msg.user.profil.feil_passord)
+            }
+            if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(epost)) {
+                return res.status(400).send(msg.user.registrer.ugyldig_epost)
+            }
+            if (!locale == 'no' || !locale == 'jp') {
+                return res.status(400).send(msg.user.profil.ugyldig_språk)
+            }
+            const valid_periods = [0,1,7,14]
+            if (!valid_periods.includes(oppdateringer.opp_periode)) {
+                return res.status(400).send(msg.user.profil.ugyldig_periode)
             }
             if (nytt_passord != '') {
                 if (nytt_passord.length < 6) {
@@ -76,15 +85,10 @@ module.exports = {
                 message['no'] += msg.user.profil.passord_oppdatert['no']
                 message['ja'] += msg.user.profil.passord_oppdatert['ja']
             }
-            if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(epost)) {
-                return res.status(400).send(msg.user.registrer.ugyldig_epost)
-            }
-            await User.updateEpostDB(user_id, epost)
-            
-            if (!locale == 'no' || !locale == 'jp') {
-                return res.status(400).send(msg.user.profil.ugyldig_språk)
-            }
+
             await User.updateLocaleDB(user_id, locale)
+            await User.updateEpostDB(user_id, epost)
+            await User.updateOppdateringerDB(user_id, oppdateringer)
 
             res.status(200).send(message)
         } catch (error) {

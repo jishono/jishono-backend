@@ -1,4 +1,5 @@
 const Forslag = require("../services/forslagService")
+const App = require("../services/appService")
 /* const Oppslag = require("../services/oppslagService") */
 const msg = require('../locale/msg.json')
 
@@ -44,18 +45,6 @@ module.exports = {
             console.log(error)
         }
     },
-    // ikke i bruk
-    /* getBrukerforslag: async (req, res) => {
-        const user_id = res.locals.user_id
-        try {
-            const brukerforslag = await Forslag.getBrukerforslagFraDB(user_id)
-            res.status(200).send(brukerforslag)
-
-        } catch (error) {
-            console.log(error)
-            res.status(500).send(msg.generell_error)
-        }
-    }, */
     stemForslag: async (req, res) => {
         const user_id = res.locals.user_id
         const forslag_id = req.params.id
@@ -160,7 +149,6 @@ module.exports = {
         const forslag_id = req.params.id
         try {
             const kommentarer = await Forslag.hentForslagKommentarerFraDB(forslag_id)
-            console.log(kommentarer)
            
             if (kommentarer.length > 0) {
                 const kommentarer_sett = kommentarer.map(kommentar => [kommentar.forslag_kommentar_id, user_id])
@@ -182,6 +170,7 @@ module.exports = {
         try {
             await Forslag.leggForslagKommentarTilDB(forslag_id, user_id, ny_kommentar)
             res.status(200).send(msg.kommentarer.lagt_til)
+            await App.sendNotificationsAfterComment(forslag_id, user_id)
         } catch (error) {
             console.log(error)
             res.status(500).send(msg.generell_error)

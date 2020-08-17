@@ -152,7 +152,8 @@ module.exports = {
             const query = `INSERT INTO veggen_innlegg (parent_id, user_id, innhold) 
                             VALUES (?, ?, ?)
                            `
-            await db.query(query, [parent_id, user_id, innhold])
+            const result = await db.query(query, [parent_id, user_id, innhold])
+            return result
 
         } catch (error) {
             throw error
@@ -176,7 +177,7 @@ module.exports = {
             const query = `SELECT (innlegg_id)
                             FROM veggen_innlegg
                             `
-            
+
             const result = await db.query(query)
 
             return result
@@ -196,7 +197,7 @@ module.exports = {
                                 WHERE vis.user_id = ?
                             ) AS usette_innlegg  
                         `
-            
+
             const result = await db.query(query, [user_id])
 
             return result[0]
@@ -217,8 +218,9 @@ module.exports = {
         }
     },
 
-    sendEpost: async (to, subject, template, options = null) => {
+    sendEpost: async (to, subject, template, bcc = '', options = {}) => {
         try {
+            options['title'] = subject
             const html = await ejs.renderFile(path.join(__dirname, '../views/') + template, options)
             const transporter = nodemailer.createTransport({
                 host: 'smtp.webhuset.no',
@@ -231,9 +233,9 @@ module.exports = {
             })
 
             let mailOptions = {
-                from: '"Admin - jisho.no" <admin@jisho.no>',
+                from: '"baksida.jisho.no" <no-reply@jisho.no>',
                 to: to, // receiver Email
-                bcc: 'admin@jisho.no',
+                bcc: bcc,
                 subject: subject, // Subject line
                 //body: body, // plain text body
                 html: html
@@ -243,5 +245,80 @@ module.exports = {
         } catch (error) {
             throw error
         }
+    },
+    sendNotificationsAfterComment: async (forslag_id, user_id) => {
+
+        let adressees = []
+        
+        const query = `SELECT f.user_id, b.epost, b.brukernavn
+                        FROM forslag AS f
+                        INNER JOIN brukere AS b ON f.user_id = b.user_id
+                        WHERE forslag_id = ?
+                        AND f.user_id != ?
+                        AND b.opp_kommentar_eget = 1`
+
+        const owner = await db.query(query, [forslag_id, user_id])
+        if (owner.length > 0) {
+            adressees.push(owner[0])
+        }
+
+        const query2 = `SELECT DISTINCT fk.user_id, b.epost, b.brukernavn
+                        FROM forslag AS f
+                        INNER JOIN forslag_kommentarer AS fk ON f.forslag_id = fk.forslag_id
+                        INNER JOIN brukere AS b ON fk.user_id = b.user_id
+                        WHERE f.forslag_id = ?
+                        AND fk.user_id != ?
+                        AND b.opp_svar = 1
+                        `
+
+        const commenters = await db.query(query2, [forslag_id, user_id])
+        for (commenter of commenters) {
+            if (!adressees.some(adressee => adressee.user_id === commenter.user_id)) {
+                adressees.push(commenter)
+            }
+        }
+
+        for (adressee of adressees) {
+            await module.exports.sendEpost(adressee.epost, "Noen har kommentert...", 'comment_notification.ejs', '', {forslag_id: forslag_id})
+        }
+
+
+    },
+    sendNotificationsAfterWallPost: async (innlegg_id, user_id) => {
+
+        let adressees = []
+        
+        const query = `SELECT vi.user_id, b.epost, b.brukernavn
+                        FROM veggen_innlegg AS vi
+                        INNER JOIN brukere AS b USING (user_id)
+                        WHERE vi.innlegg_id = ?
+                        AND vi.user_id != ?
+                        AND b.opp_svar = 1`
+
+        const owner = await db.query(query, [innlegg_id, user_id])
+        if (owner.length > 0) {
+            adressees.push(owner[0])
+        }
+
+        const query2 = `SELECT DISTINCT vi.user_id, b.epost, b.brukernavn
+                        FROM veggen_innlegg AS vi
+                        INNER JOIN brukere AS b USING (user_id)
+                        WHERE vi.parent_id = ?
+                        AND vi.user_id != ?
+                        AND b.opp_svar = 1
+                        `
+
+        const repliers = await db.query(query2, [innlegg_id, user_id])
+        for (replier of repliers) {
+            if (!adressees.some(adressee => adressee.user_id === replier.user_id)) {
+                adressees.push(replier)
+            }
+        }
+
+        for (adressee of adressees) {
+            await module.exports.sendEpost(adressee.epost, "Noen har svart på...", 'wall_notification.ejs', '', {innlegg_id: innlegg_id})
+        }
+
+
     }
 }

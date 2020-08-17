@@ -4,6 +4,7 @@ const cors = require("cors");
 const app = express();
 const config = require("./app/config/config.js")
 const path = require("path")
+const cronjobs = require('./app/cron/jobs.js')
 
 console.log("Environment:", config.app.node_env)
 if (config.app.node_env == 'development') {
@@ -25,10 +26,6 @@ app.get("/", (req, res) => {
   res.json({ message: "jisho.no admin-api" });
 })
 
-/* app.get("/testrender", (req, res) => {
-  res.render('velkommen')
-})
- */
 app.use((req, res, next) => {
   res.status(404).send({
     status: 404,
@@ -36,7 +33,7 @@ app.use((req, res, next) => {
   })
 })
 
-
+cronjobs.digestEmails()
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

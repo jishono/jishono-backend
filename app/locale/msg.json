@@ -66,6 +66,10 @@
             "ugyldig_språk": {
                 "no": "Ugyldig språkvalg.",
                 "ja": "使用不能な言語が選択されています。"
+            },
+            "ugyldig_periode": {
+                "no": "Ugyldig periode for aktivitetsoppsummering.",
+                "ja": "無効のメール配信期間選択。"
             }
         }
     },
