@@ -279,7 +279,7 @@ module.exports = {
         }
 
         for (adressee of adressees) {
-            await module.exports.sendEpost(adressee.epost, "Noen har kommentert...", 'comment_notification.ejs', '', {forslag_id: forslag_id})
+            await module.exports.sendEpost(adressee.epost, "Noen har kommentert...", 'comment_notification.ejs', 'admin@jisho.no', {forslag_id: forslag_id})
         }
 
 
@@ -316,7 +316,7 @@ module.exports = {
         }
 
         for (adressee of adressees) {
-            await module.exports.sendEpost(adressee.epost, "Noen har svart på...", 'wall_notification.ejs', '', {innlegg_id: innlegg_id})
+            await module.exports.sendEpost(adressee.epost, "Noen har svart på...", 'wall_notification.ejs', 'admin@jisho.no', {innlegg_id: innlegg_id})
         }
 
 
