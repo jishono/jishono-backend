@@ -21,7 +21,7 @@ module.exports = {
                 let data = await getAllDataForDigest(user.user_id, 1)
                 data['tid'] = 'den siste dagen'
                 data['brukernavn'] = user.brukernavn
-                await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs', data)
+                await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs','admin@jisho.no', data)
             }
         })
 
@@ -31,7 +31,7 @@ module.exports = {
                 let data = await getAllDataForDigest(user.user_id, 7)
                 data['tid'] = 'de siste 7 dagene'
                 data['brukernavn'] = user.brukernavn
-                await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs', data)
+                await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs', 'admin@jisho.no', data)
             }
         })
 
@@ -42,7 +42,7 @@ module.exports = {
                     let data = await getAllDataForDigest(user.user_id, 14)
                     data['tid'] = 'de siste 14 dagene'
                     data['brukernavn'] = user.brukernavn
-                    await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs', data)
+                    await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs', 'admin@jisho.no', data)
                 }
             }
         })
