@@ -55,6 +55,8 @@ module.exports = app => {
 
     router.post("/bruker/:id/oppdater", auth, userController.updateBrukerdata)
 
+    router.post("/bruker/:id/sist_sett", auth, userController.updateLastSeen)
+
     // Andre app-ruter
 
     router.get("/statistikk", auth, appController.getStatistikk)

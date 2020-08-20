@@ -269,5 +269,13 @@ module.exports = {
         const users = await db.query(query, [period])
         
         return users
+    },
+    updateLastSeenDB: async (user_id) => {
+        const query = `UPDATE brukere
+                        SET sist_sett = CURRENT_TIMESTAMP
+                        WHERE user_id = ?`
+
+        await db.query(query, [user_id])
+        
     }
 }

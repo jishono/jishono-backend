@@ -137,7 +137,7 @@ module.exports = {
 
         try {
             await Forslag.slettForslagFraDB(forslag_id, user_id)
-            res.status(200).send(msg.forslag.avvist)
+            res.status(200).send(msg.forslag.fjernet)
         } catch (error) {
             console.log(error)
             res.status(500).send(msg.generell_error)

@@ -73,7 +73,7 @@ module.exports = {
             if (!locale == 'no' || !locale == 'jp') {
                 return res.status(400).send(msg.user.profil.ugyldig_språk)
             }
-            const valid_periods = [0,1,7,14]
+            const valid_periods = [0, 1, 7, 14]
             if (!valid_periods.includes(oppdateringer.opp_periode)) {
                 return res.status(400).send(msg.user.profil.ugyldig_periode)
             }
@@ -95,6 +95,15 @@ module.exports = {
             console.log(error)
             res.status(500).send(msg.generell_error)
         }
-
-    }
+    },
+    updateLastSeen: async (req, res) => {
+        try {
+            const user_id = res.locals.user_id
+            await User.updateLastSeenDB(user_id)
+            res.status(200).send()
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    },
 }
