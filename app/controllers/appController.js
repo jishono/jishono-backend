@@ -81,5 +81,22 @@ module.exports = {
             console.log(error)
             res.status(500).send(msg.generell_error)
         }
+    },
+    deleteVegginnlegg: async (req, res) => {
+        try {
+            const user_id = res.locals.user_id
+            const innlegg_id = req.params.id
+            let innlegg = await App.getSingleVegginnleggFraDB(innlegg_id)
+            console.log(innlegg)
+            if (innlegg.har_svar) {
+                await App.endreInnleggDB(innlegg_id, user_id, "***Slettet av bruker / 投稿者により削除されました***")
+            } else {
+                await App.deleteInnleggDB(innlegg_id, user_id)
+            }
+            res.status(200).send(msg.veggen.innlegg_slettet)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
     }
 }

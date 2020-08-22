@@ -152,6 +152,25 @@ module.exports = {
             throw error
         }
     },
+    getSingleVegginnleggFraDB: async (innlegg_id) => {
+        try {
+            const query = ` SELECT vi.innlegg_id, vi.parent_id,
+                            vi.opprettet, vi.innhold, vi.endret, vi.user_id,
+                            (SELECT IFNULL(
+                                (SELECT vi2.innlegg_id 
+                                FROM veggen_innlegg AS vi2
+                                WHERE vi.innlegg_id = vi2.parent_id),
+                                0)) AS har_svar
+                            FROM veggen_innlegg AS vi
+                            WHERE innlegg_id = ?
+                        `
+            const result = await db.query(query, [innlegg_id])
+
+            return result[0]
+        } catch (error) {
+            throw error
+        }
+    },
     leggInnleggTilDB: async (parent_id, user_id, innhold) => {
         try {
             const query = `INSERT INTO veggen_innlegg (parent_id, user_id, innhold) 
@@ -172,6 +191,18 @@ module.exports = {
                             AND innlegg_id = ?
                            `
             await db.query(query, [endret_innhold, user_id, innlegg_id])
+
+        } catch (error) {
+            throw error
+        }
+    },
+    deleteInnleggDB: async (innlegg_id, user_id) => {
+        try {
+            const query = `DELETE FROM veggen_innlegg                            
+                            WHERE user_id = ?
+                            AND innlegg_id = ?
+                           `
+            await db.query(query, [user_id, innlegg_id])
 
         } catch (error) {
             throw error

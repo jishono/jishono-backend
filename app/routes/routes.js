@@ -61,19 +61,15 @@ module.exports = app => {
 
     router.get("/statistikk", auth, appController.getStatistikk)
 
-    //router.get("/veggen/alle_innlegg", auth, appController.getAlleVeggeninnlegg)
-
     router.get("/veggen/innlegg/:id", auth, appController.hentVegginnlegg)
     
     router.post("/veggen/nytt_innlegg", auth, appController.postNyttVegginnlegg)
 
     router.post("/veggen/innlegg/:id/endre", auth, appController.endreVegginnlegg)
 
+    router.delete("/veggen/innlegg/:id/delete", auth, appController.deleteVegginnlegg)
+
     router.get("/veggen/usette_innlegg/", auth, appController.hentAntallUsetteVegginnlegg)
-
-    
-
-    /* router.get("/test", appController.sendEpost) */
   
     app.use('/', router);
   };

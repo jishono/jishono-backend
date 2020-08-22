@@ -145,6 +145,10 @@
         "innlegg_endret": {
             "no": "Innlegg endret.",
             "ja": "投稿が編集されました。"
+        },
+        "innlegg_slettet": {
+            "no": "Innlegg slettet.",
+            "ja": "投稿が削除されました。"
         }
     }
 }
