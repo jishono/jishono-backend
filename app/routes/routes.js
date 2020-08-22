@@ -67,7 +67,7 @@ module.exports = app => {
 
     router.post("/veggen/innlegg/:id/endre", auth, appController.endreVegginnlegg)
 
-    router.delete("/veggen/innlegg/:id/delete", auth, appController.deleteVegginnlegg)
+    router.post("/veggen/innlegg/:id/delete", auth, appController.deleteVegginnlegg)
 
     router.get("/veggen/usette_innlegg/", auth, appController.hentAntallUsetteVegginnlegg)
   
