@@ -120,6 +120,11 @@ module.exports = {
         try {
             const query = ` SELECT vi.innlegg_id, vi.parent_id, b.brukernavn,
                             vi.opprettet, vi.innhold, vi.endret, vi.user_id,
+                            GREATEST(vi.opprettet, 
+                                (SELECT MAX(opprettet) 
+                                FROM veggen_innlegg AS barn
+                                WHERE barn.parent_id = vi.innlegg_id)
+                                ) AS nyeste,
                             (SELECT IFNULL(
                             (SELECT JSON_ARRAYAGG(
                                 JSON_OBJECT('innlegg_id', vi2.innlegg_id,
@@ -138,7 +143,7 @@ module.exports = {
                             INNER JOIN brukere AS b ON vi.user_id = b.user_id
                             WHERE parent_id IS NULL
                             AND vi.innlegg_id = IFNULL(?, vi.innlegg_id)
-                            ORDER BY vi.opprettet DESC
+                            ORDER BY nyeste DESC
                         `
             const result = await db.query(query, [innlegg_id])
 
