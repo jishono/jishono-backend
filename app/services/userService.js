@@ -202,11 +202,11 @@ module.exports = {
         const query4 = ` SELECT COUNT(*) AS antall
                         FROM forslag AS f
                         LEFT OUTER JOIN stemmer AS s USING(forslag_id)
-                        WHERE f.user_id != 1
+                        WHERE f.user_id != ?
                         AND f.status = 0
-                        AND (s.user_id != 1 OR s.user_id IS NULL)
+                        AND (s.user_id != ? OR s.user_id IS NULL)
                         `
-        result = await db.query(query4, [user_id])
+        result = await db.query(query4, [user_id, user_id])
         ulest['forslag_ikke_stemt'] = result[0]['antall']
 
         return ulest

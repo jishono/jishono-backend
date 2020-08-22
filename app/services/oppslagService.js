@@ -47,7 +47,6 @@ module.exports = {
     },
     sokOppslagMedQuery: async (query_string) => {
         const q = query_string.q
-        console.log(query_string)
         let meddef = (query_string.meddef == "true");
         let utendef = (query_string.utendef == "true");
         if (meddef == true & utendef == true) {
