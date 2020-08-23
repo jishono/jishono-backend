@@ -207,6 +207,7 @@ module.exports = {
                             (SELECT forslag_id
                             FROM stemmer
                             WHERE user_id = ?)
+                        AS antall
                         `
         result = await db.query(query4, [user_id, user_id])
         ulest['forslag_ikke_stemt'] = result[0]['antall']
