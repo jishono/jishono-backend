@@ -106,4 +106,13 @@ module.exports = {
             res.status(500).send(msg.generell_error)
         }
     },
+    getAllUsers: async (req, res) => {
+        try {
+            const users = await User.getAllUserDataFromDB()
+            res.status(200).send(users)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    },
 }

@@ -99,6 +99,18 @@ module.exports = {
             throw error
         }
     },
+    getAllUserDataFromDB: async () => {
+        const query = `SELECT *
+                        FROM brukere
+                        `
+
+        try {
+            const users = await db.query(query)
+            return users
+        } catch (error) {
+            throw error
+        }
+    },
     updateEpostDB: async (user_id, epost) => {
 
         const query = `UPDATE brukere

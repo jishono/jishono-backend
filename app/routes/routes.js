@@ -57,6 +57,8 @@ module.exports = app => {
 
     router.post("/bruker/:id/sist_sett", auth, userController.updateLastSeen)
 
+    router.get("/brukere", auth, admin, userController.getAllUsers)
+
     // Andre app-ruter
 
     router.get("/statistikk", auth, appController.getStatistikk)
@@ -69,7 +71,7 @@ module.exports = app => {
 
     router.post("/veggen/innlegg/:id/delete", auth, appController.deleteVegginnlegg)
 
-    router.get("/veggen/usette_innlegg/", auth, appController.hentAntallUsetteVegginnlegg)
+    router.get("/veggen/usette_innlegg", auth, appController.hentAntallUsetteVegginnlegg)
   
     app.use('/', router);
   };
