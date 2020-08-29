@@ -121,10 +121,10 @@ module.exports = {
             const query = ` SELECT vi.innlegg_id, vi.parent_id, b.brukernavn,
                             vi.opprettet, vi.innhold, vi.endret, vi.user_id,
                             GREATEST(vi.opprettet, 
-                                (SELECT MAX(opprettet) 
+                                COALESCE((SELECT MAX(opprettet) 
                                 FROM veggen_innlegg AS barn
                                 WHERE barn.parent_id = vi.innlegg_id)
-                                ) AS nyeste,
+                                , 0)) AS nyeste,
                             (SELECT IFNULL(
                             (SELECT JSON_ARRAYAGG(
                                 JSON_OBJECT('innlegg_id', vi2.innlegg_id,
