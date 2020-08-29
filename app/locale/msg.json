@@ -95,12 +95,12 @@
             "ja": "ご自身の提案には投票できません。"
         },
         "godkjent_upvotes": {
-            "no": "Forslaget har fått mer enn 5 upvotes og er nå lagt til i ordboka",
-            "ja": "提案に賛成票が5つ以上集まり、辞書に登録されました。"
+            "no": "Forslaget har fått mer enn 3 upvotes og er nå lagt til i ordboka",
+            "ja": "提案に賛成票が3つ以上集まり、辞書に登録されました。"
         },
         "avvist_downvotes": {
-            "no": "Forslaget har fått mer enn 5 downvotes og er derfor slettet",
-            "ja": "提案に反対票が5つ以上集まり、却下されました。"
+            "no": "Forslaget har fått mer enn 3 downvotes og er derfor slettet",
+            "ja": "提案に反対票が3つ以上集まり、却下されました。"
         },
         "stemme_mottatt": {
             "no": "Stemme mottatt",

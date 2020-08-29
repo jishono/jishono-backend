@@ -72,12 +72,12 @@ module.exports = {
 
             const antall_stemmer = await Forslag.hentAntallStemmerPaaForslagFraDB(forslag_id)
 
-            if (antall_stemmer.upvotes >= 5) {
+            if (antall_stemmer.upvotes >= 3) {
                 await Forslag.gjorForslagTilDefinisjonDB(forslag_id)
                 await Forslag.settStatusForslag(forslag_id, 1)
                 return res.status(200).send(msg.forslag.godkjent_upvotes)
             }
-            if (antall_stemmer.downvotes >= 5) {
+            if (antall_stemmer.downvotes >= 3) {
                 await Forslag.settStatusForslag(forslag_id, 4)
                 return res.status(200).send(msg.forslag.avvist_downvotes)
             }
