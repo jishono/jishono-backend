@@ -9,7 +9,9 @@ module.exports = app => {
   
     var router = require("express").Router();
   
-    router.get("/search", auth, oppslagController.searchOppslag);
+    router.get("/search_baksida", auth, oppslagController.searchOppslag);
+
+    router.get("/search", oppslagController.searchWord);
   
     router.get("/oppslag/:id", auth, oppslagController.getOppslag);
 

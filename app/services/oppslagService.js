@@ -46,43 +46,46 @@ module.exports = {
         }
     },
 
-    searchDictionary: async (searchQuery) => {
+    searchDictionary: async (searchWord) => {
         const query = `
-        WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon))
-        SELECT od.lemma_id, od.oppslag, od.ledd, od.boy_tabell, 
-                                    (SELECT IFNULL(
-                                        (SELECT JSON_ARRAYAGG(
-                                        JSON_OBJECT('def_id', d.def_id,
-                                                    'lemma_id', d.lemma_id,
-                                                    'prioritet', d.prioritet,
-                                                    'definisjon', d.definisjon                    
-                                                    ))
-                                        FROM definisjon AS d
-                                        WHERE od.lemma_id = d.lemma_id),
-                                        JSON_ARRAY())
-                                        ) AS definisjoner,
-                                    (SELECT IFNULL(
-                                        (SELECT JSON_ARRAYAGG(
-                                        JSON_OBJECT('uttale_id',u.uttale_id,
-                                                    'lemma_id', u.lemma_id,
-                                                    'transkripsjon', u.transkripsjon
-                                                    ))
-                                        FROM uttale AS u 
-                                        WHERE u.lemma_id = od.lemma_id),
-                                        JSON_ARRAY())
-                                        ) AS uttale
-                
-        FROM oppslag_def AS od
-        WHERE od.oppslag
-        AND od.oppslag LIKE ?
-        ORDER BY
-        CASE
-            WHEN lower(od.oppslag) LIKE ? THEN 1
-            WHEN lower(spell) LIKE ? || '%' THEN 2
-            WHEN lower(spell) LIKE (:frontwild) THEN 3
-            ELSE 4
-        END, 
-        `
+            WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon))
+            
+            SELECT od.lemma_id, od.oppslag, od.ledd, od.boy_tabell, 
+                (SELECT IFNULL(
+                    (SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT('def_id', d.def_id,
+                            'prioritet', d.prioritet,
+                            'definisjon', d.definisjon                    
+                            ))
+                    FROM definisjon AS d
+                    WHERE od.lemma_id = d.lemma_id),
+                JSON_ARRAY())
+                ) AS definisjoner,
+                (SELECT IFNULL(
+                    (SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT('uttale_id',u.uttale_id,
+                            'transkripsjon', u.transkripsjon
+                            ))
+                    FROM uttale AS u 
+                    WHERE u.lemma_id = od.lemma_id),
+                JSON_ARRAY())
+                ) AS uttale
+                    
+            FROM oppslag_def AS od
+            WHERE od.oppslag LIKE CONCAT('%', ?, '%')
+            ORDER BY
+            CASE
+                WHEN lower(od.oppslag) LIKE ? THEN 1
+                WHEN lower(od.oppslag) LIKE CONCAT(?, '%') THEN 2
+                WHEN lower(od.oppslag) LIKE CONCAT('%', ?) THEN 3
+                ELSE 4
+            END,
+            od.oppslag 
+            `
+
+    const results = db.query(query, [searchWord, searchWord, searchWord, searchWord])
+
+    return results
     },
 
     sokOppslagMedQuery: async (query_string) => {

@@ -36,6 +36,18 @@ module.exports = {
     }
   },
 
+  searchWord: async (req, res) => {
+    try {
+      const searchWord = req.query.q
+      console.log(searchWord)
+      const results = await Oppslag.searchDictionary(searchWord)
+      res.status(200).send(results)
+    } catch (error) {
+      console.log(error)
+      res.status(500).send(msg.generell_error)
+    }
+  },
+
   findBoyning: async (req, res) => {
     const id = req.params.id;
     try {
