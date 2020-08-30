@@ -4,7 +4,7 @@ module.exports = {
     getAktiveForslagFraDB: async (user_id) => {
         
         const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, 
-                        b.brukernavn, b.user_id, f.status, f.opprettet, f.endret,
+                        b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret,
                         IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
                         (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
                         (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
@@ -170,7 +170,8 @@ module.exports = {
     },
     settStatusForslag: async (forslag_id, statuskode) => {
         try {
-            const query = `UPDATE forslag SET status = ?
+            const query = `UPDATE forslag 
+                            SET status = ?, godkjent_avvist = CURRENT_TIMESTAMP
                             WHERE forslag_id = ?`
 
             await db.query(query, [statuskode, forslag_id])
