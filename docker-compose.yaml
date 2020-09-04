@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  jishono-api:
+    build: .
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - DB_HOST_NODE=${DB_HOST_NODE}
+      - DB_PORT_NODE=${DB_PORT_NODE}
+      - DB_USER_ADMIN_NODE=${DB_USER_ADMIN_NODE}
+      - DB_NAME_NODE=${DB_NAME_NODE}
+      - DB_PASS_ADMIN_NODE=${DB_PASS_ADMIN_NODE}
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - NODEMAILER_USER=${NODEMAILER_USER}
+      - NODEMAILER_PASSWORD=${NODEMAILER_PASSWORD}
+    ports:
+      - 3001:3001
+    network_mode: "host"
+    command: nodemon start

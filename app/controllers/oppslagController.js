@@ -35,6 +35,17 @@ module.exports = {
       res.status(500).send(msg.generell_error)
     }
   },
+  getSuggestionList: async (req, res) => {
+  
+    try {
+      const searchWord = req.query.q
+      const suggestions = await Oppslag.getSuggestionListFromDB(searchWord)
+      res.status(200).send(suggestions)
+    } catch (error) {
+      console.log(error)
+      res.status(500).send(msg.generell_error)
+    }
+  },
 
   searchWord: async (req, res) => {
     try {
@@ -42,6 +53,19 @@ module.exports = {
       console.log(searchWord)
       const results = await Oppslag.searchDictionary(searchWord)
       res.status(200).send(results)
+    } catch (error) {
+      console.log(error)
+      res.status(500).send(msg.generell_error)
+    }
+  },
+
+  getConjugations: async (req, res) => {
+    const lemma_id = req.params.id;
+    const pos = req.body.pos
+    const table = pos + '_boy'
+    try {
+      const conjugations = await Oppslag.getConjugationsFromDB(lemma_id, table)
+      res.status(200).send(conjugations)
     } catch (error) {
       console.log(error)
       res.status(500).send(msg.generell_error)

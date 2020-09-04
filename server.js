@@ -9,7 +9,7 @@ const cronjobs = require('./app/cron/jobs.js')
 console.log("Environment:", config.app.node_env)
 if (config.app.node_env == 'development') {
   const corsOptions = {
-    origin: "http://localhost:8080"
+    origin: "*"
   }
   app.use(cors(corsOptions))
 }

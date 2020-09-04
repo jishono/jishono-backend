@@ -35,7 +35,6 @@ module.exports = {
                                 WHERE u.lemma_id = o.lemma_id),
                                 JSON_ARRAY())
                                 ) AS uttale
-        
                             FROM oppslag AS o
                             WHERE o.lemma_id = ?`
 
@@ -69,23 +68,33 @@ module.exports = {
                     FROM uttale AS u 
                     WHERE u.lemma_id = od.lemma_id),
                 JSON_ARRAY())
-                ) AS uttale
-                    
+                ) AS uttale,
+                (SELECT IFNULL(
+                    (SELECT JSON_ARRAYAGG(b.pos)
+                    FROM subst_boy AS b
+                    WHERE b.lemma_id = od.lemma_id),
+                JSON_ARRAY())
+                ) AS pos       
             FROM oppslag_def AS od
-            WHERE od.oppslag LIKE CONCAT('%', ?, '%')
-            ORDER BY
-            CASE
-                WHEN lower(od.oppslag) LIKE ? THEN 1
-                WHEN lower(od.oppslag) LIKE CONCAT(?, '%') THEN 2
-                WHEN lower(od.oppslag) LIKE CONCAT('%', ?) THEN 3
-                ELSE 4
-            END,
-            od.oppslag 
             `
+        const results = db.query(query, [searchWord, searchWord, searchWord, searchWord])
 
-    const results = db.query(query, [searchWord, searchWord, searchWord, searchWord])
+        return results
+    },
 
-    return results
+    getSuggestionListFromDB: async (searchWord) => {
+        const query = `
+                    SELECT DISTINCT oppslag
+                    FROM alle_boyninger AS ab
+                    INNER JOIN oppslag AS o USING(lemma_id)
+                    WHERE ab.boyning = ?
+                    AND oppslag != ?
+                    AND lemma_id IN (SELECT lemma_id FROM definisjon);
+                    `
+
+        const results = db.query(query, [searchWord, searchWord])
+
+        return results
     },
 
     sokOppslagMedQuery: async (query_string) => {
@@ -144,6 +153,17 @@ module.exports = {
         try {
             const treff = await db.query(query, params)
             return treff
+        } catch (error) {
+            throw error
+        }
+    },
+
+    getConjugationsFromDB: async (lemma_id, table) => {
+        const query = `SELECT * FROM ?? WHERE lemma_id = ?
+                        ORDER BY pos ASC`
+        try {
+            const conjugations = await db.query(query, [table, lemma_id])
+            return conjugations
         } catch (error) {
             throw error
         }
