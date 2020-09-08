@@ -45,7 +45,7 @@ module.exports = {
         }
     },
 
-    searchDictionary: async (searchWord) => {
+    getAllItemsFromDB: async () => {
         const query = `
             WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon))
             
@@ -77,7 +77,7 @@ module.exports = {
                 ) AS pos       
             FROM oppslag_def AS od
             `
-        const results = db.query(query, [searchWord, searchWord, searchWord, searchWord])
+        const results = db.query(query)
 
         return results
     },
@@ -163,6 +163,43 @@ module.exports = {
                         ORDER BY pos ASC`
         try {
             const conjugations = await db.query(query, [table, lemma_id])
+            return conjugations
+        } catch (error) {
+            throw error
+        }
+    },
+
+    getFlatConjugationsFromDB: async (lemma_id) => {
+        const query = `SELECT o.oppslag, group_concat(boyning) AS conjugations 
+                        FROM alle_boyninger AS ab
+                        RIGHT JOIN oppslag AS o USING(lemma_id)
+                        WHERE lemma_id = ?
+                       `
+        try {
+            let conjugations = await db.query(query, [lemma_id])
+            if (conjugations[0].conjugations) {
+                conjugations = conjugations[0].conjugations.split(',')
+            } else {
+                conjugations = [conjugations[0].oppslag]
+            }
+            return conjugations
+        } catch (error) {
+            throw error
+        }
+    },
+
+    getExampleSentencesFromDB: async (conjugations) => {
+
+        let regex = '\\s(' + conjugations.join('|') + ')\\s'
+        const query = ` SELECT no.no_setning, ja.ja_setning
+                        FROM eksempler_no AS no
+                        LEFT JOIN eksempler_lenker AS l ON no.no_id = l.no_id
+                        LEFT JOIN eksempler_ja AS ja ON l.ja_id = ja.ja_id
+                        WHERE no.no_setning REGEXP ?
+                        ORDER BY ja.ja_setning DESC
+                        `
+        try {
+            const conjugations = await db.query(query, [regex])
             return conjugations
         } catch (error) {
             throw error
