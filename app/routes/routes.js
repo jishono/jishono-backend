@@ -11,13 +11,19 @@ module.exports = app => {
   
     router.get("/search_baksida", auth, oppslagController.searchOppslag);
 
-    router.get("/search", oppslagController.searchWord);
+    router.get("/items/all", oppslagController.getAllItems);
+
+    router.get("/suggestion_list", oppslagController.getSuggestionList);
+
+    router.get("/example_sentences/:id", oppslagController.getExampleSentences);
   
     router.get("/oppslag/:id", auth, oppslagController.getOppslag);
 
     router.get("/kommentarer/:id", auth, oppslagController.getKommentarer);
 
     router.get("/boyning/:id", auth, oppslagController.findBoyning);
+
+    router.post("/conjugations/:id", oppslagController.getConjugations);
   
     router.put("/update/:id", auth, admin, oppslagController.oppdaterOppslag);
   
