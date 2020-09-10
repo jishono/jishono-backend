@@ -91,8 +91,7 @@ module.exports = {
                     AND oppslag != ?
                     AND lemma_id IN (SELECT lemma_id FROM definisjon);
                     `
-
-        const results = db.query(query, [searchWord, searchWord])
+        const results = await db.query(query, [searchWord, searchWord])
 
         return results
     },
@@ -153,6 +152,47 @@ module.exports = {
         try {
             const treff = await db.query(query, params)
             return treff
+        } catch (error) {
+            throw error
+        }
+    },
+
+    searchByQuery: async (searchQuery) => {
+        console.log(searchQuery)
+        const query = `WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon))
+            
+                        SELECT od.lemma_id, od.oppslag, od.ledd, od.boy_tabell, 
+                            (SELECT IFNULL(
+                                (SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT('def_id', d.def_id,
+                                        'prioritet', d.prioritet,
+                                        'definisjon', d.definisjon                    
+                                        ))
+                                FROM definisjon AS d
+                                WHERE od.lemma_id = d.lemma_id),
+                            JSON_ARRAY())
+                            ) AS definisjoner,
+                            (SELECT IFNULL(
+                                (SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT('uttale_id',u.uttale_id,
+                                        'transkripsjon', u.transkripsjon
+                                        ))
+                                FROM uttale AS u 
+                                WHERE u.lemma_id = od.lemma_id),
+                            JSON_ARRAY())
+                            ) AS uttale  
+                        FROM oppslag_def AS od
+                        WHERE od.oppslag LIKE CONCAT('%', ?, '%')
+                        ORDER BY
+                        CASE
+                            WHEN lower(od.oppslag) LIKE ? THEN 1
+                            WHEN lower(od.oppslag) LIKE ? || '%' THEN 2
+                            WHEN lower(od.oppslag) LIKE '%' || ? THEN 3
+                            ELSE 4
+                        END`
+        try {
+            const results = await db.query(query, [searchQuery, searchQuery, searchQuery, searchQuery])
+            return results
         } catch (error) {
             throw error
         }

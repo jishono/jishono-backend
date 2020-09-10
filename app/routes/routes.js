@@ -11,6 +11,8 @@ module.exports = app => {
   
     router.get("/search_baksida", auth, oppslagController.searchOppslag);
 
+    router.get("/search/:query", oppslagController.searchDiscord);
+
     router.get("/items/all", oppslagController.getAllItems);
 
     router.get("/suggestion_list", oppslagController.getSuggestionList);
