@@ -1,6 +1,7 @@
 const db = require("../db/database")
 const Oppslag = require("../services/oppslagService")
 const msg = require('../locale/msg.json')
+const { searchByQuery } = require("../services/oppslagService")
 
 module.exports = {
   getOppslag: async (req, res) => {
@@ -39,6 +40,26 @@ module.exports = {
       const searchWord = req.query.q
       const suggestions = await Oppslag.getSuggestionListFromDB(searchWord)
       res.status(200).send(suggestions)
+    } catch (error) {
+      console.log(error)
+      res.status(500).send(msg.generell_error)
+    }
+  },
+
+  searchDiscord: async (req, res) => {
+    const searchQuery = req.params.query
+    console.log(req.params.query)
+    try {
+      const results = await Oppslag.searchByQuery(searchQuery)
+
+      for (result of results) {
+        let conjugations = await Oppslag.getFlatConjugationsFromDB(result.lemma_id)
+        let example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
+        result['example_sentences'] = example_sentences
+      }
+  
+      console.log(results)
+      res.status(200).send(results)
     } catch (error) {
       console.log(error)
       res.status(500).send(msg.generell_error)
