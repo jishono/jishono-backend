@@ -123,7 +123,7 @@ module.exports = {
                                             INNER JOIN definisjon AS d USING (lemma_id)
                             WHERE d.opprettet < fulldate) AS antall
                             FROM dates
-                            WHERE fulldate >= '2020-08-01' AND fulldate < CURRENT_DATE()
+                            WHERE fulldate >= '2020-08-01' AND fulldate <= CURRENT_DATE()
                             GROUP BY fulldate;
                              `
             const antall_kommentarer = await db.query(query)
