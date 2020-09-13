@@ -74,9 +74,16 @@ module.exports = {
                     FROM subst_boy AS b
                     WHERE b.lemma_id = od.lemma_id),
                 JSON_ARRAY())
-                ) AS pos       
+                ) AS pos,
+                (SELECT IFNULL(
+                    (SELECT JSON_ARRAYAGG(oppslag)
+                    FROM relaterte_oppslag AS ro
+                    WHERE ro.lemma_id = od.lemma_id),
+                JSON_ARRAY())
+                ) AS relatert
             FROM oppslag_def AS od
             `
+
         const results = db.query(query)
 
         return results
@@ -94,6 +101,55 @@ module.exports = {
         const results = await db.query(query, [searchWord, searchWord])
 
         return results
+    },
+
+    generateRelatedWords: async () => {
+        const query = `SELECT o.lemma_id, o.oppslag, (SELECT IFNULL(
+                            (SELECT JSON_ARRAYAGG(ab.boyning)
+                            FROM alle_boyninger AS ab
+                            WHERE ab.lemma_id = o.lemma_id),
+                                JSON_ARRAY())) AS boyninger
+        
+                        FROM oppslag AS o
+                        WHERE lemma_id in (SELECT lemma_id FROM definisjon )
+                        `
+
+        const results = await db.query(query)
+        let inserts = []
+
+        for (row of results) {
+            if (row.oppslag.indexOf(' ') >= 0) {
+                const splits = row.oppslag.split(' ')
+                for (split of splits) {
+                    inserts.push([row.lemma_id, split])
+                }
+            }
+            for (row2 of results) {
+                const regex = new RegExp('(?<![A-Za-zÆæØøÅå])' + row.oppslag + '(?![A-Za-zÆæØøÅå])')
+                if (row2.oppslag.match(regex)) {
+                    if (row2.oppslag != row.oppslag) {
+                        console.log(row.oppslag, row2.oppslag)
+                        const insertArray = [row.lemma_id, row2.oppslag]
+                        inserts.push(insertArray)
+                    }
+                }
+            }
+        }
+        const query2 = `DROP TABLE IF EXISTS relaterte_oppslag;
+                        CREATE TABLE relaterte_oppslag (
+                            relatert_id mediumint NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                            lemma_id mediumint NOT NULL,
+                            oppslag varchar(50) COLLATE utf8mb4_danish_ci NOT NULL,
+                            FOREIGN KEY (lemma_id) REFERENCES oppslag (lemma_id)
+                            );
+                        INSERT INTO relaterte_oppslag (lemma_id, oppslag)
+                        VALUES ?
+                        ;
+                        
+        `
+
+        await db.query(query2, [inserts])
+
     },
 
     sokOppslagMedQuery: async (query_string) => {
