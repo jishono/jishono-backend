@@ -1,87 +1,89 @@
 
 module.exports = app => {
-    const appController = require("../controllers/appController.js");
-    const userController = require("../controllers/userController.js");
-    const oppslagController = require("../controllers/oppslagController.js");
-    const forslagController = require("../controllers/forslagController.js");
-    const { auth } = require("../routes/auth.js")
-    const admin = require("../routes/admin.js")
-  
-    var router = require("express").Router();
-  
-    router.get("/search_baksida", auth, oppslagController.searchOppslag);
+  const appController = require("../controllers/appController.js");
+  const userController = require("../controllers/userController.js");
+  const oppslagController = require("../controllers/oppslagController.js");
+  const forslagController = require("../controllers/forslagController.js");
+  const { auth } = require("../routes/auth.js")
+  const admin = require("../routes/admin.js")
 
-    router.get("/search/:query", oppslagController.searchDiscord);
+  var router = require("express").Router();
 
-    router.get("/items/all", oppslagController.getAllItems);
+  // jisho.no front og Discord
+  router.get("/items/all", oppslagController.getAllItems);
 
-    router.get("/suggestion_list", oppslagController.getSuggestionList);
+  router.get("/suggestion_list", oppslagController.getSuggestionList);
 
-    router.get("/example_sentences/:id", oppslagController.getExampleSentences);
-  
-    router.get("/oppslag/:id", auth, oppslagController.getOppslag);
+  router.get("/example_sentences/:id", oppslagController.getExampleSentences);
 
-    router.get("/kommentarer/:id", auth, oppslagController.getKommentarer);
+  router.post("/conjugations/:id", oppslagController.getConjugations);
 
-    router.get("/boyning/:id", auth, oppslagController.findBoyning);
+  router.get("/search/:query", oppslagController.searchDiscord);
 
-    router.post("/conjugations/:id", oppslagController.getConjugations);
-  
-    router.put("/update/:id", auth, admin, oppslagController.oppdaterOppslag);
-  
-    router.get("/anbefalinger", auth, appController.getAnbefalinger)
+  // Baksida    
+  router.get("/oppslag/:id", auth, oppslagController.getOppslag);
 
-    //Forslags-ruter
-    router.post("/oppslag/:id/nytt_forslag", auth, forslagController.addForslag);
+  router.get("/kommentarer/:id", auth, oppslagController.getKommentarer);
 
-    router.get("/forslag", auth, forslagController.getAllForslag)
+  router.get("/boyning/:id", auth, oppslagController.findBoyning);
 
-    // Ikke i bruk
-    /* router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag) */
+  router.get("/search_baksida", auth, oppslagController.searchOppslag);
 
-    router.get("/forslag/:id", auth, forslagController.hentForslag)
-    
-    router.get("/forslag/:id/kommentarer", auth, forslagController.getForslagKommentarer)
+  router.put("/update/:id", auth, admin, oppslagController.oppdaterOppslag);
 
-    router.post("/forslag/:id/ny_kommentar", auth, forslagController.postForslagKommentar)
-    
-    router.post("/forslag/:id/stem", auth, forslagController.stemForslag)
+  router.get("/anbefalinger", auth, appController.getAnbefalinger)
 
-    router.post("/forslag/:id/godkjenn", auth, admin, forslagController.adminGodkjennForslag)
+  //Forslags-ruter
+  router.post("/oppslag/:id/nytt_forslag", auth, forslagController.addForslag);
 
-    router.post("/forslag/:id/rediger", auth, forslagController.redigerForslag)
+  router.get("/forslag", forslagController.getAllForslag)
 
-    router.post("/forslag/:id/avvis", auth, admin, forslagController.avvisForslag)
+  // Ikke i bruk
+  /* router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag) */
 
-    router.post("/forslag/:id/fjern", auth, forslagController.fjernForslag)
+  router.get("/forslag/:id", forslagController.hentForslag)
 
-    // Bruker-ruter
+  router.get("/forslag/:id/kommentarer", forslagController.getForslagKommentarer)
 
-    router.post("/logg_inn", userController.loggInn)
+  router.post("/forslag/:id/ny_kommentar", auth, forslagController.postForslagKommentar)
 
-    router.post("/registrer", userController.registrerBruker)
-    
-    router.get("/bruker/:id", auth, userController.getBruker)
+  router.post("/forslag/:id/stem", auth, forslagController.stemForslag)
 
-    router.post("/bruker/:id/oppdater", auth, userController.updateBrukerdata)
+  router.post("/forslag/:id/godkjenn", auth, admin, forslagController.adminGodkjennForslag)
 
-    router.post("/bruker/:id/sist_sett", auth, userController.updateLastSeen)
+  router.post("/forslag/:id/rediger", auth, forslagController.redigerForslag)
 
-    router.get("/brukere", auth, admin, userController.getAllUsers)
+  router.post("/forslag/:id/avvis", auth, admin, forslagController.avvisForslag)
 
-    // Andre app-ruter
+  router.post("/forslag/:id/fjern", auth, forslagController.fjernForslag)
 
-    router.get("/statistikk", auth, appController.getStatistikk)
+  // Bruker-ruter
 
-    router.get("/veggen/innlegg/:id", auth, appController.hentVegginnlegg)
-    
-    router.post("/veggen/nytt_innlegg", auth, appController.postNyttVegginnlegg)
+  router.post("/logg_inn", userController.loggInn)
 
-    router.post("/veggen/innlegg/:id/endre", auth, appController.endreVegginnlegg)
+  router.post("/registrer", userController.registrerBruker)
 
-    router.post("/veggen/innlegg/:id/delete", auth, appController.deleteVegginnlegg)
+  router.get("/bruker/:id", auth, userController.getBruker)
 
-    router.get("/veggen/usette_innlegg", auth, appController.hentAntallUsetteVegginnlegg)
-  
-    app.use('/', router);
-  };
+  router.post("/bruker/:id/oppdater", auth, userController.updateBrukerdata)
+
+  router.post("/bruker/:id/sist_sett", auth, userController.updateLastSeen)
+
+  router.get("/brukere", auth, admin, userController.getAllUsers)
+
+  // Andre app-ruter
+
+  router.get("/statistikk", appController.getStatistikk)
+
+  router.get("/veggen/innlegg/:id", appController.hentVegginnlegg)
+
+  router.post("/veggen/nytt_innlegg", auth, appController.postNyttVegginnlegg)
+
+  router.post("/veggen/innlegg/:id/endre", auth, appController.endreVegginnlegg)
+
+  router.post("/veggen/innlegg/:id/delete", auth, appController.deleteVegginnlegg)
+
+  router.get("/veggen/usette_innlegg", auth, appController.hentAntallUsetteVegginnlegg)
+
+  app.use('/', router);
+};

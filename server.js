@@ -6,8 +6,6 @@ const config = require("./app/config/config.js")
 const path = require("path")
 const cronjobs = require('./app/cron/jobs.js')
 
-const Oppslag = require("./app/services/oppslagService")
-
 console.log("Environment:", config.app.node_env)
 if (config.app.node_env == 'development') {
   const corsOptions = {
@@ -36,8 +34,6 @@ app.use((req, res, next) => {
 })
 
 cronjobs.digestEmails()
-
-Oppslag.generateRelatedWords()
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

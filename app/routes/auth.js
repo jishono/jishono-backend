@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require("../config/config")
+const msg = require('../locale/msg.json')
 
 function verifyToken (token) {
   if (token) {
@@ -19,7 +20,7 @@ async function authenticate (req, res, next) {
     res.locals.decoded_token = decoded
     next()
   } else {
-    res.status(401).send("Token authentication failed")
+    res.status(401).send(msg.user.ikke_logget_inn)
   }
 }
 

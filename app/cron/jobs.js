@@ -2,6 +2,7 @@ const cron = require("node-cron");
 const User = require("../services/userService")
 const App = require("../services/appService");
 const moment = require("moment")
+const Oppslag = require("./app/services/oppslagService")
 
 async function getAllDataForDigest (user_id, periode) {
     const ulest = await User.getUlestOversiktFraDB(user_id)
@@ -21,7 +22,7 @@ module.exports = {
                 let data = await getAllDataForDigest(user.user_id, 1)
                 data['tid'] = 'den siste dagen'
                 data['brukernavn'] = user.brukernavn
-                await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs','admin@jisho.no', data)
+                await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs', 'admin@jisho.no', data)
             }
         })
 
@@ -45,6 +46,10 @@ module.exports = {
                     await App.sendEpost(user.epost, "Siste aktiviteter på Baksida", 'aktivitet.ejs', 'admin@jisho.no', data)
                 }
             }
+        })
+
+        cron.schedule("0 4 * * 0", async () => {
+            Oppslag.generateRelatedWords()
         })
     }
 }

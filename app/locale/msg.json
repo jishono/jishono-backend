@@ -12,6 +12,10 @@
             "no": "Feil brukernavn eller passord",
             "ja": "ユーザー名かパスワードが間違っています"
         },
+        "ikke_logget_inn": {
+            "no": "Du må være logget inn for å gjøre dette.",
+            "ja": "この機能を使うにはログインする必要があります。"
+        },
         "registrer": {
             "ok": {
                 "no": "Bruker opprettet. Videresender til innlogging...",
