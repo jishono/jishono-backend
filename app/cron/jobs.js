@@ -2,7 +2,7 @@ const cron = require("node-cron");
 const User = require("../services/userService")
 const App = require("../services/appService");
 const moment = require("moment")
-const Oppslag = require("./app/services/oppslagService")
+const Oppslag = require("../services/oppslagService")
 
 async function getAllDataForDigest (user_id, periode) {
     const ulest = await User.getUlestOversiktFraDB(user_id)
