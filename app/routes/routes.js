@@ -36,14 +36,14 @@ module.exports = app => {
   //Forslags-ruter
   router.post("/oppslag/:id/nytt_forslag", auth, forslagController.addForslag);
 
-  router.get("/forslag", forslagController.getAllForslag)
+  router.get("/forslag", auth, forslagController.getAllForslag)
 
   // Ikke i bruk
   /* router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag) */
 
-  router.get("/forslag/:id", forslagController.hentForslag)
+  router.get("/forslag/:id", auth, forslagController.hentForslag)
 
-  router.get("/forslag/:id/kommentarer", forslagController.getForslagKommentarer)
+  router.get("/forslag/:id/kommentarer", auth, forslagController.getForslagKommentarer)
 
   router.post("/forslag/:id/ny_kommentar", auth, forslagController.postForslagKommentar)
 
@@ -75,7 +75,7 @@ module.exports = app => {
 
   router.get("/statistikk", appController.getStatistikk)
 
-  router.get("/veggen/innlegg/:id", appController.hentVegginnlegg)
+  router.get("/veggen/innlegg/:id", auth, appController.hentVegginnlegg)
 
   router.post("/veggen/nytt_innlegg", auth, appController.postNyttVegginnlegg)
 
