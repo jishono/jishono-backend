@@ -238,14 +238,15 @@ module.exports = {
                             JSON_ARRAY())
                             ) AS uttale  
                         FROM oppslag_def AS od
-                        WHERE od.oppslag LIKE CONCAT(?, '%')
+                        WHERE od.oppslag LIKE CONCAT('%', ?, '%')
                         ORDER BY
                         CASE
                             WHEN lower(od.oppslag) LIKE ? THEN 1
                             WHEN lower(od.oppslag) LIKE ? || '%' THEN 2
-                            ELSE 3
+                            WHEN lower(od.oppslag) LIKE '%' || ? THEN 3
+                            ELSE 4
                         END
-                        LIMIT 20`
+                        LIMIT 5`
         try {
             const results = await db.query(query, [searchQuery, searchQuery, searchQuery, searchQuery])
             return results
