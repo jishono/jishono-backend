@@ -214,7 +214,6 @@ module.exports = {
     },
 
     searchByQuery: async (searchQuery) => {
-        console.log(searchQuery)
         const query = `WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon))
             
                         SELECT od.lemma_id, od.oppslag, od.ledd, od.boy_tabell, 
@@ -238,14 +237,7 @@ module.exports = {
                             JSON_ARRAY())
                             ) AS uttale  
                         FROM oppslag_def AS od
-                        WHERE od.oppslag LIKE CONCAT('%', ?, '%')
-                        ORDER BY
-                        CASE
-                            WHEN lower(od.oppslag) LIKE ? THEN 1
-                            WHEN lower(od.oppslag) LIKE ? || '%' THEN 2
-                            WHEN lower(od.oppslag) LIKE '%' || ? THEN 3
-                            ELSE 4
-                        END
+                        WHERE od.oppslag = ?                    
                         LIMIT 5`
         try {
             const results = await db.query(query, [searchQuery, searchQuery, searchQuery, searchQuery])

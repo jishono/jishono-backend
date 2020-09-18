@@ -52,11 +52,12 @@ module.exports = {
     try {
       const results = await Oppslag.searchByQuery(searchQuery)
 
-      for (result of results) {
+      //Foreløpig fjerna
+      /* for (result of results) {
         let conjugations = await Oppslag.getFlatConjugationsFromDB(result.lemma_id)
         let example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
         result['example_sentences'] = example_sentences
-      }
+      } */
   
       console.log(results)
       res.status(200).send(results)
