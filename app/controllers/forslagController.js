@@ -6,18 +6,20 @@ const msg = require('../locale/msg.json')
 module.exports = {
     addForslag: async (req, res) => {
 
-        const forslag_definisjoner = req.body.forslag_definisjoner
+        const nye_forslag = req.body.nye_forslag
         const lemma_id = req.body.lemma_id
         const user_id = res.locals.user_id
         try {
 
-            // Fjernet for å se hvordan det går å legge til forslag på ord med defs
-            /* const current_defs = await Oppslag.hentAlleDefinisjonerPaaOppslag(lemma_id)
-            if (current_defs.length > 0) {
-                return res.status(403).send(msg.forslag.eksisterende_def)
-            } */
-            if (forslag_definisjoner.length > 0 && forslag_definisjoner[0] != '') {
-                await Forslag.leggForslagTilDB(forslag_definisjoner.map(def => [lemma_id, user_id, def]))
+            if (nye_forslag.length > 0 && nye_forslag[0]['definisjon'] != '') {
+                for (forslag of nye_forslag) {
+                    let forslag_id = await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon)
+                    console.log(forslag)
+                    if (forslag.kommentar != null && forslag.kommentar != '') {
+                        const kommentar_id = await Forslag.leggForslagKommentarTilDB(forslag_id, user_id, forslag.kommentar)
+                        await Forslag.settKommentarSomSettDB([[kommentar_id, user_id]])
+                    }
+                }
                 return res.status(200).send(msg.forslag.lagt_til)
             }
             res.status(400).send(msg.forslag.minst_ett)

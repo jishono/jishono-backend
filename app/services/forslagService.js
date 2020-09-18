@@ -133,11 +133,12 @@ module.exports = {
             throw error
         }
     },
-    leggForslagTilDB: async (forslag) => {
+    leggForslagTilDB: async (lemma_id, user_id, forslag) => {
         try {
             const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
-                            VALUES ?`
-            await db.query(query, [forslag])
+                            VALUES (?, ?, ?)`
+            const result = await db.query(query, [lemma_id, user_id, forslag])
+            return result.insertId
 
         } catch (error) {
             throw error
@@ -203,7 +204,8 @@ module.exports = {
                             VALUES (?, ?, ?)
                            `
 
-            await db.query(query, [forslag_id, user_id, kommentar])
+            const result = await db.query(query, [forslag_id, user_id, kommentar])
+            return result.insertId
 
         } catch (error) {
             throw error
@@ -236,6 +238,7 @@ module.exports = {
         }
     },
     settKommentarSomSettDB: async (kommentarer_sett) => {
+        console.log(kommentarer_sett)
         try {
             const query = `INSERT IGNORE INTO forslag_kommentarer_sett (forslag_kommentar_id, user_id) 
                             VALUES ?
