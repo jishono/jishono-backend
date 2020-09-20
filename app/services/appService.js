@@ -14,7 +14,7 @@ module.exports = {
                                 (SELECT oppslag FROM definisjon AS d
                                 INNER JOIN oppslag AS o
                                 USING (lemma_id))
-                            AND o.skjult = 0
+                            AND o.skjult != 1
                             AND o.lemma_id NOT IN 
                                 (SELECT lemma_id FROM forslag AS f)
                             AND o.boy_tabell NOT IN ('symbol','forkorting')
