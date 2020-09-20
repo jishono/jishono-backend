@@ -13,7 +13,7 @@ module.exports = {
     },
     hentOppslagFraDB: async (lemma_id) => {
         try {
-            const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, 
+            const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult, 
                             (SELECT IFNULL(
                                 (SELECT JSON_ARRAYAGG(
                                 JSON_OBJECT('def_id', d.def_id,
@@ -164,6 +164,7 @@ module.exports = {
         if (medut == true & utenut == true) {
             medut = false; utenut = false;
         }
+        let kun_skjult = (query_string.kun_skjult == "true");
 
         posarray = []
         pos_val = ["adj", "adv", "det", "forkorting",
@@ -197,6 +198,12 @@ module.exports = {
         }
         if (utenut) {
             query += ' AND o.lemma_id NOT IN (SELECT lemma_id FROM uttale)'
+        }
+
+        if (kun_skjult) {
+            query += ' AND o.skjult = 1'
+        } else {
+            query += ' AND o.skjult = 0'
         }
 
         if (posarray.length > 0) {
@@ -328,12 +335,12 @@ module.exports = {
         }
 
     },
-    oppdaterLeddOppslagDB: async (ledd, lemma_id) => {
+    oppdaterOppslagDB: async (ledd, skjult, lemma_id) => {
         const query = `UPDATE oppslag
-                        SET ledd = ?
+                        SET ledd = ?, skjult = ?
                         WHERE lemma_id = ?`
         try {
-            await db.query(query, [ledd, lemma_id])
+            await db.query(query, [ledd, skjult, lemma_id])
         } catch (error) {
             throw error
         }

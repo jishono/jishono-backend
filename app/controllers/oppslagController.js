@@ -144,7 +144,7 @@ module.exports = {
     }
 
     try {
-      await Oppslag.oppdaterLeddOppslagDB(oppslag.ledd, oppslag.lemma_id)
+      await Oppslag.oppdaterOppslagDB(oppslag.ledd, oppslag.skjult, oppslag.lemma_id)
     } catch (error) {
       console.log(error)
       return res.status(500).send(msg.generell_error)
