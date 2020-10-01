@@ -99,5 +99,17 @@ module.exports = {
             console.log(error)
             res.status(500).send(msg.generell_error)
         }
+    },
+    postFeedback: async (req, res) => {
+        try {
+            const lemma_id = req.body.wordID
+            const feedback = req.body.feedback
+            await App.writeFeedbackToDB(lemma_id, feedback)
+            res.status(200).send("フィードバックを頂きました！")
+
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
     }
 }
