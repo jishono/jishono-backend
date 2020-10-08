@@ -58,7 +58,6 @@ jobs:
           docker push $IMAGE_ID:$VERSION
 
   deploy:
-    name: Update via webhook
     runs-on: ubuntu-latest
     needs: [push]
     steps:
