@@ -20,7 +20,9 @@ module.exports = app => {
 
   router.get("/search/:query", oppslagController.searchDiscord);
 
-  router.post("/feedback",appController.postFeedback)
+  router.post("/words/:id/feedback",appController.postFeedback)
+
+  router.post("/request-translation/", appController.postRequest)
 
   // Baksida    
   router.get("/oppslag/:id", auth, oppslagController.getOppslag);

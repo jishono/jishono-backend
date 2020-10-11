@@ -102,10 +102,21 @@ module.exports = {
     },
     postFeedback: async (req, res) => {
         try {
-            const lemma_id = req.body.wordID
+            const lemma_id = req.params.id
             const feedback = req.body.feedback
             await App.writeFeedbackToDB(lemma_id, feedback)
             res.status(200).send("フィードバックを頂きました！")
+
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    },
+    postRequest: async (req, res) => {
+        try {
+            const request = req.body.request
+            await App.writeRequestToDB(request)
+            res.status(200).send("依頼を頂きました！")
 
         } catch (error) {
             console.log(error)

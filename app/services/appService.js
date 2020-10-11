@@ -379,5 +379,10 @@ module.exports = {
         const query = `INSERT INTO feedback(lemma_id, feedback)
                         VALUES (?, ?)`
         await db.query(query, [lemma_id, feedback])
+    },
+    writeRequestToDB: async (request) => {
+        const query = `INSERT INTO ønsker (oppslag)
+                        VALUES (?)`
+        await db.query(query, [request])
     }
 }
