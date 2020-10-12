@@ -122,5 +122,14 @@ module.exports = {
             console.log(error)
             res.status(500).send(msg.generell_error)
         }
-    }
+    },
+    getRequests: async (req, res) => {
+        try {
+            const requests = await App.getUntranslatedRequests()
+            res.status(200).send(requests)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    },
 }

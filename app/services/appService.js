@@ -38,6 +38,36 @@ module.exports = {
             throw error
         }
     },
+    getUntranslatedRequests: async () => {
+        const query = `SELECT o.lemma_id, o.oppslag, o.boy_tabell
+                            FROM ønsker AS ø 
+                            INNER JOIN oppslag AS o ON o.oppslag = ø.oppslag
+                            WHERE o.oppslag NOT IN 
+                                (SELECT oppslag FROM definisjon AS d
+                                INNER JOIN oppslag AS o
+                                USING (lemma_id))
+                            AND o.skjult != 1
+                            AND o.lemma_id NOT IN 
+                                (SELECT lemma_id FROM forslag AS f)
+                            AND o.boy_tabell NOT IN ('symbol','forkorting')
+                            AND LENGTH(o.oppslag) > 1
+                            AND o.oppslag NOT IN ('Æ','æ','Ø','ø','Å','å')
+                            ORDER BY ø.tidspunkt
+                            LIMIT 500
+                            `
+        const results = await db.query(query)
+        /* const amount = results.length
+        let anbefalinger = []
+        for (let i = 0; i < 10; i++) {
+            let random_index = Math.floor(Math.random() * amount)
+            let random_result = results[random_index]
+            if (!anbefalinger.some(item => item.lemma_id === random_result.lemma_id)) {
+                anbefalinger.push(random_result)
+            }
+        } */
+        return results
+
+    },
     getBrukeroversettelser: async () => {
         try {
             const query = `SELECT b.brukernavn, COUNT(*) AS antall_oversettelser
@@ -303,7 +333,7 @@ module.exports = {
     sendNotificationsAfterComment: async (forslag_id, user_id) => {
 
         let adressees = []
-        
+
         const query = `SELECT f.user_id, b.epost, b.brukernavn
                         FROM forslag AS f
                         INNER JOIN brukere AS b ON f.user_id = b.user_id
@@ -333,7 +363,7 @@ module.exports = {
         }
 
         for (adressee of adressees) {
-            await module.exports.sendEpost(adressee.epost, "Noen har kommentert...", 'comment_notification.ejs', 'admin@jisho.no', {forslag_id: forslag_id})
+            await module.exports.sendEpost(adressee.epost, "Noen har kommentert...", 'comment_notification.ejs', 'admin@jisho.no', { forslag_id: forslag_id })
         }
 
 
@@ -341,7 +371,7 @@ module.exports = {
     sendNotificationsAfterWallPost: async (innlegg_id, user_id) => {
 
         let adressees = []
-        
+
         const query = `SELECT vi.user_id, b.epost, b.brukernavn
                         FROM veggen_innlegg AS vi
                         INNER JOIN brukere AS b USING (user_id)
@@ -370,7 +400,7 @@ module.exports = {
         }
 
         for (adressee of adressees) {
-            await module.exports.sendEpost(adressee.epost, "Noen har svart på...", 'wall_notification.ejs', 'admin@jisho.no', {innlegg_id: innlegg_id})
+            await module.exports.sendEpost(adressee.epost, "Noen har svart på...", 'wall_notification.ejs', 'admin@jisho.no', { innlegg_id: innlegg_id })
         }
 
 

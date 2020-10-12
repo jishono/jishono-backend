@@ -37,6 +37,8 @@ module.exports = app => {
 
   router.get("/anbefalinger", auth, appController.getAnbefalinger)
 
+  router.get("/requests", auth, appController.getRequests)
+
   //Forslags-ruter
   router.post("/oppslag/:id/nytt_forslag", auth, forslagController.addForslag);
 
