@@ -167,7 +167,7 @@ module.exports = {
         let kun_skjult = (query_string.kun_skjult == "true");
 
         posarray = []
-        pos_val = ["adj", "adv", "det", "forkorting",
+        pos_val = ["adj", "adv", "det", "egennavn", "forkorting",
             "interjeksjon", "konjunksjon", "prefiks", "preposisjon",
             "pron", "subst", "subjunksjon", "verb", "symbol"]
         pos_val.forEach(pos => {
@@ -337,7 +337,7 @@ module.exports = {
     },
     oppdaterOppslagDB: async (ledd, skjult, lemma_id) => {
         const query = `UPDATE oppslag
-                        SET ledd = ?, skjult = ?
+                        SET ledd = ?, skjult = ?, sist_endret = CURRENT_TIMESTAMP
                         WHERE lemma_id = ?`
         try {
             await db.query(query, [ledd, skjult, lemma_id])
@@ -379,6 +379,57 @@ module.exports = {
             await db.query(query, [lemma_id, user_id, ny_kommentar])
         } catch (error) {
             throw error
+        }
+    },
+    addWordSuggestionToDB: async (word, wordClass, parts, userID) => {
+        const query = `INSERT INTO oppslag_forslag(oppslag, boy_tabell, ledd, user_id)
+                        VALUES (?, ?, ?, ?)`
+
+        await db.query(query, [word, wordClass, parts, userID])
+    },
+    getAllWordSuggestionsFromDB: async () => {
+        const query = `SELECT o.oppslag_forslag_id, o.oppslag, o.boy_tabell, o.ledd, 
+                        o.status, o.opprettet, b.brukernavn
+                        FROM oppslag_forslag AS o
+                        INNER JOIN brukere AS b USING (user_id)`
+
+        const results = await db.query(query)
+        return results
+    },
+    getWordSuggestionFromDB: async (wordID) => {
+        const query = `SELECT o.oppslag_forslag_id, o.oppslag, o.boy_tabell, o.ledd, o.status,
+                        o.opprettet, b.brukernavn
+                        FROM oppslag_forslag AS o
+                        INNER JOIN brukere AS b USING(user_id)
+                        WHERE oppslag_forslag_id = ?`
+
+        const result = await db.query(query, [wordID])
+        return result[0]
+    },
+    addWordToDB: async (word, wordClass, parts) => {
+
+        const query = `INSERT INTO oppslag (oppslag, boy_tabell, ledd)
+                        VALUES (?, ?, ?);
+                        SELECT LAST_INSERT_ID() as lemma_id;`
+
+        const result = await db.query(query, [word, wordClass, parts])
+        return result[0].insertId
+    },
+    setWordSuggestionsStatus: async (wordSuggestionID, status) => {
+        const query = `UPDATE oppslag_forslag
+                        SET status = ?
+                        WHERE oppslag_forslag_id = ?`
+
+        await db.query(query, [status, wordSuggestionID])
+    },
+    addConjugationToDB: async (wordID, insertTable, conjugations) => {
+
+        const query = `INSERT INTO ??
+                        SET ?`
+
+        for (conjugation of conjugations) {
+            conjugation['lemma_id'] = wordID
+            await db.query(query, [insertTable, conjugation])
         }
     }
 }

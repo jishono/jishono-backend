@@ -39,6 +39,16 @@ module.exports = app => {
 
   router.get("/requests", auth, appController.getRequests)
 
+  router.post("/words/suggestions/new", auth, oppslagController.addWordSuggestion)
+
+  router.get("/words/suggestions", auth, oppslagController.getAllWordSuggestions)
+
+  router.get("/words/suggestions/:id", auth, oppslagController.getWordSuggestion)
+
+  router.post("/words/suggestions/:id/accept", auth, admin, oppslagController.acceptWordSuggestion)
+
+  router.post("/words/suggestions/:id/reject", auth, admin, oppslagController.rejectWordSuggestion)
+
   //Forslags-ruter
   router.post("/oppslag/:id/nytt_forslag", auth, forslagController.addForslag);
 

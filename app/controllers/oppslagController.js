@@ -2,6 +2,7 @@ const db = require("../db/database")
 const Oppslag = require("../services/oppslagService")
 const msg = require('../locale/msg.json')
 const { searchByQuery } = require("../services/oppslagService")
+const oppslagService = require("../services/oppslagService")
 
 module.exports = {
   getOppslag: async (req, res) => {
@@ -58,7 +59,7 @@ module.exports = {
         let example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
         result['example_sentences'] = example_sentences
       } */
-  
+
       console.log(results)
       res.status(200).send(results)
     } catch (error) {
@@ -183,5 +184,71 @@ module.exports = {
       }
     }
     res.status(200).send(msg.oppdatert)
+  },
+
+
+  addWordSuggestion: async (req, res) => {
+    const userID = res.locals.user_id
+    const { word, wordClass, parts } = req.body
+    try {
+      if (word !== '' && wordClass !== '') {
+        await oppslagService.addWordSuggestionToDB(word, wordClass, parts, userID)
+      }
+      res.status(200).send(msg.oppslag.forslag_opprettet)
+    } catch (error) {
+      console.log(error)
+      return res.status(500).send(msg.generell_error)
+    }
+
+  },
+  getWordSuggestion: async (req, res) => {
+    const wordID = req.params.id
+    try {
+      const wordSuggestion = await oppslagService.getWordSuggestionFromDB(wordID)
+      res.status(200).send(wordSuggestion)
+    } catch (error) {
+      console.log(error)
+      return res.status(500).send(msg.generell_error)
+    }
+
+  },
+  getAllWordSuggestions: async (req, res) => {
+    try {
+      const wordSuggestions = await oppslagService.getAllWordSuggestionsFromDB()
+      res.status(200).send(wordSuggestions)
+    } catch (error) {
+      console.log(error)
+      return res.status(500).send(msg.generell_error)
+    }
+
+  },
+  acceptWordSuggestion: async (req, res) => {
+    const wordSuggestionID = req.params.id
+    const conjugations = req.body.conjugations
+    const { word, wordClass, parts } = req.body
+    try {
+      const newWordID = await oppslagService.addWordToDB(word, wordClass, parts)
+      await oppslagService.setWordSuggestionsStatus(wordSuggestionID, 1)
+      if (['adj', 'adv', 'det', 'pron', 'subst', 'verb'].includes(wordClass)) {
+        const insertTable = wordClass + '_boy'
+        await oppslagService.addConjugationToDB(newWordID, insertTable, conjugations)
+      }
+      res.status(200).send(msg.oppslag.opprettet)
+    } catch (error) {
+      console.log(error)
+      return res.status(500).send(msg.generell_error)
+    }
+  },
+  rejectWordSuggestion: async (req, res) => {
+    const wordSuggestionID = req.params.id
+    try {
+      await oppslagService.setWordSuggestionsStatus(wordSuggestionID, 2)
+      res.status(200).send(msg.oppslag.avvist)
+    } catch (error) {
+      console.log(error)
+      return res.status(500).send(msg.generell_error)
+    }
   }
 }
+
+//conjugations.length > 0 && 

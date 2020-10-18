@@ -154,5 +154,19 @@
             "no": "Innlegg slettet.",
             "ja": "投稿が削除されました。"
         }
+    },
+    "oppslag": {
+        "opprettet": {
+            "no": "Oppslag opprettet",
+            "ja": "見出し語を登録しました"
+        },
+        "forslag_opprettet": {
+            "no": "Forslag til nytt oppslag lagt til. Videresender til oversikt...",
+            "ja": "見出し語の新しい提案を登録しました。提案一覧に転送されます..."
+        },
+        "avvist": {
+            "no": "Forslag avvist",
+            "ja": "提案が却下されました"
+        }
     }
 }
