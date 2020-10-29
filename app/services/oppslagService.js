@@ -54,7 +54,8 @@ module.exports = {
                     (SELECT JSON_ARRAYAGG(
                         JSON_OBJECT('def_id', d.def_id,
                             'prioritet', d.prioritet,
-                            'definisjon', d.definisjon                    
+                            'definisjon', d.definisjon,
+                            'wiki', IF(d.oversatt_av = 0, 1, 0)                  
                             ))
                     FROM definisjon AS d
                     WHERE od.lemma_id = d.lemma_id),
@@ -128,7 +129,6 @@ module.exports = {
                 const regex = new RegExp('(?<![A-Za-zÆæØøÅå])' + row.oppslag + '(?![A-Za-zÆæØøÅå])')
                 if (row2.oppslag.match(regex)) {
                     if (row2.oppslag != row.oppslag) {
-                        console.log(row.oppslag, row2.oppslag)
                         const insertArray = [row.lemma_id, row2.oppslag]
                         inserts.push(insertArray)
                     }
@@ -166,6 +166,12 @@ module.exports = {
         }
         let kun_skjult = (query_string.kun_skjult == "true");
 
+        let kunwiki = (query_string.kunwiki == "true");
+        let utenwiki = (query_string.utenwiki == "true");
+        if (kunwiki == true & utenwiki == true) {
+            kunwiki = false; utenwiki = false;
+        }
+
         posarray = []
         pos_val = ["adj", "adv", "det", "egennavn", "forkorting",
             "interjeksjon", "konjunksjon", "prefiks", "preposisjon",
@@ -198,6 +204,13 @@ module.exports = {
         }
         if (utenut) {
             query += ' AND o.lemma_id NOT IN (SELECT lemma_id FROM uttale)'
+        }
+
+        if (kunwiki) {
+            query += ' AND o.lemma_id IN (SELECT lemma_id FROM definisjon WHERE oversatt_av = 0)'
+        }
+        if (utenwiki) {
+            query += ' AND o.lemma_id NOT IN (SELECT lemma_id FROM definisjon WHERE oversatt_av = 0)'
         }
 
         if (kun_skjult) {
@@ -347,7 +360,6 @@ module.exports = {
 
     },
     leggTilDefinisjonDB: async (def_array) => {
-        console.log(def_array)
         const query = `INSERT INTO definisjon (def_id, lemma_id, prioritet, definisjon, oversatt_av)
                         VALUES ?
                         ON DUPLICATE KEY UPDATE

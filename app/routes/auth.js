@@ -15,7 +15,6 @@ function verifyToken (token) {
 
 async function authenticate (req, res, next) {
   const decoded = module.exports.verifyToken(req.get('Authorization'))
-  console.log(req.url)
   if (decoded || ['/forslag', '/veggen/innlegg/undefined'].includes(req.url)) {
     if (decoded) {
       res.locals.user_id = decoded.user_id

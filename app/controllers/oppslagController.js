@@ -49,7 +49,6 @@ module.exports = {
 
   searchDiscord: async (req, res) => {
     const searchQuery = req.params.query
-    console.log(req.params.query)
     try {
       const results = await Oppslag.searchByQuery(searchQuery)
 
@@ -60,7 +59,6 @@ module.exports = {
         result['example_sentences'] = example_sentences
       } */
 
-      console.log(results)
       res.status(200).send(results)
     } catch (error) {
       console.log(error)

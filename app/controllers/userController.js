@@ -59,7 +59,6 @@ module.exports = {
         const epost = req.body.epost
         const locale = req.body.locale
         const oppdateringer = req.body.oppdateringer
-        console.log(oppdateringer)
         let message = msg.user.profil.oppdatert
 
         try {

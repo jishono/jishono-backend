@@ -89,17 +89,25 @@ module.exports = {
             let oppslag_info = []
             const query1 = `SELECT 'ord_med' AS tittel, COUNT(DISTINCT lemma_id) AS antall
                             FROM definisjon AS d
+                            WHERE oversatt_av != 0
                             `
             const result1 = await db.query(query1)
             oppslag_info.push(result1[0])
 
-            const query2 = `SELECT 'ord_uten' AS tittel, 
+            const query2 = `SELECT 'ord_wiki' AS tittel, COUNT(DISTINCT lemma_id) AS antall
+                            FROM definisjon AS d
+                            WHERE oversatt_av = 0
+                            `
+            const result2 = await db.query(query2)
+            oppslag_info.push(result2[0])
+
+            const query3 = `SELECT 'ord_uten' AS tittel, 
                             COUNT(DISTINCT lemma_id) AS antall
                             FROM oppslag AS o
                             WHERE lemma_id NOT IN (SELECT lemma_id FROM definisjon)
                             `
-            const result2 = await db.query(query2)
-            oppslag_info.push(result2[0])
+            const result3 = await db.query(query3)
+            oppslag_info.push(result3[0])
 
             return oppslag_info
         } catch (error) {
@@ -111,6 +119,7 @@ module.exports = {
             const query = `SELECT DATE_FORMAT(opprettet, '%d-%c') AS dato, count(*) AS antall
                              FROM definisjon AS d
                              WHERE opprettet BETWEEN NOW() - INTERVAL 30 DAY AND NOW()
+                             AND oversatt_av != 0
                              GROUP BY dato
                              `
             const nye_oversettelser = await db.query(query)
@@ -152,7 +161,9 @@ module.exports = {
             const query = ` SELECT fulldate, (SELECT COUNT(DISTINCT lemma_id)
                                             FROM oppslag AS o
                                             INNER JOIN definisjon AS d USING (lemma_id)
-                            WHERE d.opprettet <= fulldate) AS antall
+                            WHERE d.opprettet <= fulldate
+                            AND d.oversatt_av != 0
+                            ) AS antall                            
                             FROM dates
                             WHERE fulldate >= '2020-08-01' AND fulldate <= CURRENT_DATE() + 1
                             GROUP BY fulldate;

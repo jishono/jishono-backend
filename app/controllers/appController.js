@@ -88,7 +88,6 @@ module.exports = {
             const user_id = res.locals.user_id
             const innlegg_id = req.params.id
             let innlegg = await App.getSingleVegginnleggFraDB(innlegg_id)
-            console.log(innlegg)
             if (innlegg.har_svar) {
                 await App.endreInnleggDB(innlegg_id, user_id, "***Slettet av bruker / 投稿者により削除されました***")
             } else {

@@ -111,7 +111,6 @@ module.exports = {
                         AND s.user_id = ?
                         `
             const stemmer = await db.query(query, [forslag_id, user_id])
-            console.log(stemmer)
             return stemmer
 
         } catch (error) {
@@ -238,7 +237,6 @@ module.exports = {
         }
     },
     settKommentarSomSettDB: async (kommentarer_sett) => {
-        console.log(kommentarer_sett)
         try {
             const query = `INSERT IGNORE INTO forslag_kommentarer_sett (forslag_kommentar_id, user_id) 
                             VALUES ?
