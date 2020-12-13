@@ -1,5 +1,6 @@
 const db = require("../db/database")
 const Oppslag = require("../services/oppslagService")
+const App = require("../services/appService")
 const msg = require('../locale/msg.json')
 const { searchByQuery } = require("../services/oppslagService")
 const oppslagService = require("../services/oppslagService")
@@ -68,6 +69,7 @@ module.exports = {
 
   getAllItems: async (req, res) => {
     try {
+      await App.registerVisit()
       const results = await Oppslag.getAllItemsFromDB()
       res.status(200).send(results)
     } catch (error) {
@@ -248,5 +250,3 @@ module.exports = {
     }
   }
 }
-
-//conjugations.length > 0 && 

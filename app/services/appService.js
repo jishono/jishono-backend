@@ -425,5 +425,9 @@ module.exports = {
         const query = `INSERT INTO ønsker (oppslag)
                         VALUES (?)`
         await db.query(query, [request])
+    },
+    registerVisit: async () => {
+        const query = `INSERT INTO page_traffic (timestamp) VALUES (CURRENT_TIMESTAMP)`
+        await db.query(query)
     }
 }
