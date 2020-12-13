@@ -31,8 +31,18 @@ module.exports = {
     },
     getAllForslag: async (req, res) => {
         const user_id = res.locals.user_id
+        const status = req.query.status || 0
         try {
-            let forslag = await Forslag.getAktiveForslagFraDB(user_id)
+            let forslag = await Forslag.getAktiveForslagFraDB(user_id, status)
+            res.status(200).send(forslag)
+        } catch (error) {
+            console.log(error)
+        }
+    },
+    getMyForslag: async (req, res) => {
+        const user_id = res.locals.user_id
+        try {
+            let forslag = await Forslag.getMyForslagFromDB(user_id)
             res.status(200).send(forslag)
         } catch (error) {
             console.log(error)

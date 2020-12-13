@@ -1,7 +1,38 @@
 const db = require("../db/database")
 
 module.exports = {
-    getAktiveForslagFraDB: async (user_id) => {
+    getAktiveForslagFraDB: async (user_id, status) => {
+        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, 
+                        b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret,
+                        IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
+                        (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
+                        (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
+                        IF((SELECT COUNT(lemma_id) FROM definisjon WHERE lemma_id = o.lemma_id) > 0, 1, 0) AS eksisterende_definisjoner,
+                        IF(
+                            (SELECT COUNT(*)
+                                FROM forslag_kommentarer AS fk
+                                WHERE fk.forslag_id = f.forslag_id 
+                            ) >
+                            (SELECT COUNT(*)
+                                FROM forslag_kommentarer_sett AS fks
+                                INNER JOIN forslag_kommentarer AS fk USING(forslag_kommentar_id)
+                                WHERE fks.user_id = ?
+                                AND fk.forslag_id = f.forslag_id 
+                            ), 0, 1) AS sett                                             
+                        FROM forslag AS f
+                        INNER JOIN oppslag AS o USING (lemma_id)
+                        INNER JOIN brukere AS b USING (user_id)
+                        LEFT OUTER JOIN stemmer AS s USING (forslag_id)
+                        WHERE f.status = ?
+                        GROUP BY f.forslag_id`
+        try {
+            const forslag = await db.query(query, [user_id, user_id, status])
+            return forslag
+        } catch (error) {
+            throw error
+        }
+    },
+    getMyForslagFromDB: async (user_id) => {
         
         const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, 
                         b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret,
@@ -24,6 +55,7 @@ module.exports = {
                         INNER JOIN oppslag AS o USING (lemma_id)
                         INNER JOIN brukere AS b USING (user_id)
                         LEFT OUTER JOIN stemmer AS s USING (forslag_id)
+                        WHERE f.user_id = ?
                         GROUP BY f.forslag_id`
         try {
             const forslag = await db.query(query, [user_id, user_id, user_id])
