@@ -41,7 +41,7 @@ module.exports = {
     },
     genererJWT: (bruker) => {
         const token = jwt.sign({ user: bruker.brukernavn, user_id: bruker.user_id, admin: bruker.admin, locale: bruker.locale }, config.jwt.secret, {
-            expiresIn: '30d'
+            expiresIn: '120d'
         })
         return token
     },
