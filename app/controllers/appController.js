@@ -131,4 +131,13 @@ module.exports = {
             res.status(500).send(msg.generell_error)
         }
     },
+    getPageVisitStats: async (req, res) => {
+        try {
+            const visits = await App.getPageVisitStatsFromDB()
+            res.status(200).send(visits)
+        } catch (error) {
+            console.log(error)
+            res.status(500).send(msg.generell_error)
+        }
+    },
 }
