@@ -22,7 +22,7 @@
     "moment": "^2.28.0",
     "mysql2": "^2.2.1",
     "node-cron": "^2.0.3",
-    "nodemailer": "^6.4.11",
+    "nodemailer": "^6.4.16",
     "nodemon": "^2.0.4",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
