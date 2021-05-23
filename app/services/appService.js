@@ -433,7 +433,6 @@ module.exports = {
     getPageVisitStatsFromDB: async () => {
         const query = `SELECT DATE_FORMAT(timestamp, '%d-%c') AS dato, count(*) AS antall
                         FROM page_traffic AS pt
-                        WHERE timestamp BETWEEN NOW() - INTERVAL 30 DAY AND NOW()
                         GROUP BY dato`
         const result = await db.query(query)
         return result
