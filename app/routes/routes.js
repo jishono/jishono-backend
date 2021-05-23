@@ -89,7 +89,7 @@ module.exports = app => {
 
   router.get("/brukere", auth, admin, userController.getAllUsers)
 
-  router.get("/visits", auth, admin, appController.getPageVisitStats)
+  router.get("/pagevisits", auth, admin, appController.getPageVisits)
 
   // Andre app-ruter
 
