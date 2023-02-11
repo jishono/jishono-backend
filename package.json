@@ -23,7 +23,7 @@
     "mysql2": "^2.2.1",
     "node-cron": "^2.0.3",
     "nodemailer": "^6.4.11",
-    "nodemon": "^2.0.4",
+    "nodemon": "^2.0.20",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
