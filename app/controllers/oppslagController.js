@@ -80,8 +80,27 @@ module.exports = {
 
   getConjugations: async (req, res) => {
     const lemma_id = req.params.id;
-    const pos = req.body.pos
-    const table = pos + '_boy'
+    const pos = req.body.pos;
+
+    // Allow only known parts-of-speech to control the table name
+    const allowedPosToTable = {
+      // Map each allowed POS to its corresponding table name
+      // Extend this map with all valid POS values used in your schema
+      
+      adj: 'adj_boy',
+      adv: 'adv_boy',
+      det: 'det_boy',
+      pron: 'pron_boy',
+      subst: 'subst_boy',
+      verb: 'verb_boy',
+    };
+
+    if (typeof pos !== 'string' || !(pos in allowedPosToTable)) {
+      console.log('Invalid pos value in getConjugations:', pos);
+      return res.status(400).send(msg.generell_error);
+    }
+
+    const table = allowedPosToTable[pos];
     try {
       const conjugations = await Oppslag.getConjugationsFromDB(lemma_id, table)
       res.status(200).send(conjugations)

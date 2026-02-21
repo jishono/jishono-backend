@@ -276,6 +276,7 @@ module.exports = {
     },
 
     getConjugationsFromDB: async (lemma_id, table) => {
+        // NOTE: `table` must be a trusted, whitelisted identifier (see controller validation)
         const query = `SELECT * FROM ${table} WHERE lemma_id = $1 ORDER BY pos ASC`;
         try {
             const conjugations = await db.query(query, [lemma_id])
