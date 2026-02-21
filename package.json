@@ -9,7 +9,7 @@
   "author": "PG",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.0.0",
+    "bcrypt": "^6.0.0",
     "body-parser": "^1.19.0",
     "browserslist": "^4.16.6",
     "caniuse-lite": "^1.0.30001223",
