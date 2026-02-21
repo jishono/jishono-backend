@@ -106,10 +106,10 @@ module.exports = {
   findBoyning: async (req, res) => {
     const lemma_id = req.params.id;
     try {
-      const oppslag = await db.query('SELECT * FROM oppslag WHERE lemma_id = ?', [lemma_id])
+      const oppslag = await db.query('SELECT * FROM oppslag WHERE lemma_id = $1', [lemma_id])
       const boy_tabell = oppslag[0].boy_tabell + '_boy'
-      const query = `SELECT * FROM ?? WHERE lemma_id = ?`
-      const result = await db.query(query, [boy_tabell, lemma_id])
+      const query = `SELECT * FROM ${boy_tabell} WHERE lemma_id = $1`
+      const result = await db.query(query, [lemma_id])
       res.status(200).send(result)
     } catch (error) {
       console.log(error)

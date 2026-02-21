@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   jishono-api:
     build: .
@@ -7,7 +5,7 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     environment:
-      - DB_HOST_NODE=${DB_HOST_NODE}
+      - DB_HOST_NODE=postgres
       - DB_PORT_NODE=${DB_PORT_NODE}
       - DB_USER_ADMIN_NODE=${DB_USER_ADMIN_NODE}
       - DB_NAME_NODE=${DB_NAME_NODE}
@@ -18,5 +16,17 @@ services:
       - NODEMAILER_PASSWORD=${NODEMAILER_PASSWORD}
     ports:
       - 3001:3001
-    network_mode: "host"
     command: nodemon start
+
+  postgres:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS_ADMIN_NODE}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data 
+ 
+volumes:
+  pgdata:
