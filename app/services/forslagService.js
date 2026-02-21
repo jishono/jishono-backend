@@ -2,29 +2,30 @@ const db = require("../db/database")
 
 module.exports = {
     getAktiveForslagFraDB: async (user_id, status) => {
-        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, 
+        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon,
                         b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret,
-                        IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
-                        (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
+                        COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes, COALESCE(SUM(CASE WHEN s.type = 0 THEN 1 ELSE 0 END), 0) AS downvotes,
+                        (SELECT type FROM stemmer WHERE user_id = $1 AND forslag_id = f.forslag_id) AS minstemme,
                         (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
-                        IF((SELECT COUNT(lemma_id) FROM definisjon WHERE lemma_id = o.lemma_id) > 0, 1, 0) AS eksisterende_definisjoner,
-                        IF(
+                        (CASE WHEN (SELECT COUNT(lemma_id) FROM definisjon WHERE lemma_id = o.lemma_id) > 0 THEN 1 ELSE 0 END) AS eksisterende_definisjoner,
+                        (CASE WHEN
                             (SELECT COUNT(*)
                                 FROM forslag_kommentarer AS fk
-                                WHERE fk.forslag_id = f.forslag_id 
+                                WHERE fk.forslag_id = f.forslag_id
                             ) >
                             (SELECT COUNT(*)
                                 FROM forslag_kommentarer_sett AS fks
                                 INNER JOIN forslag_kommentarer AS fk USING(forslag_kommentar_id)
-                                WHERE fks.user_id = ?
-                                AND fk.forslag_id = f.forslag_id 
-                            ), 0, 1) AS sett                                             
+                                WHERE fks.user_id = $2
+                                AND fk.forslag_id = f.forslag_id
+                            ) THEN 0 ELSE 1 END) AS sett
                         FROM forslag AS f
                         INNER JOIN oppslag AS o USING (lemma_id)
                         INNER JOIN brukere AS b USING (user_id)
                         LEFT OUTER JOIN stemmer AS s USING (forslag_id)
-                        WHERE f.status = ?
-                        GROUP BY f.forslag_id`
+                        WHERE f.status = $3
+                        GROUP BY f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell,
+                                 b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret`
         try {
             const forslag = await db.query(query, [user_id, user_id, status])
             return forslag
@@ -33,30 +34,31 @@ module.exports = {
         }
     },
     getMyForslagFromDB: async (user_id) => {
-        
-        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon, 
+
+        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon,
                         b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret,
-                        IFNULL(SUM(s.type = 1),0) AS upvotes, IFNULL(SUM(s.type = 0), 0) AS downvotes,
-                        (SELECT type FROM stemmer WHERE user_id = ? AND forslag_id = f.forslag_id) AS minstemme,
+                        COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes, COALESCE(SUM(CASE WHEN s.type = 0 THEN 1 ELSE 0 END), 0) AS downvotes,
+                        (SELECT type FROM stemmer WHERE user_id = $1 AND forslag_id = f.forslag_id) AS minstemme,
                         (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
-                        IF((SELECT COUNT(lemma_id) FROM definisjon WHERE lemma_id = o.lemma_id) > 0, 1, 0) AS eksisterende_definisjoner,
-                        IF(
+                        (CASE WHEN (SELECT COUNT(lemma_id) FROM definisjon WHERE lemma_id = o.lemma_id) > 0 THEN 1 ELSE 0 END) AS eksisterende_definisjoner,
+                        (CASE WHEN
                             (SELECT COUNT(*)
                                 FROM forslag_kommentarer AS fk
-                                WHERE fk.forslag_id = f.forslag_id 
+                                WHERE fk.forslag_id = f.forslag_id
                             ) >
                             (SELECT COUNT(*)
                                 FROM forslag_kommentarer_sett AS fks
                                 INNER JOIN forslag_kommentarer AS fk USING(forslag_kommentar_id)
-                                WHERE fks.user_id = ?
-                                AND fk.forslag_id = f.forslag_id 
-                            ), 0, 1) AS sett                                             
+                                WHERE fks.user_id = $2
+                                AND fk.forslag_id = f.forslag_id
+                            ) THEN 0 ELSE 1 END) AS sett
                         FROM forslag AS f
                         INNER JOIN oppslag AS o USING (lemma_id)
                         INNER JOIN brukere AS b USING (user_id)
                         LEFT OUTER JOIN stemmer AS s USING (forslag_id)
-                        WHERE f.user_id = ?
-                        GROUP BY f.forslag_id`
+                        WHERE f.user_id = $3
+                        GROUP BY f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell,
+                                 b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret`
         try {
             const forslag = await db.query(query, [user_id, user_id, user_id])
             return forslag
@@ -65,23 +67,23 @@ module.exports = {
         }
     },
     hentEnkeltForslagFraDB: async (forslag_id) => {
-        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, 
+        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell,
                         f.forslag_definisjon, b.brukernavn, b.user_id, f.opprettet, f.status,
-                        (SELECT IFNULL(
-                            (SELECT JSON_ARRAYAGG(
-                            JSON_OBJECT('def_id', d.def_id,
+                        (SELECT COALESCE(
+                            (SELECT JSON_AGG(
+                            JSON_BUILD_OBJECT('def_id', d.def_id,
                                         'lemma_id', d.lemma_id,
                                         'prioritet', d.prioritet,
-                                        'definisjon', d.definisjon                    
+                                        'definisjon', d.definisjon
                                         ))
                             FROM definisjon AS d
                             WHERE o.lemma_id = d.lemma_id),
-                            JSON_ARRAY())
+                            '[]'::json)
                             ) AS eksisterende_definisjoner
                         FROM forslag AS f
                         INNER JOIN brukere AS b USING (user_id)
                         INNER JOIN oppslag AS o USING (lemma_id)
-                        WHERE f.forslag_id = ?`
+                        WHERE f.forslag_id = $1`
         try {
             const forslag = await db.query(query, [forslag_id])
             return forslag[0]
@@ -91,9 +93,9 @@ module.exports = {
     },
     settInnStemmeDB: async (forslag_id, user_id, type) => {
         const query = `INSERT INTO stemmer (forslag_id, user_id, type)
-                        VALUES (?, ?, ?)
-                        ON DUPLICATE KEY UPDATE
-                        type = VALUES (type)
+                        VALUES ($1, $2, $3)
+                        ON CONFLICT (forslag_id, user_id) DO UPDATE
+                        SET type = EXCLUDED.type
                         `
         try {
             await db.query(query, [forslag_id, user_id, type])
@@ -104,8 +106,8 @@ module.exports = {
     },
     slettStemmeFraDB: async (forslag_id, user_id) => {
         const query = `DELETE FROM stemmer
-                        WHERE forslag_id = ? 
-                        AND user_id = ?`
+                        WHERE forslag_id = $1
+                        AND user_id = $2`
         try {
             await db.query(query, [forslag_id, user_id])
 
@@ -114,10 +116,10 @@ module.exports = {
         }
     },
     hentAntallStemmerPaaForslagFraDB: async (forslag_id) => {
-        const query = `SELECT IFNULL(SUM(s.type = 1),0) AS upvotes,
-                        IFNULL(SUM(s.type = 0),0) AS downvotes
+        const query = `SELECT COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes,
+                        COALESCE(SUM(CASE WHEN s.type = 0 THEN 1 ELSE 0 END),0) AS downvotes
                         FROM stemmer AS s
-                        WHERE forslag_id = ?`
+                        WHERE forslag_id = $1`
         try {
             const stemmer = await db.query(query, [forslag_id])
             return stemmer[0]
@@ -127,7 +129,7 @@ module.exports = {
     },
     hentForslagseierFraDB: async (forslag_id) => {
         const query = `SELECT user_id, status FROM forslag
-                        WHERE forslag_id = ?`
+                        WHERE forslag_id = $1`
         try {
             const forslagseier = await db.query(query, [forslag_id])
             return forslagseier[0]
@@ -139,8 +141,8 @@ module.exports = {
         try {
             let query = `SELECT s.stemme_id, s.type
                         FROM stemmer AS s
-                        WHERE s.forslag_id = ?
-                        AND s.user_id = ?
+                        WHERE s.forslag_id = $1
+                        AND s.user_id = $2
                         `
             const stemmer = await db.query(query, [forslag_id, user_id])
             return stemmer
@@ -152,12 +154,12 @@ module.exports = {
     slettForslagFraDB: async (forslag_id, user_id) => {
         try {
             let query1 = `DELETE FROM forslag
-                        WHERE forslag_id = ?
-                        AND user_id = ?`
+                        WHERE forslag_id = $1
+                        AND user_id = $2`
             await db.query(query1, [forslag_id, user_id])
 
             const query2 = `DELETE FROM stemmer
-                          WHERE forslag_id = ?`
+                          WHERE forslag_id = $1`
             await db.query(query2, [forslag_id])
 
         } catch (error) {
@@ -167,9 +169,10 @@ module.exports = {
     leggForslagTilDB: async (lemma_id, user_id, forslag) => {
         try {
             const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
-                            VALUES (?, ?, ?)`
+                            VALUES ($1, $2, $3)
+                            RETURNING forslag_id`
             const result = await db.query(query, [lemma_id, user_id, forslag])
-            return result.insertId
+            return result[0].forslag_id
 
         } catch (error) {
             throw error
@@ -179,21 +182,21 @@ module.exports = {
         try {
             const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id
                           FROM forslag
-                          WHERE forslag_id = ?`
+                          WHERE forslag_id = $1`
             let forslag = await db.query(query1, [forslag_id])
             forslag = forslag[0]
             if (redigert_forslag) {
                 forslag.forslag_definisjon = redigert_forslag
-                const query2 = `UPDATE forslag SET forslag_definisjon = ?
-                                WHERE forslag_id = ?`
+                const query2 = `UPDATE forslag SET forslag_definisjon = $1
+                                WHERE forslag_id = $2`
                 await db.query(query2, [redigert_forslag, forslag_id])
             }
-            const query3 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = ?`
+            const query3 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = $1`
             let result = await db.query(query3, [forslag.lemma_id])
 
             const max_pri = result[0]['max_pri'] + 1
             const query4 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av)
-                          VALUES (?, ?, ?, ?)`
+                          VALUES ($1, $2, $3, $4)`
             await db.query(query4, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
 
         } catch (error) {
@@ -202,9 +205,9 @@ module.exports = {
     },
     settStatusForslag: async (forslag_id, statuskode) => {
         try {
-            const query = `UPDATE forslag 
-                            SET status = ?, godkjent_avvist = CURRENT_TIMESTAMP
-                            WHERE forslag_id = ?`
+            const query = `UPDATE forslag
+                            SET status = $1, godkjent_avvist = CURRENT_TIMESTAMP
+                            WHERE forslag_id = $2`
 
             await db.query(query, [statuskode, forslag_id])
 
@@ -218,7 +221,7 @@ module.exports = {
                             fk.opprettet, fk.kommentar
                             FROM forslag_kommentarer AS fk
                             INNER JOIN brukere AS b USING(user_id)
-                            WHERE forslag_id = ?
+                            WHERE forslag_id = $1
                             ORDER BY fk.opprettet DESC
                            `
 
@@ -231,12 +234,13 @@ module.exports = {
     },
     leggForslagKommentarTilDB: async (forslag_id, user_id, kommentar) => {
         try {
-            const query = `INSERT INTO forslag_kommentarer (forslag_id, user_id, kommentar) 
-                            VALUES (?, ?, ?)
+            const query = `INSERT INTO forslag_kommentarer (forslag_id, user_id, kommentar)
+                            VALUES ($1, $2, $3)
+                            RETURNING forslag_kommentar_id
                            `
 
             const result = await db.query(query, [forslag_id, user_id, kommentar])
-            return result.insertId
+            return result[0].forslag_kommentar_id
 
         } catch (error) {
             throw error
@@ -244,10 +248,10 @@ module.exports = {
     },
     endreForslagDB: async (forslag_id, user_id, redigert_forslag) => {
         try {
-            const query = `UPDATE forslag 
-                            SET forslag_definisjon = ?, endret = 1
-                            WHERE forslag_id = ?
-                            AND user_id = ?
+            const query = `UPDATE forslag
+                            SET forslag_definisjon = $1, endret = 1
+                            WHERE forslag_id = $2
+                            AND user_id = $3
                            `
             await db.query(query, [redigert_forslag, forslag_id, user_id])
 
@@ -257,10 +261,9 @@ module.exports = {
     },
     nullstillStemmerDB: async (forslag_id, user_id) => {
         try {
-            const query = `DELETE FROM stemmer AS s
-                            INNER JOIN forslag AS f USING(forslag_id)
-                            WHERE s.forslag_id = ?
-                            AND f.user_id = ?
+            const query = `DELETE FROM stemmer
+                            WHERE forslag_id = $1
+                            AND forslag_id IN (SELECT forslag_id FROM forslag WHERE user_id = $2)
                            `
             await db.query(query, [forslag_id, user_id])
 
@@ -270,11 +273,12 @@ module.exports = {
     },
     settKommentarSomSettDB: async (kommentarer_sett) => {
         try {
-            const query = `INSERT IGNORE INTO forslag_kommentarer_sett (forslag_kommentar_id, user_id) 
-                            VALUES ?
-                           `
-
-            await db.query(query, [kommentarer_sett])
+            await db.bulkInsert(
+                `INSERT INTO forslag_kommentarer_sett (forslag_kommentar_id, user_id)`,
+                kommentarer_sett,
+                2,
+                `ON CONFLICT DO NOTHING`
+            )
 
         } catch (error) {
             throw error

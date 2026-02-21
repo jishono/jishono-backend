@@ -12,7 +12,7 @@ module.exports = {
     },
     sjekkPassordMedID: async (passord, user_id) => {
         try {
-            let user = await db.query('SELECT passord_hash FROM brukere WHERE user_id = ?', [user_id])
+            let user = await db.query('SELECT passord_hash FROM brukere WHERE user_id = $1', [user_id])
             user = user[0]
             const passord_gyldig = bcrypt.compareSync(passord, user.passord_hash)
             return passord_gyldig
@@ -25,14 +25,14 @@ module.exports = {
         return bcrypt.compareSync(passord, passord_hash)
     },
     hentBrukerMedBrukernavn: async (brukernavn) => {
-        const query = `SELECT * FROM brukere WHERE brukernavn = ?`
+        const query = `SELECT * FROM brukere WHERE brukernavn = $1`
 
         return await db.query(query, [brukernavn.toLowerCase()])
     },
     oppdaterSistInnlogget: async (user_id) => {
-        const query = `UPDATE brukere 
-                        SET sist_innlogget = CURRENT_TIMESTAMP 
-                        WHERE user_id = ?`
+        const query = `UPDATE brukere
+                        SET sist_innlogget = CURRENT_TIMESTAMP
+                        WHERE user_id = $1`
         try {
             await db.query(query, [user_id])
         } catch (error) {
@@ -78,19 +78,19 @@ module.exports = {
         ny_brukerdata["password"] = module.exports.krypterPassord(ny_brukerdata['password'])
 
         const query = `INSERT INTO brukere (brukernavn, epost, passord_hash, admin)
-                        VALUES (?, ?, ?, FALSE)`
+                        VALUES ($1, $2, $3, FALSE)`
         try {
-            await db.query(query, [[ny_brukerdata.username.toLowerCase()], [ny_brukerdata.email.toLowerCase()], [ny_brukerdata.password]])
+            await db.query(query, [ny_brukerdata.username.toLowerCase(), ny_brukerdata.email.toLowerCase(), ny_brukerdata.password])
         } catch (error) {
             throw error
         }
     },
     getBrukerdataFraDB: async (user_id) => {
         const query = `SELECT user_id, brukernavn, epost, locale, admin,
-                        JSON_OBJECT('opp_periode', opp_periode,
+                        JSON_BUILD_OBJECT('opp_periode', opp_periode,
                         'opp_kommentar_eget', opp_kommentar_eget, 'opp_svar', opp_svar) AS oppdateringer
                         FROM brukere
-                        WHERE user_id = ?`
+                        WHERE user_id = $1`
 
         try {
             const brukerdata = await db.query(query, [user_id])
@@ -114,8 +114,8 @@ module.exports = {
     updateEpostDB: async (user_id, epost) => {
 
         const query = `UPDATE brukere
-                    SET epost = ?
-                    WHERE user_id = ?`
+                    SET epost = $1
+                    WHERE user_id = $2`
         try {
             await db.query(query, [epost, user_id])
         } catch (error) {
@@ -125,8 +125,8 @@ module.exports = {
     updateLocaleDB: async (user_id, locale) => {
 
         const query = `UPDATE brukere
-                    SET locale = ?
-                    WHERE user_id = ?`
+                    SET locale = $1
+                    WHERE user_id = $2`
         try {
             await db.query(query, [locale, user_id])
         } catch (error) {
@@ -137,8 +137,8 @@ module.exports = {
         const kryptert_passord = module.exports.krypterPassord(nytt_passord)
 
         const query = `UPDATE brukere
-                        SET passord_hash = ?
-                        WHERE user_id = ?`
+                        SET passord_hash = $1
+                        WHERE user_id = $2`
         try {
             await db.query(query, [kryptert_passord, user_id])
         } catch (error) {
@@ -151,8 +151,8 @@ module.exports = {
         const opp_svar = oppdateringer.opp_svar
 
         const query = `UPDATE brukere
-                        SET opp_periode = ?, opp_kommentar_eget = ?, opp_svar = ?
-                        WHERE user_id = ?`
+                        SET opp_periode = $1, opp_kommentar_eget = $2, opp_svar = $3
+                        WHERE user_id = $4`
         try {
             await db.query(query, [opp_periode, opp_kommentar_eget, opp_svar, user_id])
         } catch (error) {
@@ -162,17 +162,17 @@ module.exports = {
     getUlestOversiktFraDB: async (user_id) => {
 
         let ulest = {}
-        const query1 = ` SELECT (SELECT COUNT(f.forslag_id) 
+        const query1 = ` SELECT (SELECT COUNT(f.forslag_id)
                         FROM forslag AS f
                         INNER JOIN forslag_kommentarer AS kf USING(forslag_id)
-                        WHERE f.user_id = ?) 
+                        WHERE f.user_id = $1)
                         -
-                        (SELECT COUNT(f.forslag_id) 
+                        (SELECT COUNT(f.forslag_id)
                         FROM forslag AS f
                         INNER JOIN forslag_kommentarer AS kf USING(forslag_id)
                         INNER JOIN forslag_kommentarer_sett AS fks USING(forslag_kommentar_id)
-                        WHERE f.user_id = ?
-                        AND fks.user_id = ?)
+                        WHERE f.user_id = $2
+                        AND fks.user_id = $3)
                         AS antall
                         `
         let result = await db.query(query1, [user_id, user_id, user_id])
@@ -181,20 +181,20 @@ module.exports = {
         const query2 = ` WITH kommentarer AS (
                             SELECT DISTINCT f.forslag_id
                             FROM forslag AS f
-                            INNER JOIN forslag_kommentarer AS fk USING(forslag_id) 
-                            WHERE fk.user_id = ?)
-                        
+                            INNER JOIN forslag_kommentarer AS fk USING(forslag_id)
+                            WHERE fk.user_id = $1)
+
                         SELECT
                         (SELECT COUNT(*)
                         FROM kommentarer
                         INNER JOIN forslag_kommentarer USING (forslag_id)
                         )
                          -
-                        (SELECT COUNT(*) 
+                        (SELECT COUNT(*)
                         FROM kommentarer
                         INNER JOIN forslag_kommentarer AS fk USING (forslag_id)
                         INNER JOIN forslag_kommentarer_sett AS fks USING (forslag_kommentar_id)
-                        WHERE fks.user_id = ?
+                        WHERE fks.user_id = $2
                         ) AS antall
                         `
         result = await db.query(query2, [user_id, user_id])
@@ -206,19 +206,19 @@ module.exports = {
                         (SELECT COUNT(*)
                         FROM veggen_innlegg
                         INNER JOIN veggen_innlegg_sett AS vis USING (innlegg_id)
-                        WHERE vis.user_id = ?) AS antall
+                        WHERE vis.user_id = $1) AS antall
                         `
         result = await db.query(query3, [user_id])
         ulest['vegginnlegg'] = result[0]['antall']
 
         const query4 = `SELECT COUNT(*) AS antall
                         FROM forslag AS f
-                        WHERE f.user_id != ?
+                        WHERE f.user_id != $1
                         AND f.status = 0
-                        AND f.forslag_id NOT IN 
+                        AND f.forslag_id NOT IN
                             (SELECT forslag_id
                             FROM stemmer
-                            WHERE user_id = ?)    
+                            WHERE user_id = $2)
                         `
         result = await db.query(query4, [user_id, user_id])
         ulest['forslag_ikke_stemt'] = result[0]['antall']
@@ -230,7 +230,7 @@ module.exports = {
         let aktiviteter = {}
         const query1 = `SELECT COUNT(*) AS antall
                         FROM forslag
-                        WHERE opprettet >= DATE_ADD(CURDATE(), INTERVAL -? DAY)
+                        WHERE opprettet >= CURRENT_DATE - $1 * INTERVAL '1 day'
                         `
         let result = await db.query(query1, [dager])
 
@@ -238,28 +238,28 @@ module.exports = {
 
         const query2 = `SELECT COUNT(*) AS antall
                         FROM forslag_kommentarer
-                        WHERE opprettet >= DATE_ADD(CURDATE(), INTERVAL -? DAY)
+                        WHERE opprettet >= CURRENT_DATE - $1 * INTERVAL '1 day'
                         `
         result = await db.query(query2, [dager])
         aktiviteter['nye_kommentarer'] = result[0]['antall']
 
         const query3 = `SELECT COUNT(*) AS antall
                         FROM definisjon
-                        WHERE opprettet >= DATE_ADD(CURDATE(), INTERVAL -? DAY)
+                        WHERE opprettet >= CURRENT_DATE - $1 * INTERVAL '1 day'
                         `
         result = await db.query(query3, [dager])
         aktiviteter['nye_oversettelser'] = result[0]['antall']
 
         const query4 = `SELECT COUNT(*) AS antall
                         FROM veggen_innlegg
-                        WHERE opprettet >= DATE_ADD(CURDATE(), INTERVAL -? DAY)
+                        WHERE opprettet >= CURRENT_DATE - $1 * INTERVAL '1 day'
                         `
         result = await db.query(query4, [dager])
         aktiviteter['nye_vegginnlegg'] = result[0]['antall']
 
         const query5 = `SELECT COUNT(*) AS antall
                         FROM stemmer
-                        WHERE opprettet >= DATE_ADD(CURDATE(), INTERVAL -? DAY)
+                        WHERE opprettet >= CURRENT_DATE - $1 * INTERVAL '1 day'
                         `
         result = await db.query(query5, [dager])
         aktiviteter['nye_stemmer'] = result[0]['antall']
@@ -267,8 +267,8 @@ module.exports = {
         const query6 = `SELECT COUNT(*) AS antall
                         FROM stemmer AS s
                         INNER JOIN forslag AS f USING(forslag_id)
-                        WHERE s.opprettet >= DATE_ADD(CURDATE(), INTERVAL -? DAY)
-                        AND f.user_id = ?
+                        WHERE s.opprettet >= CURRENT_DATE - $1 * INTERVAL '1 day'
+                        AND f.user_id = $2
                            `
         result = await db.query(query6, [dager, user_id])
         aktiviteter['nye_stemmer_eget_forslag'] = result[0]['antall']
@@ -278,18 +278,18 @@ module.exports = {
     getUserEmailByPeriod: async (period) => {
         const query = `SELECT user_id, epost, brukernavn
                         FROM brukere
-                        WHERE opp_periode = ?`
+                        WHERE opp_periode = $1`
 
         const users = await db.query(query, [period])
-        
+
         return users
     },
     updateLastSeenDB: async (user_id) => {
         const query = `UPDATE brukere
                         SET sist_sett = CURRENT_TIMESTAMP
-                        WHERE user_id = ?`
+                        WHERE user_id = $1`
 
         await db.query(query, [user_id])
-        
+
     }
 }

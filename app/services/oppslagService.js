@@ -3,7 +3,7 @@ const db = require("../db/database")
 module.exports = {
     hentAlleDefinisjonerPaaOppslag: async (lemma_id) => {
         const query = `SELECT definisjon FROM definisjon
-                        WHERE lemma_id = ?`
+                        WHERE lemma_id = $1`
         try {
             const definisjoner = await db.query(query, [lemma_id])
             return definisjoner
@@ -13,30 +13,30 @@ module.exports = {
     },
     hentOppslagFraDB: async (lemma_id) => {
         try {
-            const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult, 
-                            (SELECT IFNULL(
-                                (SELECT JSON_ARRAYAGG(
-                                JSON_OBJECT('def_id', d.def_id,
+            const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult,
+                            (SELECT COALESCE(
+                                (SELECT JSON_AGG(
+                                JSON_BUILD_OBJECT('def_id', d.def_id,
                                             'lemma_id', d.lemma_id,
                                             'prioritet', d.prioritet,
-                                            'definisjon', d.definisjon                    
+                                            'definisjon', d.definisjon
                                             ))
                                 FROM definisjon AS d
                                 WHERE o.lemma_id = d.lemma_id),
-                                JSON_ARRAY())
+                                '[]'::json)
                                 ) AS definisjon,
-                            (SELECT IFNULL(
-                                (SELECT JSON_ARRAYAGG(
-                                JSON_OBJECT('uttale_id',u.uttale_id,
+                            (SELECT COALESCE(
+                                (SELECT JSON_AGG(
+                                JSON_BUILD_OBJECT('uttale_id',u.uttale_id,
                                             'lemma_id', u.lemma_id,
                                             'transkripsjon', u.transkripsjon
                                             ))
-                                FROM uttale AS u 
+                                FROM uttale AS u
                                 WHERE u.lemma_id = o.lemma_id),
-                                JSON_ARRAY())
+                                '[]'::json)
                                 ) AS uttale
                             FROM oppslag AS o
-                            WHERE o.lemma_id = ?`
+                            WHERE o.lemma_id = $1`
 
             const oppslag = await db.query(query, [lemma_id])
             return oppslag
@@ -48,41 +48,44 @@ module.exports = {
     getAllItemsFromDB: async () => {
         const query = `
             WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon))
-            
-            SELECT od.lemma_id, od.oppslag, od.ledd, od.boy_tabell, 
-                (SELECT IFNULL(
-                    (SELECT JSON_ARRAYAGG(
-                        JSON_OBJECT('def_id', d.def_id,
+            SELECT
+                od.lemma_id,
+                od.oppslag,
+                od.ledd,
+                od.boy_tabell,
+                COALESCE(
+                    (SELECT JSON_AGG(
+                        JSON_BUILD_OBJECT(
+                            'def_id', d.def_id,
                             'prioritet', d.prioritet,
                             'definisjon', d.definisjon,
-                            'wiki', IF(d.oversatt_av = 0, 1, 0)                  
-                            ))
+                            'wiki', CASE WHEN d.oversatt_av = 0 THEN 1 ELSE 0 END
+                        )
+                    )
                     FROM definisjon AS d
                     WHERE od.lemma_id = d.lemma_id),
-                JSON_ARRAY())
-                ) AS definisjoner,
-                (SELECT IFNULL(
-                    (SELECT JSON_ARRAYAGG(
-                        JSON_OBJECT('uttale_id',u.uttale_id,
+                '[]'::json) AS definisjoner,
+                COALESCE(
+                    (SELECT JSON_AGG(
+                        JSON_BUILD_OBJECT(
+                            'uttale_id', u.uttale_id,
                             'transkripsjon', u.transkripsjon
-                            ))
-                    FROM uttale AS u 
+                        )
+                    )
+                    FROM uttale AS u
                     WHERE u.lemma_id = od.lemma_id),
-                JSON_ARRAY())
-                ) AS uttale,
-                (SELECT IFNULL(
-                    (SELECT JSON_ARRAYAGG(b.pos)
+                '[]'::json) AS uttale,
+                COALESCE(
+                    (SELECT JSON_AGG(b.pos)
                     FROM subst_boy AS b
                     WHERE b.lemma_id = od.lemma_id),
-                JSON_ARRAY())
-                ) AS pos,
-                (SELECT IFNULL(
-                    (SELECT JSON_ARRAYAGG(oppslag)
+                '[]'::json) AS pos,
+                COALESCE(
+                    (SELECT JSON_AGG(oppslag)
                     FROM relaterte_oppslag AS ro
                     WHERE ro.lemma_id = od.lemma_id),
-                JSON_ARRAY())
-                ) AS relatert
-            FROM oppslag_def AS od
+                '[]'::json) AS relatert
+            FROM oppslag_def AS od;
             `
 
         const results = db.query(query)
@@ -92,25 +95,25 @@ module.exports = {
 
     getSuggestionListFromDB: async (searchWord) => {
         const query = `
-                    SELECT DISTINCT oppslag
-                    FROM alle_boyninger AS ab
-                    INNER JOIN oppslag AS o USING(lemma_id)
-                    WHERE ab.boyning = ?
-                    AND oppslag != ?
-                    AND lemma_id IN (SELECT lemma_id FROM definisjon);
-                    `
-        const results = await db.query(query, [searchWord, searchWord])
+        SELECT DISTINCT o.oppslag
+        FROM alle_boyninger AS ab
+        INNER JOIN oppslag AS o ON ab.lemma_id = o.lemma_id
+        WHERE ab.boyning = $1
+        AND o.oppslag != $2
+        AND ab.lemma_id IN (SELECT lemma_id FROM definisjon);
+    `;
+    const results = await db.query(query, [searchWord, searchWord]);
 
         return results
     },
 
     generateRelatedWords: async () => {
-        const query = `SELECT o.lemma_id, o.oppslag, (SELECT IFNULL(
-                            (SELECT JSON_ARRAYAGG(ab.boyning)
+        const query = `SELECT o.lemma_id, o.oppslag, (SELECT COALESCE(
+                            (SELECT JSON_AGG(ab.boyning)
                             FROM alle_boyninger AS ab
                             WHERE ab.lemma_id = o.lemma_id),
-                                JSON_ARRAY())) AS boyninger
-        
+                                '[]'::json)) AS boyninger
+
                         FROM oppslag AS o
                         WHERE lemma_id in (SELECT lemma_id FROM definisjon )
                         `
@@ -135,20 +138,22 @@ module.exports = {
                 }
             }
         }
-        const query2 = `DROP TABLE IF EXISTS relaterte_oppslag;
-                        CREATE TABLE relaterte_oppslag (
-                            relatert_id mediumint NOT NULL PRIMARY KEY AUTO_INCREMENT,
-                            lemma_id mediumint NOT NULL,
-                            oppslag varchar(50) COLLATE utf8mb4_danish_ci NOT NULL,
-                            FOREIGN KEY (lemma_id) REFERENCES oppslag (lemma_id)
-                            );
-                        INSERT INTO relaterte_oppslag (lemma_id, oppslag)
-                        VALUES ?
-                        ;
-                        
-        `
 
-        await db.query(query2, [inserts])
+        await db.query(`DROP TABLE IF EXISTS relaterte_oppslag`)
+        await db.query(`CREATE TABLE relaterte_oppslag (
+                            relatert_id SERIAL PRIMARY KEY,
+                            lemma_id INTEGER NOT NULL,
+                            oppslag VARCHAR(50) NOT NULL,
+                            FOREIGN KEY (lemma_id) REFERENCES oppslag (lemma_id)
+                        )`)
+
+        if (inserts.length > 0) {
+            await db.bulkInsert(
+                `INSERT INTO relaterte_oppslag (lemma_id, oppslag)`,
+                inserts,
+                2
+            )
+        }
 
     },
 
@@ -186,10 +191,12 @@ module.exports = {
                   WHERE 1=1`
 
         let params = []
+        let paramIndex = 1
 
         if (q) {
-            query += ' AND o.oppslag LIKE ?'
+            query += ` AND o.oppslag LIKE $${paramIndex}`
             params.push(q + '%')
+            paramIndex++
         }
 
         if (meddef) {
@@ -220,8 +227,9 @@ module.exports = {
         }
 
         if (posarray.length > 0) {
-            query += ' AND o.boy_tabell IN (?)'
+            query += ` AND o.boy_tabell = ANY($${paramIndex})`
             params.push(posarray)
+            paramIndex++
         }
 
         query += ` ORDER BY oppslag`
@@ -235,32 +243,32 @@ module.exports = {
 
     searchByQuery: async (searchQuery) => {
         const query = `WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon))
-            
-                        SELECT od.lemma_id, od.oppslag, od.ledd, od.boy_tabell, 
-                            (SELECT IFNULL(
-                                (SELECT JSON_ARRAYAGG(
-                                    JSON_OBJECT('def_id', d.def_id,
+
+                        SELECT od.lemma_id, od.oppslag, od.ledd, od.boy_tabell,
+                            (SELECT COALESCE(
+                                (SELECT JSON_AGG(
+                                    JSON_BUILD_OBJECT('def_id', d.def_id,
                                         'prioritet', d.prioritet,
-                                        'definisjon', d.definisjon                    
+                                        'definisjon', d.definisjon
                                         ))
                                 FROM definisjon AS d
                                 WHERE od.lemma_id = d.lemma_id),
-                            JSON_ARRAY())
+                            '[]'::json)
                             ) AS definisjoner,
-                            (SELECT IFNULL(
-                                (SELECT JSON_ARRAYAGG(
-                                    JSON_OBJECT('uttale_id',u.uttale_id,
+                            (SELECT COALESCE(
+                                (SELECT JSON_AGG(
+                                    JSON_BUILD_OBJECT('uttale_id',u.uttale_id,
                                         'transkripsjon', u.transkripsjon
                                         ))
-                                FROM uttale AS u 
+                                FROM uttale AS u
                                 WHERE u.lemma_id = od.lemma_id),
-                            JSON_ARRAY())
-                            ) AS uttale  
+                            '[]'::json)
+                            ) AS uttale
                         FROM oppslag_def AS od
-                        WHERE od.oppslag = ?                    
+                        WHERE od.oppslag = $1
                         LIMIT 5`
         try {
-            const results = await db.query(query, [searchQuery, searchQuery, searchQuery, searchQuery])
+            const results = await db.query(query, [searchQuery])
             return results
         } catch (error) {
             throw error
@@ -268,10 +276,10 @@ module.exports = {
     },
 
     getConjugationsFromDB: async (lemma_id, table) => {
-        const query = `SELECT * FROM ?? WHERE lemma_id = ?
-                        ORDER BY pos ASC`
+        // NOTE: `table` must be a trusted, whitelisted identifier (see controller validation)
+        const query = `SELECT * FROM ${table} WHERE lemma_id = $1 ORDER BY pos ASC`;
         try {
-            const conjugations = await db.query(query, [table, lemma_id])
+            const conjugations = await db.query(query, [lemma_id])
             return conjugations
         } catch (error) {
             throw error
@@ -279,11 +287,12 @@ module.exports = {
     },
 
     getFlatConjugationsFromDB: async (lemma_id) => {
-        const query = `SELECT o.oppslag, group_concat(boyning) AS conjugations 
+        const query = `SELECT o.oppslag, string_agg(boyning, ',') AS conjugations
                         FROM alle_boyninger AS ab
                         RIGHT JOIN oppslag AS o USING(lemma_id)
-                        WHERE lemma_id = ?
-                       `
+                        WHERE lemma_id = $1
+                        GROUP BY o.oppslag
+                        `
         try {
             let conjugations = await db.query(query, [lemma_id])
             if (conjugations[0].conjugations) {
@@ -298,15 +307,15 @@ module.exports = {
     },
 
     getExampleSentencesFromDB: async (conjugations) => {
-
         let regex = '\\s(' + conjugations.join('|') + ')\\s'
-        const query = ` SELECT no.no_setning, ja.ja_setning
-                        FROM eksempler_no AS no
-                        LEFT JOIN eksempler_lenker AS l ON no.no_id = l.no_id
-                        LEFT JOIN eksempler_ja AS ja ON l.ja_id = ja.ja_id
-                        WHERE no.no_setning REGEXP ?
-                        ORDER BY ja.ja_setning DESC
-                        `
+        const query = `
+            SELECT no.no_setning, ja.ja_setning
+            FROM eksempler_no AS no
+            LEFT JOIN eksempler_lenker AS l ON no.no_id = l.no_id
+            LEFT JOIN eksempler_ja AS ja ON l.ja_id = ja.ja_id
+            WHERE no.no_setning ~ $1
+            ORDER BY ja.ja_setning DESC;
+        `
         try {
             const conjugations = await db.query(query, [regex])
             return conjugations
@@ -319,7 +328,7 @@ module.exports = {
                         ok.user_id, b.brukernavn, ok.kommentar
                         FROM oppslag_kommentarer AS ok
                         INNER JOIN brukere AS b USING(user_id)
-                        WHERE lemma_id = ?
+                        WHERE lemma_id = $1
                         ORDER BY opprettet DESC`
         try {
             const kommentarer = await db.query(query, [lemma_id])
@@ -330,7 +339,7 @@ module.exports = {
     },
     slettDefinisjonerFraDB: async (def_id_array) => {
         const query = `DELETE FROM definisjon
-                        WHERE def_id IN (?)`
+                        WHERE def_id = ANY($1)`
         try {
             await db.query(query, [def_id_array])
         } catch (error) {
@@ -340,7 +349,7 @@ module.exports = {
     },
     slettUttaleFraDB: async (uttale_id_array) => {
         const query = `DELETE FROM uttale
-                        WHERE uttale_id IN (?)`
+                        WHERE uttale_id = ANY($1)`
         try {
             await db.query(query, [uttale_id_array])
         } catch (error) {
@@ -350,8 +359,8 @@ module.exports = {
     },
     oppdaterOppslagDB: async (ledd, skjult, lemma_id) => {
         const query = `UPDATE oppslag
-                        SET ledd = ?, skjult = ?, sist_endret = CURRENT_TIMESTAMP
-                        WHERE lemma_id = ?`
+                        SET ledd = $1, skjult = $2, sist_endret = CURRENT_TIMESTAMP
+                        WHERE lemma_id = $3`
         try {
             await db.query(query, [ledd, skjult, lemma_id])
         } catch (error) {
@@ -360,33 +369,29 @@ module.exports = {
 
     },
     leggTilDefinisjonDB: async (def_array) => {
-        const query = `INSERT INTO definisjon (def_id, lemma_id, prioritet, definisjon, oversatt_av)
-                        VALUES ?
-                        ON DUPLICATE KEY UPDATE
-                        prioritet = VALUES (prioritet),
-                        definisjon = VALUES (definisjon),
-                        sist_endret = CURRENT_TIMESTAMP`
-        try {
-            await db.query(query, [def_array])
-        } catch (error) {
-            throw error
-        }
+        await db.bulkInsert(
+            `INSERT INTO definisjon (def_id, lemma_id, prioritet, definisjon, oversatt_av)`,
+            def_array,
+            5,
+            `ON CONFLICT (def_id) DO UPDATE SET
+                prioritet = EXCLUDED.prioritet,
+                definisjon = EXCLUDED.definisjon,
+                sist_endret = CURRENT_TIMESTAMP`
+        )
     },
     leggTilUttaleDB: async (uttale_array) => {
-        const query = `INSERT INTO uttale (uttale_id, lemma_id, transkripsjon)
-                        VALUES ?
-                        ON DUPLICATE KEY UPDATE
-                        transkripsjon = VALUES (transkripsjon)`
-        try {
-            await db.query(query, [uttale_array])
-        } catch (error) {
-            throw error
-        }
+        await db.bulkInsert(
+            `INSERT INTO uttale (uttale_id, lemma_id, transkripsjon)`,
+            uttale_array,
+            3,
+            `ON CONFLICT (uttale_id) DO UPDATE SET
+                transkripsjon = EXCLUDED.transkripsjon`
+        )
     },
     leggTilOppslagKommentarDB: async (lemma_id, user_id, ny_kommentar) => {
         try {
             const query = `INSERT INTO oppslag_kommentarer (lemma_id, user_id, kommentar)
-                        VALUES (?, ?, ?)`
+                        VALUES ($1, $2, $3)`
 
             await db.query(query, [lemma_id, user_id, ny_kommentar])
         } catch (error) {
@@ -395,12 +400,12 @@ module.exports = {
     },
     addWordSuggestionToDB: async (word, wordClass, parts, userID) => {
         const query = `INSERT INTO oppslag_forslag(oppslag, boy_tabell, ledd, user_id)
-                        VALUES (?, ?, ?, ?)`
+                        VALUES ($1, $2, $3, $4)`
 
         await db.query(query, [word, wordClass, parts, userID])
     },
     getAllWordSuggestionsFromDB: async () => {
-        const query = `SELECT o.oppslag_forslag_id, o.oppslag, o.boy_tabell, o.ledd, 
+        const query = `SELECT o.oppslag_forslag_id, o.oppslag, o.boy_tabell, o.ledd,
                         o.status, o.opprettet, b.brukernavn
                         FROM oppslag_forslag AS o
                         INNER JOIN brukere AS b USING (user_id)`
@@ -413,35 +418,34 @@ module.exports = {
                         o.opprettet, b.brukernavn
                         FROM oppslag_forslag AS o
                         INNER JOIN brukere AS b USING(user_id)
-                        WHERE oppslag_forslag_id = ?`
+                        WHERE oppslag_forslag_id = $1`
 
         const result = await db.query(query, [wordID])
         return result[0]
     },
     addWordToDB: async (word, wordClass, parts) => {
-
         const query = `INSERT INTO oppslag (oppslag, boy_tabell, ledd)
-                        VALUES (?, ?, ?);
-                        SELECT LAST_INSERT_ID() as lemma_id;`
+                        VALUES ($1, $2, $3)
+                        RETURNING lemma_id`
 
         const result = await db.query(query, [word, wordClass, parts])
-        return result[0].insertId
+        return result[0].lemma_id
     },
     setWordSuggestionsStatus: async (wordSuggestionID, status) => {
         const query = `UPDATE oppslag_forslag
-                        SET status = ?
-                        WHERE oppslag_forslag_id = ?`
+                        SET status = $1
+                        WHERE oppslag_forslag_id = $2`
 
         await db.query(query, [status, wordSuggestionID])
     },
     addConjugationToDB: async (wordID, insertTable, conjugations) => {
-
-        const query = `INSERT INTO ??
-                        SET ?`
-
-        for (conjugation of conjugations) {
+        for (const conjugation of conjugations) {
             conjugation['lemma_id'] = wordID
-            await db.query(query, [insertTable, conjugation])
+            const columns = Object.keys(conjugation)
+            const values = Object.values(conjugation)
+            const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ')
+            const query = `INSERT INTO ${insertTable} (${columns.join(', ')}) VALUES (${placeholders})`
+            await db.query(query, values)
         }
     }
 }

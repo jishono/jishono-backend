@@ -80,8 +80,27 @@ module.exports = {
 
   getConjugations: async (req, res) => {
     const lemma_id = req.params.id;
-    const pos = req.body.pos
-    const table = pos + '_boy'
+    const pos = req.body.pos;
+
+    // Allow only known parts-of-speech to control the table name
+    const allowedPosToTable = {
+      // Map each allowed POS to its corresponding table name
+      // Extend this map with all valid POS values used in your schema
+      
+      adj: 'adj_boy',
+      adv: 'adv_boy',
+      det: 'det_boy',
+      pron: 'pron_boy',
+      subst: 'subst_boy',
+      verb: 'verb_boy',
+    };
+
+    if (typeof pos !== 'string' || !(pos in allowedPosToTable)) {
+      console.log('Invalid pos value in getConjugations:', pos);
+      return res.status(400).send(msg.generell_error);
+    }
+
+    const table = allowedPosToTable[pos];
     try {
       const conjugations = await Oppslag.getConjugationsFromDB(lemma_id, table)
       res.status(200).send(conjugations)
@@ -106,10 +125,10 @@ module.exports = {
   findBoyning: async (req, res) => {
     const lemma_id = req.params.id;
     try {
-      const oppslag = await db.query('SELECT * FROM oppslag WHERE lemma_id = ?', [lemma_id])
+      const oppslag = await db.query('SELECT * FROM oppslag WHERE lemma_id = $1', [lemma_id])
       const boy_tabell = oppslag[0].boy_tabell + '_boy'
-      const query = `SELECT * FROM ?? WHERE lemma_id = ?`
-      const result = await db.query(query, [boy_tabell, lemma_id])
+      const query = `SELECT * FROM ${boy_tabell} WHERE lemma_id = $1`
+      const result = await db.query(query, [lemma_id])
       res.status(200).send(result)
     } catch (error) {
       console.log(error)
