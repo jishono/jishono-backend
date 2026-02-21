@@ -20,7 +20,6 @@ module.exports = {
     } catch (error) {
       console.error('Full error details:', error);
       console.error('Query that failed:', text);
-      console.error('Params:', params);
       throw error;
     }
   },
