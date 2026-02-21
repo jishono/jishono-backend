@@ -7,13 +7,13 @@ const path = require("path")
 const cronjobs = require('./app/cron/jobs.js')
 
 console.log("Environment:", config.app.node_env)
-if (config.app.node_env == 'development') {
-  const corsOptions = {
-    origin: "*"
-  }
-  app.use(cors(corsOptions))
+const corsOptions = {
+  origin: config.app.node_env === 'development'
+    ? '*'
+    : ['https://www.jisho.no', 'https://jisho.no', 'https://baksida.jisho.no']
 }
 
+app.use(cors(corsOptions))
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, './app/views'))
 
