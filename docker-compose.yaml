@@ -5,7 +5,7 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     environment:
-      - DB_HOST_NODE=postgres
+      - DB_HOST_NODE=${DB_HOST_NODE}
       - DB_PORT_NODE=${DB_PORT_NODE}
       - DB_USER_ADMIN_NODE=${DB_USER_ADMIN_NODE}
       - DB_NAME_NODE=${DB_NAME_NODE}
