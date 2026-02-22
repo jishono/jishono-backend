@@ -425,9 +425,10 @@ module.exports = {
         await db.query(query)
     },
     getPageVisitStatsFromDB: async () => {
-        const query = `SELECT TO_CHAR(timestamp, 'DD.FMMM.YYYY') AS dato, count(*) AS antall
-                        FROM page_traffic AS pt
-                        GROUP BY dato`
+        const query = `SELECT TO_CHAR(timestamp, 'DD.MM.YYYY') AS dato, COUNT(*) AS antall
+                        FROM page_traffic
+                        GROUP BY TO_CHAR(timestamp, 'DD.MM.YYYY')
+                        ORDER BY MIN(timestamp) DESC`
         const result = await db.query(query)
         return result
     }
