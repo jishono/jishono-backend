@@ -43,7 +43,38 @@ DB_PASS_ADMIN_NODE=
 JWT_SECRET=
 NODEMAILER_USER=
 NODEMAILER_PASSWORD=
+DATABASE_URL=postgres://<user>:<pass>@<host>:<port>/<db>
 ```
+
+`DATABASE_URL` is used by `node-pg-migrate` and is automatically constructed from the other DB vars in the Docker Compose files, so in Docker you don't need to set it separately. For running migrations outside Docker (e.g. against a remote DB), set it explicitly.
+
+## Database Migrations
+
+Migrations are managed with [node-pg-migrate](https://github.com/salsita/node-pg-migrate). Migration files live in `migrations/` and are tracked in the `pgmigrations` table.
+
+**Apply all pending migrations:**
+```bash
+npm run migrate:up
+# Inside Docker:
+docker compose exec jishono-api npm run migrate:up
+```
+
+**Create a new migration:**
+```bash
+npm run migrate:create -- describe_your_change
+# → creates migrations/<timestamp>_describe_your_change.sql
+# Edit the file: put SQL under -- Up Migration and reversal SQL under -- Down Migration
+```
+
+**Roll back the last migration:**
+```bash
+npm run migrate:down
+```
+
+**Rules:**
+- Commit migration files in the same PR as the code that depends on them.
+- Never edit a migration file after it has been applied to production — create a new one instead.
+- `relaterte_oppslag` is managed by the weekly cron job (`generateRelatedWords`) — do not add migrations for it.
 
 ## Architecture
 
