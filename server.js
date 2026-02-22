@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const migrate = require("node-pg-migrate").default;
 const app = express();
 const config = require("./app/config/config.js")
 const path = require("path")
@@ -36,6 +37,18 @@ app.use((req, res, next) => {
 cronjobs.digestEmails()
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-});
+
+async function start() {
+  await migrate({
+    databaseUrl: process.env.DATABASE_URL,
+    dir: 'migrations',
+    direction: 'up',
+    migrationsTable: 'pgmigrations',
+    log: (msg) => console.log('[migrate]', msg),
+  })
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}.`);
+  });
+}
+
+start();
