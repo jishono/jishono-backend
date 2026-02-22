@@ -13,7 +13,7 @@ module.exports = {
 
             if (nye_forslag.length > 0 && nye_forslag[0]['definisjon'] != '') {
                 for (forslag of nye_forslag) {
-                    let forslag_id = await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon)
+                    let forslag_id = await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon, forslag.prioritet)
                     console.log(forslag)
                     if (forslag.kommentar != null && forslag.kommentar != '') {
                         const kommentar_id = await Forslag.leggForslagKommentarTilDB(forslag_id, user_id, forslag.kommentar)

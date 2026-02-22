@@ -2,30 +2,45 @@ const db = require("../db/database")
 
 module.exports = {
     getAktiveForslagFraDB: async (user_id, status) => {
-        const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon,
-                        b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret,
-                        COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes, COALESCE(SUM(CASE WHEN s.type = 0 THEN 1 ELSE 0 END), 0) AS downvotes,
-                        (SELECT type FROM stemmer WHERE user_id = $1 AND forslag_id = f.forslag_id) AS minstemme,
-                        (SELECT COUNT(forslag_id) FROM forslag_kommentarer WHERE forslag_id = f.forslag_id) AS antall_kommentarer,
-                        (CASE WHEN (SELECT COUNT(lemma_id) FROM definisjon WHERE lemma_id = o.lemma_id) > 0 THEN 1 ELSE 0 END) AS eksisterende_definisjoner,
-                        (CASE WHEN
-                            (SELECT COUNT(*)
-                                FROM forslag_kommentarer AS fk
-                                WHERE fk.forslag_id = f.forslag_id
-                            ) >
-                            (SELECT COUNT(*)
-                                FROM forslag_kommentarer_sett AS fks
-                                INNER JOIN forslag_kommentarer AS fk USING(forslag_kommentar_id)
-                                WHERE fks.user_id = $2
-                                AND fk.forslag_id = f.forslag_id
-                            ) THEN 0 ELSE 1 END) AS sett
+        const query = `SELECT
+                        o.lemma_id,
+                        o.oppslag,
+                        o.boy_tabell,
+                        COALESCE(
+                            (SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                                'def_id', d.def_id,
+                                'prioritet', d.prioritet,
+                                'definisjon', d.definisjon
+                            ) ORDER BY d.prioritet)
+                            FROM definisjon AS d WHERE d.lemma_id = o.lemma_id),
+                            '[]'::json
+                        ) AS definisjoner,
+                        JSON_AGG(JSON_BUILD_OBJECT(
+                            'forslag_id', f.forslag_id,
+                            'forslag_definisjon', f.forslag_definisjon,
+                            'prioritet', f.prioritet,
+                            'brukernavn', b.brukernavn,
+                            'user_id', b.user_id,
+                            'status', f.status,
+                            'opprettet', f.opprettet,
+                            'godkjent_avvist', f.godkjent_avvist,
+                            'endret', f.endret,
+                            'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
+                            'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
+                            'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $1 AND s.forslag_id = f.forslag_id),
+                            'antall_kommentarer', (SELECT COUNT(*) FROM forslag_kommentarer fk WHERE fk.forslag_id = f.forslag_id),
+                            'sett', (CASE WHEN
+                                (SELECT COUNT(*) FROM forslag_kommentarer fk WHERE fk.forslag_id = f.forslag_id) >
+                                (SELECT COUNT(*) FROM forslag_kommentarer_sett fks
+                                 INNER JOIN forslag_kommentarer fk USING(forslag_kommentar_id)
+                                 WHERE fks.user_id = $2 AND fk.forslag_id = f.forslag_id)
+                            THEN 0 ELSE 1 END)
+                        ) ORDER BY f.prioritet, f.opprettet) AS forslag
                         FROM forslag AS f
                         INNER JOIN oppslag AS o USING (lemma_id)
                         INNER JOIN brukere AS b USING (user_id)
-                        LEFT OUTER JOIN stemmer AS s USING (forslag_id)
                         WHERE f.status = $3
-                        GROUP BY f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell,
-                                 b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret`
+                        GROUP BY o.lemma_id, o.oppslag, o.boy_tabell`
         try {
             const forslag = await db.query(query, [user_id, user_id, status])
             return forslag
@@ -166,12 +181,12 @@ module.exports = {
             throw error
         }
     },
-    leggForslagTilDB: async (lemma_id, user_id, forslag) => {
+    leggForslagTilDB: async (lemma_id, user_id, forslag, prioritet = 1) => {
         try {
-            const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon)
-                            VALUES ($1, $2, $3)
+            const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon, prioritet)
+                            VALUES ($1, $2, $3, $4)
                             RETURNING forslag_id`
-            const result = await db.query(query, [lemma_id, user_id, forslag])
+            const result = await db.query(query, [lemma_id, user_id, forslag, prioritet])
             return result[0].forslag_id
 
         } catch (error) {
