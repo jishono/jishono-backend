@@ -14,16 +14,3 @@ services:
     ports:
       - 3001:3001
     command: nodemon start
-
-  postgres:
-    image: postgres:17
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: ${DB_PASS_ADMIN_NODE}
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data 
- 
-volumes:
-  pgdata:

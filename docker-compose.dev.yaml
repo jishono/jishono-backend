@@ -3,3 +3,16 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+
+  postgres:
+    image: postgres:18
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS_ADMIN_NODE}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+ 
+volumes:
+  pgdata:
