@@ -308,6 +308,10 @@ module.exports = {
     },
 
     sendEpost: async (to, subject, template, bcc = '', options = {}) => {
+        if (config.app.node_env !== 'production') {
+            console.log(`[sendEpost] Skipping email in non-production env (to: ${to}, subject: ${subject})`)
+            return
+        }
         try {
             options['title'] = subject
             const html = await ejs.renderFile(path.join(__dirname, '../views/') + template, options)
