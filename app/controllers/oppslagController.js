@@ -9,7 +9,7 @@ module.exports = {
   getOppslag: async (req, res) => {
     const lemma_id = req.params.id
     try {
-      let oppslag = await Oppslag.hentOppslagFraDB(lemma_id)
+      let oppslag = await Oppslag.hentOppslagFraDB(lemma_id, res.locals.user_id)
       oppslag = oppslag[0]
       oppslag['kommentarer'] = await Oppslag.hentOppslagKommentarerFraDB(lemma_id)
       res.status(200).send(oppslag)

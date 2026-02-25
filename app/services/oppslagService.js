@@ -11,7 +11,7 @@ module.exports = {
             throw error
         }
     },
-    hentOppslagFraDB: async (lemma_id) => {
+    hentOppslagFraDB: async (lemma_id, user_id) => {
         try {
             const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult,
                             (SELECT COALESCE(
@@ -34,11 +34,38 @@ module.exports = {
                                 FROM uttale AS u
                                 WHERE u.lemma_id = o.lemma_id),
                                 '[]'::json)
-                                ) AS uttale
+                                ) AS uttale,
+                            (SELECT COALESCE(
+                                (SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                                    'forslag_id', f.forslag_id,
+                                    'forslag_definisjon', f.forslag_definisjon,
+                                    'prioritet', f.prioritet,
+                                    'brukernavn', b.brukernavn,
+                                    'user_id', b.user_id,
+                                    'status', f.status,
+                                    'opprettet', f.opprettet,
+                                    'godkjent_avvist', f.godkjent_avvist,
+                                    'endret', f.endret,
+                                    'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
+                                    'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
+                                    'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $2 AND s.forslag_id = f.forslag_id),
+                                    'antall_kommentarer', (SELECT COUNT(*) FROM forslag_kommentarer fk WHERE fk.forslag_id = f.forslag_id),
+                                    'sett', (CASE WHEN
+                                        (SELECT COUNT(*) FROM forslag_kommentarer fk WHERE fk.forslag_id = f.forslag_id) >
+                                        (SELECT COUNT(*) FROM forslag_kommentarer_sett fks
+                                         INNER JOIN forslag_kommentarer fk USING(forslag_kommentar_id)
+                                         WHERE fks.user_id = $3 AND fk.forslag_id = f.forslag_id)
+                                    THEN 0 ELSE 1 END)
+                                ) ORDER BY f.prioritet, f.opprettet)
+                                FROM forslag AS f
+                                INNER JOIN brukere AS b USING (user_id)
+                                WHERE f.lemma_id = o.lemma_id),
+                                '[]'::json)
+                                ) AS forslag
                             FROM oppslag AS o
                             WHERE o.lemma_id = $1`
 
-            const oppslag = await db.query(query, [lemma_id])
+            const oppslag = await db.query(query, [lemma_id, user_id, user_id])
             return oppslag
         } catch (error) {
             throw error
