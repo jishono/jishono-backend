@@ -49,12 +49,12 @@ module.exports = {
                                     'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
                                     'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
                                     'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $2 AND s.forslag_id = f.forslag_id),
-                                    'antall_kommentarer', (SELECT COUNT(*) FROM forslag_kommentarer fk WHERE fk.forslag_id = f.forslag_id),
+                                    'antall_kommentarer', (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = f.lemma_id),
                                     'sett', (CASE WHEN
-                                        (SELECT COUNT(*) FROM forslag_kommentarer fk WHERE fk.forslag_id = f.forslag_id) >
-                                        (SELECT COUNT(*) FROM forslag_kommentarer_sett fks
-                                         INNER JOIN forslag_kommentarer fk USING(forslag_kommentar_id)
-                                         WHERE fks.user_id = $3 AND fk.forslag_id = f.forslag_id)
+                                        (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = f.lemma_id) >
+                                        (SELECT COUNT(*) FROM oppslag_kommentarer_sett oks
+                                         INNER JOIN oppslag_kommentarer ok USING(oppslag_kommentar_id)
+                                         WHERE oks.user_id = $2 AND ok.lemma_id = f.lemma_id)
                                     THEN 0 ELSE 1 END)
                                 ) ORDER BY f.prioritet, f.opprettet)
                                 FROM forslag AS f
@@ -65,7 +65,7 @@ module.exports = {
                             FROM oppslag AS o
                             WHERE o.lemma_id = $1`
 
-            const oppslag = await db.query(query, [lemma_id, user_id, user_id])
+            const oppslag = await db.query(query, [lemma_id, user_id])
             return oppslag
         } catch (error) {
             throw error

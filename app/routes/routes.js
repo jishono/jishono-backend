@@ -27,7 +27,7 @@ module.exports = app => {
   // Baksida    
   router.get("/oppslag/:id", auth, oppslagController.getOppslag);
 
-  router.get("/kommentarer/:id", auth, oppslagController.getKommentarer);
+  router.get("/oppslag/:id/kommentarer", auth, oppslagController.getKommentarer);
 
   router.get("/boyning/:id", auth, oppslagController.findBoyning);
 
@@ -61,9 +61,7 @@ module.exports = app => {
 
   router.get("/forslag/:id", auth, forslagController.hentForslag)
 
-  router.get("/forslag/:id/kommentarer", auth, forslagController.getForslagKommentarer)
-
-  router.post("/forslag/:id/ny_kommentar", auth, forslagController.postForslagKommentar)
+  router.post("/oppslag/:id/kommentarer", auth, oppslagController.postOppslagKommentar)
 
   router.post("/forslag/:id/stem", auth, forslagController.stemForslag)
 

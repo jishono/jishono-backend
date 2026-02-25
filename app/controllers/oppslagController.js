@@ -141,7 +141,6 @@ module.exports = {
     const user_id = res.locals.user_id
     const uttale = req.body.oppslag.uttale
     const defs = req.body.oppslag.definisjon
-    const ny_kommentar = req.body.oppslag.ny_kommentar
     const oppslag = req.body.oppslag
     const deldata = req.body.deldata
 
@@ -194,15 +193,21 @@ module.exports = {
         return res.status(500).send(msg.generell_error)
       }
     }
-    if (ny_kommentar) {
-      try {
-        await Oppslag.leggTilOppslagKommentarDB(lemma_id, user_id, ny_kommentar)
-      } catch (error) {
-        console.log(error)
-        return res.status(500).send(msg.generell_error)
-      }
-    }
     res.status(200).send(msg.oppdatert)
+  },
+
+  postOppslagKommentar: async (req, res) => {
+    const lemma_id = req.params.id
+    const user_id = res.locals.user_id
+    const ny_kommentar = req.body.ny_kommentar
+    try {
+      await Oppslag.leggTilOppslagKommentarDB(lemma_id, user_id, ny_kommentar)
+      res.status(200).send(msg.kommentarer.lagt_til)
+      await App.sendNotificationsAfterComment(lemma_id, user_id)
+    } catch (error) {
+      console.log(error)
+      res.status(500).send(msg.generell_error)
+    }
   },
 
 

@@ -1,6 +1,5 @@
 const Forslag = require("../services/forslagService")
 const App = require("../services/appService")
-/* const Oppslag = require("../services/oppslagService") */
 const msg = require('../locale/msg.json')
 
 module.exports = {
@@ -13,12 +12,8 @@ module.exports = {
 
             if (nye_forslag.length > 0 && nye_forslag[0]['definisjon'] != '') {
                 for (forslag of nye_forslag) {
-                    let forslag_id = await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon, forslag.prioritet)
+                    await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon, forslag.prioritet)
                     console.log(forslag)
-                    if (forslag.kommentar != null && forslag.kommentar != '') {
-                        const kommentar_id = await Forslag.leggForslagKommentarTilDB(forslag_id, user_id, forslag.kommentar)
-                        await Forslag.settKommentarSomSettDB([[kommentar_id, user_id]])
-                    }
                 }
                 return res.status(200).send(msg.forslag.lagt_til)
             }
@@ -150,39 +145,6 @@ module.exports = {
         try {
             await Forslag.slettForslagFraDB(forslag_id, user_id)
             res.status(200).send(msg.forslag.fjernet)
-        } catch (error) {
-            console.log(error)
-            res.status(500).send(msg.generell_error)
-        }
-    },
-    getForslagKommentarer: async (req, res) => {
-
-        const user_id = res.locals.user_id
-        const forslag_id = req.params.id
-        try {
-            const kommentarer = await Forslag.hentForslagKommentarerFraDB(forslag_id)
-           
-            if (kommentarer.length > 0) {
-                const kommentarer_sett = kommentarer.map(kommentar => [kommentar.forslag_kommentar_id, user_id])
-                await Forslag.settKommentarSomSettDB(kommentarer_sett)
-            }
-
-            res.status(200).send(kommentarer)
-        } catch (error) {
-            console.log(error)
-            res.status(500).send(msg.generell_error)
-        }
-    },
-    postForslagKommentar: async (req, res) => {
-
-        const forslag_id = req.params.id
-        const user_id = res.locals.user_id
-        const ny_kommentar = req.body.ny_kommentar
-
-        try {
-            await Forslag.leggForslagKommentarTilDB(forslag_id, user_id, ny_kommentar)
-            res.status(200).send(msg.kommentarer.lagt_til)
-            await App.sendNotificationsAfterComment(forslag_id, user_id)
         } catch (error) {
             console.log(error)
             res.status(500).send(msg.generell_error)

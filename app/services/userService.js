@@ -162,39 +162,38 @@ module.exports = {
     getUlestOversiktFraDB: async (user_id) => {
 
         let ulest = {}
-        const query1 = ` SELECT (SELECT COUNT(f.forslag_id)
-                        FROM forslag AS f
-                        INNER JOIN forslag_kommentarer AS kf USING(forslag_id)
+        const query1 = ` SELECT (SELECT COUNT(ok.oppslag_kommentar_id)
+                        FROM oppslag_kommentarer AS ok
+                        INNER JOIN forslag AS f USING(lemma_id)
                         WHERE f.user_id = $1)
                         -
-                        (SELECT COUNT(f.forslag_id)
-                        FROM forslag AS f
-                        INNER JOIN forslag_kommentarer AS kf USING(forslag_id)
-                        INNER JOIN forslag_kommentarer_sett AS fks USING(forslag_kommentar_id)
+                        (SELECT COUNT(ok.oppslag_kommentar_id)
+                        FROM oppslag_kommentarer AS ok
+                        INNER JOIN forslag AS f USING(lemma_id)
+                        INNER JOIN oppslag_kommentarer_sett AS oks USING(oppslag_kommentar_id)
                         WHERE f.user_id = $2
-                        AND fks.user_id = $3)
+                        AND oks.user_id = $3)
                         AS antall
                         `
         let result = await db.query(query1, [user_id, user_id, user_id])
         ulest['kommentarer_egne'] = result[0]['antall']
 
         const query2 = ` WITH kommentarer AS (
-                            SELECT DISTINCT f.forslag_id
-                            FROM forslag AS f
-                            INNER JOIN forslag_kommentarer AS fk USING(forslag_id)
-                            WHERE fk.user_id = $1)
+                            SELECT DISTINCT ok.lemma_id
+                            FROM oppslag_kommentarer AS ok
+                            WHERE ok.user_id = $1)
 
                         SELECT
                         (SELECT COUNT(*)
                         FROM kommentarer
-                        INNER JOIN forslag_kommentarer USING (forslag_id)
+                        INNER JOIN oppslag_kommentarer AS ok USING (lemma_id)
                         )
                          -
                         (SELECT COUNT(*)
                         FROM kommentarer
-                        INNER JOIN forslag_kommentarer AS fk USING (forslag_id)
-                        INNER JOIN forslag_kommentarer_sett AS fks USING (forslag_kommentar_id)
-                        WHERE fks.user_id = $2
+                        INNER JOIN oppslag_kommentarer AS ok USING (lemma_id)
+                        INNER JOIN oppslag_kommentarer_sett AS oks USING (oppslag_kommentar_id)
+                        WHERE oks.user_id = $2
                         ) AS antall
                         `
         result = await db.query(query2, [user_id, user_id])
@@ -237,7 +236,7 @@ module.exports = {
         aktiviteter['nye_forslag'] = result[0]['antall']
 
         const query2 = `SELECT COUNT(*) AS antall
-                        FROM forslag_kommentarer
+                        FROM oppslag_kommentarer
                         WHERE opprettet >= CURRENT_DATE - $1 * INTERVAL '1 day'
                         `
         result = await db.query(query2, [dager])

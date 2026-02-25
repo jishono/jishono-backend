@@ -136,7 +136,7 @@ module.exports = {
     getAntallKommentarer: async () => {
         try {
             const query = `SELECT TO_CHAR(opprettet, 'DD-FMMM') AS dato, count(*) AS antall
-                             FROM forslag_kommentarer AS fk
+                             FROM oppslag_kommentarer AS ok
                              WHERE opprettet BETWEEN NOW() - INTERVAL '30 days' AND NOW()
                              GROUP BY dato
                              `
@@ -339,32 +339,19 @@ module.exports = {
             throw error
         }
     },
-    sendNotificationsAfterComment: async (forslag_id, user_id) => {
+    sendNotificationsAfterComment: async (lemma_id, user_id) => {
 
         let adressees = []
 
-        const query = `SELECT f.user_id, b.epost, b.brukernavn
-                        FROM forslag AS f
-                        INNER JOIN brukere AS b ON f.user_id = b.user_id
-                        WHERE forslag_id = $1
-                        AND f.user_id != $2
-                        AND b.opp_kommentar_eget = 1`
-
-        const owner = await db.query(query, [forslag_id, user_id])
-        if (owner.length > 0) {
-            adressees.push(owner[0])
-        }
-
-        const query2 = `SELECT DISTINCT fk.user_id, b.epost, b.brukernavn
-                        FROM forslag AS f
-                        INNER JOIN forslag_kommentarer AS fk ON f.forslag_id = fk.forslag_id
-                        INNER JOIN brukere AS b ON fk.user_id = b.user_id
-                        WHERE f.forslag_id = $1
-                        AND fk.user_id != $2
+        const query2 = `SELECT DISTINCT ok.user_id, b.epost, b.brukernavn
+                        FROM oppslag_kommentarer AS ok
+                        INNER JOIN brukere AS b ON ok.user_id = b.user_id
+                        WHERE ok.lemma_id = $1
+                        AND ok.user_id != $2
                         AND b.opp_svar = 1
                         `
 
-        const commenters = await db.query(query2, [forslag_id, user_id])
+        const commenters = await db.query(query2, [lemma_id, user_id])
         for (commenter of commenters) {
             if (!adressees.some(adressee => adressee.user_id === commenter.user_id)) {
                 adressees.push(commenter)
@@ -372,7 +359,7 @@ module.exports = {
         }
 
         for (adressee of adressees) {
-            await module.exports.sendEpost(adressee.epost, "Noen har kommentert...", 'comment_notification.ejs', 'admin@jisho.no', { forslag_id: forslag_id })
+            await module.exports.sendEpost(adressee.epost, "Noen har kommentert...", 'comment_notification.ejs', 'admin@jisho.no', { lemma_id: lemma_id })
         }
 
 
