@@ -76,6 +76,10 @@ npm run migrate:down
 - Never edit a migration file after it has been applied to production — create a new one instead.
 - `relaterte_oppslag` is managed by the weekly cron job (`generateRelatedWords`) — do not add migrations for it.
 
+## Workflow
+
+- Never commit or push without explicit instruction from the user.
+
 ## Architecture
 
 ### Request Flow
