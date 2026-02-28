@@ -19,7 +19,8 @@ module.exports = {
                                 JSON_BUILD_OBJECT('def_id', d.def_id,
                                             'lemma_id', d.lemma_id,
                                             'prioritet', d.prioritet,
-                                            'definisjon', d.definisjon
+                                            'definisjon', d.definisjon,
+                                            'brukernavn', (SELECT b.brukernavn FROM brukere b WHERE b.user_id = d.oversatt_av)
                                             ))
                                 FROM definisjon AS d
                                 WHERE o.lemma_id = d.lemma_id),
