@@ -9,6 +9,8 @@ module.exports = app => {
 
   var router = require("express").Router();
 
+  router.get("/health", appController.getHealth);
+
   // jisho.no front og Discord
   router.get("/items/all", oppslagController.getAllItems);
 

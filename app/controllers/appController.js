@@ -1,7 +1,16 @@
 const App = require("../services/appService")
+const db = require("../db/database.js")
 const msg = require('../locale/msg.json')
 
 module.exports = {
+    getHealth: async (req, res) => {
+        try {
+            await db.query('SELECT 1');
+            res.status(200).json({ status: 'ok' });
+        } catch (error) {
+            res.status(503).json({ status: 'error', message: error.message });
+        }
+    },
     getStatistikk: async (req, res) => {
         try {
             let statistikk = {}
