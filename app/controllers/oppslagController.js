@@ -74,7 +74,8 @@ module.exports = {
 
   getAllItems: async (req, res) => {
     try {
-      await App.registerVisit()
+      const visitor_id = req.headers['x-visitor-id']
+      await App.registerVisit(visitor_id)
       const results = await Oppslag.getAllItemsFromDB()
       res.status(200).send(results)
     } catch (error) {

@@ -411,12 +411,14 @@ module.exports = {
                         VALUES ($1)`
         await db.query(query, [request])
     },
-    registerVisit: async () => {
-        const query = `INSERT INTO page_traffic DEFAULT VALUES`
-        await db.query(query)
+    registerVisit: async (visitor_id) => {
+        const query = `INSERT INTO page_traffic (visitor_id) VALUES ($1)`
+        await db.query(query, [visitor_id || null])
     },
     getPageVisitStatsFromDB: async () => {
-        const query = `SELECT TO_CHAR(timestamp, 'DD.MM.YYYY') AS dato, COUNT(*) AS antall
+        const query = `SELECT TO_CHAR(timestamp, 'DD.MM.YYYY') AS dato,
+                              COUNT(*) AS antall,
+                              COUNT(DISTINCT visitor_id) AS unique_visitors
                         FROM page_traffic
                         GROUP BY TO_CHAR(timestamp, 'DD.MM.YYYY')
                         ORDER BY MIN(timestamp) DESC`
