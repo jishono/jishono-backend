@@ -15,6 +15,13 @@ module.exports = {
                             FROM definisjon AS d WHERE d.lemma_id = o.lemma_id),
                             '[]'::json
                         ) AS definisjoner,
+                        (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = o.lemma_id) AS antall_kommentarer,
+                        (CASE WHEN
+                            (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = o.lemma_id) >
+                            (SELECT COUNT(*) FROM oppslag_kommentarer_sett oks
+                             INNER JOIN oppslag_kommentarer ok USING(oppslag_kommentar_id)
+                             WHERE oks.user_id = $1 AND ok.lemma_id = o.lemma_id)
+                        THEN 0 ELSE 1 END) AS sett,
                         JSON_AGG(JSON_BUILD_OBJECT(
                             'forslag_id', f.forslag_id,
                             'forslag_definisjon', f.forslag_definisjon,
@@ -27,14 +34,7 @@ module.exports = {
                             'endret', f.endret,
                             'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
                             'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
-                            'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $1 AND s.forslag_id = f.forslag_id),
-                            'antall_kommentarer', (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = f.lemma_id),
-                            'sett', (CASE WHEN
-                                (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = f.lemma_id) >
-                                (SELECT COUNT(*) FROM oppslag_kommentarer_sett oks
-                                 INNER JOIN oppslag_kommentarer ok USING(oppslag_kommentar_id)
-                                 WHERE oks.user_id = $1 AND ok.lemma_id = f.lemma_id)
-                            THEN 0 ELSE 1 END)
+                            'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $1 AND s.forslag_id = f.forslag_id)
                         ) ORDER BY f.prioritet, f.opprettet) AS forslag
                         FROM forslag AS f
                         INNER JOIN oppslag AS o USING (lemma_id)
