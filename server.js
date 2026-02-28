@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const migrate = require("node-pg-migrate").default;
+const { runner: migrate } = require("node-pg-migrate");
 const app = express();
 const config = require("./app/config/config.js")
 const path = require("path")
