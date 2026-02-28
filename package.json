@@ -8,7 +8,8 @@
     "migrate:up": "node-pg-migrate up",
     "migrate:down": "node-pg-migrate down",
     "migrate:create": "node-pg-migrate create",
-    "migrate:status": "node-pg-migrate status"
+    "migrate:status": "node-pg-migrate status",
+    "regen-examples": "node scripts/regenerate_example_data.js"
   },
   "author": "PG",
   "license": "ISC",
