@@ -4,10 +4,27 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 
 const { execSync } = require('child_process');
 const fs = require('fs');
+const https = require('https');
 const readline = require('readline');
 const path = require('path');
 const os = require('os');
 const { Pool } = require('pg');
+
+function download(url, destPath) {
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(destPath);
+    https.get(url, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        file.close();
+        fs.unlinkSync(destPath);
+        return download(res.headers.location, destPath).then(resolve).catch(reject);
+      }
+      res.pipe(file);
+      file.on('finish', () => file.close(resolve));
+      file.on('error', reject);
+    }).on('error', reject);
+  });
+}
 
 const connectionString = process.env.DATABASE_URL ||
   `postgres://${process.env.DB_USER_ADMIN_NODE}:${process.env.DB_PASS_ADMIN_NODE}@${process.env.DB_HOST_NODE}:${process.env.DB_PORT_NODE}/${process.env.DB_NAME_NODE}`;
@@ -64,19 +81,19 @@ async function main() {
 
   const noBzPath = path.join(tmpDir, 'nob_sentences.tsv.bz2');
   console.log('Downloading Norwegian sentences...');
-  execSync(`curl -L -o "${noBzPath}" "${URLS.no}"`, { stdio: 'inherit' });
+  await download(URLS.no, noBzPath);
   execSync(`bunzip2 "${noBzPath}"`, { stdio: 'inherit' });
   const noPath = noBzPath.slice(0, -4); // strip .bz2
 
   const linksTarBzPath = path.join(tmpDir, 'links.tar.bz2');
   console.log('Downloading links...');
-  execSync(`curl -L -o "${linksTarBzPath}" "${URLS.links}"`, { stdio: 'inherit' });
+  await download(URLS.links, linksTarBzPath);
   execSync(`tar -xjf "${linksTarBzPath}" -C "${tmpDir}"`, { stdio: 'inherit' });
   const linksPath = path.join(tmpDir, 'links.csv');
 
   const jaBzPath = path.join(tmpDir, 'jpn_sentences.tsv.bz2');
   console.log('Downloading Japanese sentences...');
-  execSync(`curl -L -o "${jaBzPath}" "${URLS.ja}"`, { stdio: 'inherit' });
+  await download(URLS.ja, jaBzPath);
   execSync(`bunzip2 "${jaBzPath}"`, { stdio: 'inherit' });
   const jaPath = jaBzPath.slice(0, -4); // strip .bz2
 
