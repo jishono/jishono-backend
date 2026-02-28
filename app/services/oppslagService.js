@@ -342,7 +342,7 @@ module.exports = {
             LEFT JOIN eksempler_lenker AS l ON no.no_id = l.no_id
             LEFT JOIN eksempler_ja AS ja ON l.ja_id = ja.ja_id
             WHERE no.no_setning ~ $1
-            ORDER BY ja.ja_setning DESC;
+            ORDER BY (ja.ja_setning IS NULL), ja.ja_setning DESC;
         `
         try {
             const conjugations = await db.query(query, [regex])
