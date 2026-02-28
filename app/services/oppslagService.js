@@ -364,6 +364,18 @@ module.exports = {
             throw error
         }
     },
+    settOppslagKommentarerSomSettDB: async (kommentarer_sett) => {
+        try {
+            await db.bulkInsert(
+                `INSERT INTO oppslag_kommentarer_sett (oppslag_kommentar_id, user_id)`,
+                kommentarer_sett,
+                2,
+                `ON CONFLICT DO NOTHING`
+            )
+        } catch (error) {
+            throw error
+        }
+    },
     slettDefinisjonerFraDB: async (def_id_array) => {
         const query = `DELETE FROM definisjon
                         WHERE def_id = ANY($1)`
