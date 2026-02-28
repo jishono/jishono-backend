@@ -87,7 +87,7 @@ module.exports = {
                             'def_id', d.def_id,
                             'prioritet', d.prioritet,
                             'definisjon', d.definisjon,
-                            'wiki', CASE WHEN d.oversatt_av = 0 THEN 1 ELSE 0 END
+                            'wiki', CASE WHEN d.source = 'WIKI' THEN 1 ELSE 0 END
                         )
                     )
                     FROM definisjon AS d
@@ -242,10 +242,10 @@ module.exports = {
         }
 
         if (kunwiki) {
-            query += ' AND o.lemma_id IN (SELECT lemma_id FROM definisjon WHERE oversatt_av = 0)'
+            query += " AND o.lemma_id IN (SELECT lemma_id FROM definisjon WHERE source = 'WIKI')"
         }
         if (utenwiki) {
-            query += ' AND o.lemma_id NOT IN (SELECT lemma_id FROM definisjon WHERE oversatt_av = 0)'
+            query += " AND o.lemma_id NOT IN (SELECT lemma_id FROM definisjon WHERE source = 'WIKI')"
         }
 
         if (kun_skjult) {

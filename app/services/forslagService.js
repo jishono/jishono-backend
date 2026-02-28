@@ -205,8 +205,8 @@ module.exports = {
             let result = await db.query(query3, [forslag.lemma_id])
 
             const max_pri = result[0]['max_pri'] + 1
-            const query4 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av)
-                          VALUES ($1, $2, $3, $4)`
+            const query4 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av, source)
+                          VALUES ($1, $2, $3, $4, 'USER')`
             await db.query(query4, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
 
         } catch (error) {

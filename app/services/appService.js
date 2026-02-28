@@ -80,14 +80,14 @@ module.exports = {
             let oppslag_info = []
             const query1 = `SELECT 'ord_med' AS tittel, COUNT(DISTINCT lemma_id) AS antall
                             FROM definisjon AS d
-                            WHERE oversatt_av != 0
+                            WHERE source = 'USER'
                             `
             const result1 = await db.query(query1)
             oppslag_info.push(result1[0])
 
             const query2 = `SELECT 'ord_wiki' AS tittel, COUNT(DISTINCT lemma_id) AS antall
                             FROM definisjon AS d
-                            WHERE oversatt_av = 0
+                            WHERE source = 'WIKI'
                             `
             const result2 = await db.query(query2)
             oppslag_info.push(result2[0])
@@ -110,7 +110,7 @@ module.exports = {
             const query = `SELECT TO_CHAR(opprettet, 'DD-FMMM') AS dato, count(*) AS antall
                              FROM definisjon AS d
                              WHERE opprettet BETWEEN NOW() - INTERVAL '30 days' AND NOW()
-                             AND oversatt_av != 0
+                             AND source = 'USER'
                              GROUP BY dato
                              `
             const nye_oversettelser = await db.query(query)
@@ -153,7 +153,7 @@ module.exports = {
                                             FROM oppslag AS o
                                             INNER JOIN definisjon AS d USING (lemma_id)
                             WHERE d.opprettet <= fulldate
-                            AND d.oversatt_av != 0
+                            AND d.source = 'USER'
                             ) AS antall
                             FROM dates
                             WHERE fulldate >= '2020-08-01' AND fulldate <= CURRENT_DATE + 1
