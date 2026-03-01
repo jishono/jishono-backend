@@ -1,4 +1,5 @@
 const db = require("../db/database")
+const { ALLOWED_BOY_TABLES, ALLOWED_BOY_COLUMNS } = require("../constants/boyning")
 
 module.exports = {
     hentAlleDefinisjonerPaaOppslag: async (lemma_id) => {
@@ -479,9 +480,17 @@ module.exports = {
         await db.query(query, [status, wordSuggestionID])
     },
     addConjugationToDB: async (wordID, insertTable, conjugations) => {
+        if (!ALLOWED_BOY_TABLES.includes(insertTable)) {
+            throw new Error(`Invalid conjugation table: ${insertTable}`)
+        }
+        const allowedColumns = ALLOWED_BOY_COLUMNS[insertTable]
         for (const conjugation of conjugations) {
             conjugation['lemma_id'] = wordID
             const columns = Object.keys(conjugation)
+            const invalidColumn = columns.find(col => !allowedColumns.has(col))
+            if (invalidColumn) {
+                throw new Error(`Invalid column for ${insertTable}: ${invalidColumn}`)
+            }
             const values = Object.values(conjugation)
             const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ')
             const query = `INSERT INTO ${insertTable} (${columns.join(', ')}) VALUES (${placeholders})`

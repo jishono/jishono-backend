@@ -4,6 +4,7 @@ const App = require("../services/appService")
 const msg = require('../locale/msg.json')
 const { searchByQuery } = require("../services/oppslagService")
 const oppslagService = require("../services/oppslagService")
+const { ALLOWED_BOY_TABLES } = require("../constants/boyning")
 
 module.exports = {
   getOppslag: async (req, res) => {
@@ -89,6 +90,9 @@ module.exports = {
     const lemma_id = req.params.id;
     const oppslag = await db.query('SELECT * FROM oppslag WHERE lemma_id = $1', [lemma_id])
     const boy_tabell = oppslag[0].boy_tabell + '_boy'
+    if (!ALLOWED_BOY_TABLES.includes(boy_tabell)) {
+      return res.status(400).send(msg.generell_error)
+    }
     const query = `SELECT * FROM ${boy_tabell} WHERE lemma_id = $1`
     const result = await db.query(query, [lemma_id])
     res.status(200).send(result)
