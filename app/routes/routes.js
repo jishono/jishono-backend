@@ -96,6 +96,8 @@ module.exports = app => {
 
   router.get("/statistikk", appController.getStatistikk)
 
+  router.get("/veggen/innlegg", auth, appController.hentVegginnlegg)
+  
   router.get("/veggen/innlegg/:id", auth, appController.hentVegginnlegg)
 
   router.post("/veggen/nytt_innlegg", auth, appController.postNyttVegginnlegg)

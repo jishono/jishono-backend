@@ -27,7 +27,7 @@ module.exports = {
     },
 
     hentVegginnlegg: async (req, res) => {
-        const innlegg_id = (req.params.id === 'undefined') ? null : req.params.id
+        const innlegg_id = req.params.id || null
         const user_id = res.locals.user_id
         const innlegg = await App.hentVegginnleggFraDB(innlegg_id)
         const innlegg_ider = await App.hentAlleInnleggIDerFraDB()
