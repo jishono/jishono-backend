@@ -53,7 +53,7 @@ module.exports = {
         if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(epost)) {
             return res.status(400).send(msg.user.registrer.ugyldig_epost)
         }
-        if (!locale == 'no' || !locale == 'jp') {
+        if (locale !== 'no' && locale !== 'jp') {
             return res.status(400).send(msg.user.profil.ugyldig_språk)
         }
         const valid_periods = [0, 1, 7, 14]
