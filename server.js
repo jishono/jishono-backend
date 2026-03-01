@@ -55,7 +55,8 @@ async function start() {
     migrationsTable: 'pgmigrations',
     log: (msg) => console.log('[migrate]', msg),
   })
-  app.listen(PORT, () => {
+  app.listen(PORT, (error) => {
+    if (error) throw error;
     console.log(`Server is running on port ${PORT}.`);
   });
 }

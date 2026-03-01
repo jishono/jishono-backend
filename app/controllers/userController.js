@@ -4,10 +4,14 @@ const msg = require('../locale/msg.json')
 
 module.exports = {
     getBruker: async (req, res) => {
-        const user_id = res.locals.user_id
-        const brukerdata = await User.getBrukerdataFraDB(user_id)
-        res.status(200).send(brukerdata)
-
+        try {
+            const user_id = res.locals.user_id
+            const brukerdata = await User.getBrukerdataFraDB(user_id)
+            res.status(200).send(brukerdata)
+        } catch (error) {
+            console.error(req.method, req.path, error)
+            res.status(500).send(msg.generell_error)
+        }
     },
     loggInn: async (req, res) => {
         console.log(req.body.username + " forsøker å logge inn...")
