@@ -8,80 +8,50 @@ const oppslagService = require("../services/oppslagService")
 module.exports = {
   getOppslag: async (req, res) => {
     const lemma_id = req.params.id
-    try {
-      let oppslag = await Oppslag.hentOppslagFraDB(lemma_id, res.locals.user_id)
-      oppslag = oppslag[0]
-      oppslag['kommentarer'] = await Oppslag.hentOppslagKommentarerFraDB(lemma_id)
-      res.status(200).send(oppslag)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    let oppslag = await Oppslag.hentOppslagFraDB(lemma_id, res.locals.user_id)
+    oppslag = oppslag[0]
+    oppslag['kommentarer'] = await Oppslag.hentOppslagKommentarerFraDB(lemma_id)
+    res.status(200).send(oppslag)
   },
   getKommentarer: async (req, res) => {
     const lemma_id = req.params.id
     const user_id = res.locals.user_id
-    try {
-      const kommentarer = await Oppslag.hentOppslagKommentarerFraDB(lemma_id)
-      if (kommentarer.length > 0) {
-        const kommentarer_sett = kommentarer.map(k => [k.oppslag_kommentar_id, user_id])
-        await Oppslag.settOppslagKommentarerSomSettDB(kommentarer_sett)
-      }
-      res.status(200).send(kommentarer)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
+    const kommentarer = await Oppslag.hentOppslagKommentarerFraDB(lemma_id)
+    if (kommentarer.length > 0) {
+      const kommentarer_sett = kommentarer.map(k => [k.oppslag_kommentar_id, user_id])
+      await Oppslag.settOppslagKommentarerSomSettDB(kommentarer_sett)
     }
+    res.status(200).send(kommentarer)
   },
   searchOppslag: async (req, res) => {
-    try {
-      const treff = await Oppslag.sokOppslagMedQuery(req.query)
-      res.status(200).send(treff)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    const treff = await Oppslag.sokOppslagMedQuery(req.query)
+    res.status(200).send(treff)
   },
   getSuggestionList: async (req, res) => {
-    try {
-      const searchWord = req.query.q
-      const suggestions = await Oppslag.getSuggestionListFromDB(searchWord)
-      res.status(200).send(suggestions)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    const searchWord = req.query.q
+    const suggestions = await Oppslag.getSuggestionListFromDB(searchWord)
+    res.status(200).send(suggestions)
   },
 
   searchDiscord: async (req, res) => {
     const searchQuery = req.params.query
-    try {
-      const results = await Oppslag.searchByQuery(searchQuery)
+    const results = await Oppslag.searchByQuery(searchQuery)
 
-      //Foreløpig fjerna
-      /* for (result of results) {
-        let conjugations = await Oppslag.getFlatConjugationsFromDB(result.lemma_id)
-        let example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
-        result['example_sentences'] = example_sentences
-      } */
+    //Foreløpig fjerna
+    /* for (result of results) {
+      let conjugations = await Oppslag.getFlatConjugationsFromDB(result.lemma_id)
+      let example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
+      result['example_sentences'] = example_sentences
+    } */
 
-      res.status(200).send(results)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    res.status(200).send(results)
   },
 
   getAllItems: async (req, res) => {
-    try {
-      const visitor_id = req.headers['x-visitor-id']
-      await App.registerVisit(visitor_id)
-      const results = await Oppslag.getAllItemsFromDB()
-      res.status(200).send(results)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    const visitor_id = req.headers['x-visitor-id']
+    await App.registerVisit(visitor_id)
+    const results = await Oppslag.getAllItemsFromDB()
+    res.status(200).send(results)
   },
 
   getConjugations: async (req, res) => {
@@ -90,9 +60,6 @@ module.exports = {
 
     // Allow only known parts-of-speech to control the table name
     const allowedPosToTable = {
-      // Map each allowed POS to its corresponding table name
-      // Extend this map with all valid POS values used in your schema
-      
       adj: 'adj_boy',
       adv: 'adv_boy',
       det: 'det_boy',
@@ -107,39 +74,24 @@ module.exports = {
     }
 
     const table = allowedPosToTable[pos];
-    try {
-      const conjugations = await Oppslag.getConjugationsFromDB(lemma_id, table)
-      res.status(200).send(conjugations)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    const conjugations = await Oppslag.getConjugationsFromDB(lemma_id, table)
+    res.status(200).send(conjugations)
   },
 
   getExampleSentences: async (req, res) => {
     const lemma_id = req.params.id;
-    try {
-      const conjugations = await Oppslag.getFlatConjugationsFromDB(lemma_id)
-      const example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
-      res.status(200).send(example_sentences)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    const conjugations = await Oppslag.getFlatConjugationsFromDB(lemma_id)
+    const example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
+    res.status(200).send(example_sentences)
   },
 
   findBoyning: async (req, res) => {
     const lemma_id = req.params.id;
-    try {
-      const oppslag = await db.query('SELECT * FROM oppslag WHERE lemma_id = $1', [lemma_id])
-      const boy_tabell = oppslag[0].boy_tabell + '_boy'
-      const query = `SELECT * FROM ${boy_tabell} WHERE lemma_id = $1`
-      const result = await db.query(query, [lemma_id])
-      res.status(200).send(result)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    const oppslag = await db.query('SELECT * FROM oppslag WHERE lemma_id = $1', [lemma_id])
+    const boy_tabell = oppslag[0].boy_tabell + '_boy'
+    const query = `SELECT * FROM ${boy_tabell} WHERE lemma_id = $1`
+    const result = await db.query(query, [lemma_id])
+    res.status(200).send(result)
   },
 
   oppdaterOppslag: async (req, res) => {
@@ -151,54 +103,28 @@ module.exports = {
     const deldata = req.body.deldata
 
     if (deldata.def.length > 0) {
-      try {
-        await Oppslag.slettDefinisjonerFraDB(deldata.def)
-      } catch (error) {
-        console.error(req.method, req.path, error)
-        return res.status(500).send(msg.generell_error)
-      }
+      await Oppslag.slettDefinisjonerFraDB(deldata.def)
     }
 
     if (deldata.uttale.length > 0) {
-      try {
-        await Oppslag.slettUttaleFraDB(deldata.uttale)
-      } catch (error) {
-        console.error(req.method, req.path, error)
-        return res.status(500).send(msg.generell_error)
-      }
+      await Oppslag.slettUttaleFraDB(deldata.uttale)
     }
 
-    try {
-      await Oppslag.oppdaterOppslagDB(oppslag.ledd, oppslag.skjult, oppslag.lemma_id)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      return res.status(500).send(msg.generell_error)
-    }
+    await Oppslag.oppdaterOppslagDB(oppslag.ledd, oppslag.skjult, oppslag.lemma_id)
+
     let pri = 1
     if (defs.length > 0) {
-      try {
-        defs.forEach(def => {
-          def.prioritet = pri
-          pri++
-        })
-
-        await Oppslag.leggTilDefinisjonDB(defs.map(def => [def.def_id, def.lemma_id, def.prioritet, def.definisjon, user_id]))
-
-      } catch (error) {
-        console.error(req.method, req.path, error)
-        return res.status(500).send(msg.generell_error)
-      }
+      defs.forEach(def => {
+        def.prioritet = pri
+        pri++
+      })
+      await Oppslag.leggTilDefinisjonDB(defs.map(def => [def.def_id, def.lemma_id, def.prioritet, def.definisjon, user_id]))
     }
 
     if (uttale.length > 0) {
-      try {
-        await Oppslag.leggTilUttaleDB(uttale.map(ut => [ut.uttale_id, lemma_id, ut.transkripsjon]))
-
-      } catch (error) {
-        console.error(req.method, req.path, error)
-        return res.status(500).send(msg.generell_error)
-      }
+      await Oppslag.leggTilUttaleDB(uttale.map(ut => [ut.uttale_id, lemma_id, ut.transkripsjon]))
     }
+
     res.status(200).send(msg.oppdatert)
   },
 
@@ -206,77 +132,43 @@ module.exports = {
     const lemma_id = req.params.id
     const user_id = res.locals.user_id
     const ny_kommentar = req.body.ny_kommentar
-    try {
-      await Oppslag.leggTilOppslagKommentarDB(lemma_id, user_id, ny_kommentar)
-      res.status(200).send(msg.kommentarer.lagt_til)
-      await App.sendNotificationsAfterComment(lemma_id, user_id)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      res.status(500).send(msg.generell_error)
-    }
+    await Oppslag.leggTilOppslagKommentarDB(lemma_id, user_id, ny_kommentar)
+    res.status(200).send(msg.kommentarer.lagt_til)
+    await App.sendNotificationsAfterComment(lemma_id, user_id)
   },
-
 
   addWordSuggestion: async (req, res) => {
     const userID = res.locals.user_id
     const { word, wordClass, parts } = req.body
-    try {
-      if (word !== '' && wordClass !== '') {
-        await oppslagService.addWordSuggestionToDB(word, wordClass, parts, userID)
-      }
-      res.status(200).send(msg.oppslag.forslag_opprettet)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      return res.status(500).send(msg.generell_error)
+    if (word !== '' && wordClass !== '') {
+      await oppslagService.addWordSuggestionToDB(word, wordClass, parts, userID)
     }
-
+    res.status(200).send(msg.oppslag.forslag_opprettet)
   },
   getWordSuggestion: async (req, res) => {
     const wordID = req.params.id
-    try {
-      const wordSuggestion = await oppslagService.getWordSuggestionFromDB(wordID)
-      res.status(200).send(wordSuggestion)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      return res.status(500).send(msg.generell_error)
-    }
-
+    const wordSuggestion = await oppslagService.getWordSuggestionFromDB(wordID)
+    res.status(200).send(wordSuggestion)
   },
   getAllWordSuggestions: async (req, res) => {
-    try {
-      const wordSuggestions = await oppslagService.getAllWordSuggestionsFromDB()
-      res.status(200).send(wordSuggestions)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      return res.status(500).send(msg.generell_error)
-    }
-
+    const wordSuggestions = await oppslagService.getAllWordSuggestionsFromDB()
+    res.status(200).send(wordSuggestions)
   },
   acceptWordSuggestion: async (req, res) => {
     const wordSuggestionID = req.params.id
     const conjugations = req.body.conjugations
     const { word, wordClass, parts } = req.body
-    try {
-      const newWordID = await oppslagService.addWordToDB(word, wordClass, parts)
-      await oppslagService.setWordSuggestionsStatus(wordSuggestionID, 1)
-      if (['adj', 'adv', 'det', 'pron', 'subst', 'verb'].includes(wordClass)) {
-        const insertTable = wordClass + '_boy'
-        await oppslagService.addConjugationToDB(newWordID, insertTable, conjugations)
-      }
-      res.status(200).send(msg.oppslag.opprettet)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      return res.status(500).send(msg.generell_error)
+    const newWordID = await oppslagService.addWordToDB(word, wordClass, parts)
+    await oppslagService.setWordSuggestionsStatus(wordSuggestionID, 1)
+    if (['adj', 'adv', 'det', 'pron', 'subst', 'verb'].includes(wordClass)) {
+      const insertTable = wordClass + '_boy'
+      await oppslagService.addConjugationToDB(newWordID, insertTable, conjugations)
     }
+    res.status(200).send(msg.oppslag.opprettet)
   },
   rejectWordSuggestion: async (req, res) => {
     const wordSuggestionID = req.params.id
-    try {
-      await oppslagService.setWordSuggestionsStatus(wordSuggestionID, 2)
-      res.status(200).send(msg.oppslag.avvist)
-    } catch (error) {
-      console.error(req.method, req.path, error)
-      return res.status(500).send(msg.generell_error)
-    }
+    await oppslagService.setWordSuggestionsStatus(wordSuggestionID, 2)
+    res.status(200).send(msg.oppslag.avvist)
   }
 }

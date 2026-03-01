@@ -6,6 +6,7 @@ module.exports = app => {
   const forslagController = require("../controllers/forslagController.js");
   const { auth } = require("../routes/auth.js")
   const admin = require("../routes/admin.js")
+  const msg = require("../locale/msg.json")
 
   var router = require("express").Router();
 
@@ -104,6 +105,11 @@ module.exports = app => {
   router.post("/veggen/innlegg/:id/delete", auth, appController.deleteVegginnlegg)
 
   router.get("/veggen/usette_innlegg", auth, appController.hentAntallUsetteVegginnlegg)
+
+  router.use((err, req, res, next) => {
+    console.error(req.method, req.path, err)
+    res.status(500).send(msg.generell_error)
+  })
 
   app.use('/', router);
 };
