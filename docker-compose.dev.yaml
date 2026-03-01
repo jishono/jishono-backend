@@ -2,7 +2,8 @@ services:
   jishono-api:
     volumes:
       - .:/usr/src/app
-      - /usr/src/app/node_modules
+      - jishono_node_modules:/usr/src/app/node_modules
+    entrypoint: ["/bin/sh", "/usr/src/app/docker-entrypoint.dev.sh"]
 
   postgres:
     image: postgres:18
@@ -13,6 +14,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
- 
+
 volumes:
   pgdata:
+  jishono_node_modules:
