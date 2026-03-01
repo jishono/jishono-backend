@@ -20,7 +20,7 @@ module.exports = {
             res.status(400).send(msg.forslag.minst_ett)
 
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -31,7 +31,7 @@ module.exports = {
             let forslag = await Forslag.getAktiveForslagFraDB(user_id, status)
             res.status(200).send(forslag)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
         }
     },
     getMyForslag: async (req, res) => {
@@ -40,7 +40,7 @@ module.exports = {
             let forslag = await Forslag.getMyForslagFromDB(user_id)
             res.status(200).send(forslag)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
         }
     },
     hentForslag: async (req, res) => {
@@ -49,7 +49,7 @@ module.exports = {
             let forslag = await Forslag.hentEnkeltForslagFraDB(forslag_id)
             res.status(200).send(forslag)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
         }
     },
     stemForslag: async (req, res) => {
@@ -91,7 +91,7 @@ module.exports = {
             res.status(200).send(msg.forslag.stemme_mottatt)
 
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -108,7 +108,7 @@ module.exports = {
             }
             res.status(200).send(msg.forslag.godkjent)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
 
@@ -121,7 +121,7 @@ module.exports = {
             await Forslag.endreForslagDB(forslag_id, user_id, redigert_forslag)
             res.status(200).send(msg.forslag.endret)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
 
@@ -133,7 +133,7 @@ module.exports = {
             await Forslag.settStatusForslag(forslag_id, 5)
             res.status(200).send(msg.forslag.avvist)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -146,7 +146,7 @@ module.exports = {
             await Forslag.slettForslagFraDB(forslag_id, user_id)
             res.status(200).send(msg.forslag.fjernet)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },

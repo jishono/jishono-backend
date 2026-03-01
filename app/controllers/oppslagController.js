@@ -14,7 +14,7 @@ module.exports = {
       oppslag['kommentarer'] = await Oppslag.hentOppslagKommentarerFraDB(lemma_id)
       res.status(200).send(oppslag)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -29,7 +29,7 @@ module.exports = {
       }
       res.status(200).send(kommentarer)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -38,7 +38,7 @@ module.exports = {
       const treff = await Oppslag.sokOppslagMedQuery(req.query)
       res.status(200).send(treff)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -48,7 +48,7 @@ module.exports = {
       const suggestions = await Oppslag.getSuggestionListFromDB(searchWord)
       res.status(200).send(suggestions)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -67,7 +67,7 @@ module.exports = {
 
       res.status(200).send(results)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -79,7 +79,7 @@ module.exports = {
       const results = await Oppslag.getAllItemsFromDB()
       res.status(200).send(results)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -111,7 +111,7 @@ module.exports = {
       const conjugations = await Oppslag.getConjugationsFromDB(lemma_id, table)
       res.status(200).send(conjugations)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -123,7 +123,7 @@ module.exports = {
       const example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
       res.status(200).send(example_sentences)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -137,7 +137,7 @@ module.exports = {
       const result = await db.query(query, [lemma_id])
       res.status(200).send(result)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -154,7 +154,7 @@ module.exports = {
       try {
         await Oppslag.slettDefinisjonerFraDB(deldata.def)
       } catch (error) {
-        console.log(error)
+        console.error(req.method, req.path, error)
         return res.status(500).send(msg.generell_error)
       }
     }
@@ -163,7 +163,7 @@ module.exports = {
       try {
         await Oppslag.slettUttaleFraDB(deldata.uttale)
       } catch (error) {
-        console.log(error)
+        console.error(req.method, req.path, error)
         return res.status(500).send(msg.generell_error)
       }
     }
@@ -171,7 +171,7 @@ module.exports = {
     try {
       await Oppslag.oppdaterOppslagDB(oppslag.ledd, oppslag.skjult, oppslag.lemma_id)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       return res.status(500).send(msg.generell_error)
     }
     let pri = 1
@@ -185,7 +185,7 @@ module.exports = {
         await Oppslag.leggTilDefinisjonDB(defs.map(def => [def.def_id, def.lemma_id, def.prioritet, def.definisjon, user_id]))
 
       } catch (error) {
-        console.log(error)
+        console.error(req.method, req.path, error)
         return res.status(500).send(msg.generell_error)
       }
     }
@@ -195,7 +195,7 @@ module.exports = {
         await Oppslag.leggTilUttaleDB(uttale.map(ut => [ut.uttale_id, lemma_id, ut.transkripsjon]))
 
       } catch (error) {
-        console.log(error)
+        console.error(req.method, req.path, error)
         return res.status(500).send(msg.generell_error)
       }
     }
@@ -211,7 +211,7 @@ module.exports = {
       res.status(200).send(msg.kommentarer.lagt_til)
       await App.sendNotificationsAfterComment(lemma_id, user_id)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       res.status(500).send(msg.generell_error)
     }
   },
@@ -226,7 +226,7 @@ module.exports = {
       }
       res.status(200).send(msg.oppslag.forslag_opprettet)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       return res.status(500).send(msg.generell_error)
     }
 
@@ -237,7 +237,7 @@ module.exports = {
       const wordSuggestion = await oppslagService.getWordSuggestionFromDB(wordID)
       res.status(200).send(wordSuggestion)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       return res.status(500).send(msg.generell_error)
     }
 
@@ -247,7 +247,7 @@ module.exports = {
       const wordSuggestions = await oppslagService.getAllWordSuggestionsFromDB()
       res.status(200).send(wordSuggestions)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       return res.status(500).send(msg.generell_error)
     }
 
@@ -265,7 +265,7 @@ module.exports = {
       }
       res.status(200).send(msg.oppslag.opprettet)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       return res.status(500).send(msg.generell_error)
     }
   },
@@ -275,7 +275,7 @@ module.exports = {
       await oppslagService.setWordSuggestionsStatus(wordSuggestionID, 2)
       res.status(200).send(msg.oppslag.avvist)
     } catch (error) {
-      console.log(error)
+      console.error(req.method, req.path, error)
       return res.status(500).send(msg.generell_error)
     }
   }

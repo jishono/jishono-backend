@@ -27,7 +27,7 @@ module.exports = {
             await User.oppdaterSistInnlogget(bruker.user_id)
             res.status(200).send({ auth: true, token: token, user_id: bruker.user_id, username: bruker.brukernavn, admin: bruker.admin, locale: bruker.locale });
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -44,7 +44,7 @@ module.exports = {
             await App.sendEpost(ny_brukerdata.email, 'Velkommen til baksida.jisho.no', 'velkommen.ejs', 'admin@jisho.no', { brukernavn: ny_brukerdata.username })
             res.status(201).send(msg.user.registrer.ok)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             if (error.errno === 1062) {
                 res.status(500).send(msg.user.registrer.finnes)
             } else {
@@ -91,7 +91,7 @@ module.exports = {
 
             res.status(200).send(message)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -101,7 +101,7 @@ module.exports = {
             await User.updateLastSeenDB(user_id)
             res.status(200).send()
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -110,7 +110,7 @@ module.exports = {
             const users = await User.getAllUserDataFromDB()
             res.status(200).send(users)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },

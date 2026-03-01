@@ -12,10 +12,7 @@ const pool = new Pool({
 module.exports = {
   query: async (text, params = []) => {
     try {
-      const start = Date.now();
       const result = await pool.query(text, params);
-      const duration = Date.now() - start;
-      console.log('executed query', { text, duration, rows: result.rows.length });
       return result.rows;
     } catch (error) {
       console.error('Full error details:', error);
@@ -32,10 +29,7 @@ module.exports = {
     const params = rows.flat();
     const fullQuery = `${baseQuery} VALUES ${values} ${onConflict}`;
     try {
-      const start = Date.now();
       const result = await pool.query(fullQuery, params);
-      const duration = Date.now() - start;
-      console.log('executed bulk insert', { text: fullQuery, duration, rows: result.rowCount });
       return result.rows;
     } catch (error) {
       console.error('Full error details:', error);

@@ -23,7 +23,7 @@ module.exports = {
             res.status(200).send(statistikk)
 
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -32,7 +32,7 @@ module.exports = {
             const anbefalinger = await App.getAnbefalingerFraFrekvens()
             res.status(200).send(anbefalinger)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -49,7 +49,7 @@ module.exports = {
             }
             res.status(200).send(innlegg)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -59,7 +59,7 @@ module.exports = {
             const usette_innlegg = await App.hentAntallUsetteVegginnleggFraDB(user_id)
             res.status(200).send(usette_innlegg)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -76,7 +76,7 @@ module.exports = {
             res.status(200).send(msg.veggen.innlegg_lagt_til)
             await App.sendNotificationsAfterWallPost(parent_id, user_id)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -88,7 +88,7 @@ module.exports = {
             await App.endreInnleggDB(innlegg_id, user_id, endret_innhold)
             res.status(200).send(msg.veggen.innlegg_endret)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -104,7 +104,7 @@ module.exports = {
             }
             res.status(200).send(msg.veggen.innlegg_slettet)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -116,7 +116,7 @@ module.exports = {
             res.status(200).send("フィードバックを頂きました！")
 
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -127,7 +127,7 @@ module.exports = {
             res.status(200).send("依頼を頂きました！")
 
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -136,7 +136,7 @@ module.exports = {
             const requests = await App.getUntranslatedRequests()
             res.status(200).send(requests)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },
@@ -145,7 +145,7 @@ module.exports = {
             const visits = await App.getPageVisitStatsFromDB()
             res.status(200).send(visits)
         } catch (error) {
-            console.log(error)
+            console.error(req.method, req.path, error)
             res.status(500).send(msg.generell_error)
         }
     },

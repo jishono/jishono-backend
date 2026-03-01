@@ -21,6 +21,15 @@ app.set('views', path.join(__dirname, './app/views'))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`${req.method} ${req.path} ${res.statusCode} ${duration}ms`);
+  });
+  next();
+});
+
 require("./app/routes/routes")(app);
 
 app.get("/", (req, res) => {
