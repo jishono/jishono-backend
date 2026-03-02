@@ -81,8 +81,7 @@ module.exports = {
 
   getExampleSentences: async (req, res) => {
     const lemma_id = req.params.id;
-    const conjugations = await Oppslag.getFlatConjugationsFromDB(lemma_id)
-    const example_sentences = await Oppslag.getExampleSentencesFromDB(conjugations)
+    const example_sentences = await Oppslag.getExampleSentencesFromDB(lemma_id)
     res.status(200).send(example_sentences)
   },
 

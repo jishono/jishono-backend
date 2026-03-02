@@ -135,7 +135,7 @@ async function main() {
   // --- Database ---
 
   console.log('Truncating tables...');
-  await db.query('TRUNCATE eksempler_lenker, eksempler_no, eksempler_ja');
+  await db.query('TRUNCATE eksempler_no_oppslag, eksempler_lenker, eksempler_no, eksempler_ja');
 
   console.log('Inserting Norwegian sentences...');
   await bulkInsertBatched('INSERT INTO eksempler_no (no_id, no_setning)', noArray, 2);

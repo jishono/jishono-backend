@@ -335,19 +335,18 @@ module.exports = {
         }
     },
 
-    getExampleSentencesFromDB: async (conjugations) => {
-        let regex = '\\s(' + conjugations.join('|') + ')\\s'
+    getExampleSentencesFromDB: async (lemma_id) => {
         const query = `
             SELECT no.no_setning, ja.ja_setning
-            FROM eksempler_no AS no
+            FROM eksempler_no_oppslag AS eo
+            JOIN eksempler_no AS no ON eo.eksempler_no_id = no.no_id
             LEFT JOIN eksempler_lenker AS l ON no.no_id = l.no_id
             LEFT JOIN eksempler_ja AS ja ON l.ja_id = ja.ja_id
-            WHERE no.no_setning ~ $1
+            WHERE eo.lemma_id = $1
             ORDER BY (ja.ja_setning IS NULL), ja.ja_setning DESC;
         `
         try {
-            const conjugations = await db.query(query, [regex])
-            return conjugations
+            return await db.query(query, [lemma_id])
         } catch (error) {
             throw error
         }
