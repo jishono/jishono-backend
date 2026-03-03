@@ -150,14 +150,14 @@ module.exports = {
         const results = await db.query(query)
         let inserts = []
 
-        for (row of results) {
+        for (const row of results) {
             if (row.oppslag.indexOf(' ') >= 0) {
                 const splits = row.oppslag.split(' ')
-                for (split of splits) {
+                for (const split of splits) {
                     inserts.push([row.lemma_id, split])
                 }
             }
-            for (row2 of results) {
+            for (const row2 of results) {
                 const regex = new RegExp('(?<![A-Za-zÆæØøÅå])' + row.oppslag + '(?![A-Za-zÆæØøÅå])')
                 if (row2.oppslag.match(regex)) {
                     if (row2.oppslag != row.oppslag) {
@@ -206,8 +206,8 @@ module.exports = {
             kunwiki = false; utenwiki = false;
         }
 
-        posarray = []
-        pos_val = ["adj", "adv", "det", "egennavn", "forkorting",
+        const posarray = []
+        const pos_val = ["adj", "adv", "det", "egennavn", "forkorting",
             "interjeksjon", "konjunksjon", "prefiks", "preposisjon",
             "pron", "subst", "subjunksjon", "verb", "symbol"]
         pos_val.forEach(pos => {

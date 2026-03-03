@@ -18,7 +18,7 @@ module.exports = {
     digestEmails: async () => {
         cron.schedule("0 17 * * *", async () => {
             const users = await User.getUserEmailByPeriod(1)
-            for (user of users) {
+            for (const user of users) {
                 let data = await getAllDataForDigest(user.user_id, 1)
                 data['tid'] = 'den siste dagen'
                 data['brukernavn'] = user.brukernavn
@@ -28,7 +28,7 @@ module.exports = {
 
         cron.schedule("0 18 * * 0", async () => {
             const users = await User.getUserEmailByPeriod(7)
-            for (user of users) {
+            for (const user of users) {
                 let data = await getAllDataForDigest(user.user_id, 7)
                 data['tid'] = 'de siste 7 dagene'
                 data['brukernavn'] = user.brukernavn
@@ -39,7 +39,7 @@ module.exports = {
         cron.schedule("0 19 * * 0", async () => {
             if (moment().format('W') % 2 == 1) {
                 const users = await User.getUserEmailByPeriod(14)
-                for (user of users) {
+                for (const user of users) {
                     let data = await getAllDataForDigest(user.user_id, 14)
                     data['tid'] = 'de siste 14 dagene'
                     data['brukernavn'] = user.brukernavn
