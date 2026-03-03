@@ -10,6 +10,7 @@ RUN npm install -g nodemon
 COPY . .
 
 RUN addgroup -S app && adduser -S app -G app
+RUN chown -R app:app /usr/src/app
 USER app
 
 EXPOSE 3001
