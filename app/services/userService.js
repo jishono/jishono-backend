@@ -11,15 +11,10 @@ module.exports = {
         return kryptert_passord
     },
     sjekkPassordMedID: async (passord, user_id) => {
-        try {
-            let user = await db.query('SELECT passord_hash FROM brukere WHERE user_id = $1', [user_id])
-            user = user[0]
-            const passord_gyldig = bcrypt.compareSync(passord, user.passord_hash)
-            return passord_gyldig
-        } catch (error) {
-            throw error
-        }
-
+        let user = await db.query('SELECT passord_hash FROM brukere WHERE user_id = $1', [user_id])
+        user = user[0]
+        const passord_gyldig = bcrypt.compareSync(passord, user.passord_hash)
+        return passord_gyldig
     },
     sjekkPassordBcrypt: (passord, passord_hash) => {
         return bcrypt.compareSync(passord, passord_hash)
@@ -33,11 +28,7 @@ module.exports = {
         const query = `UPDATE brukere
                         SET sist_innlogget = CURRENT_TIMESTAMP
                         WHERE user_id = $1`
-        try {
-            await db.query(query, [user_id])
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [user_id])
     },
     genererJWT: (bruker) => {
         const token = jwt.sign({ user: bruker.brukernavn, user_id: bruker.user_id, admin: bruker.admin, locale: bruker.locale }, config.jwt.secret, {
@@ -79,11 +70,7 @@ module.exports = {
 
         const query = `INSERT INTO brukere (brukernavn, epost, passord_hash, admin)
                         VALUES ($1, $2, $3, FALSE)`
-        try {
-            await db.query(query, [ny_brukerdata.username.toLowerCase(), ny_brukerdata.email.toLowerCase(), ny_brukerdata.password])
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [ny_brukerdata.username.toLowerCase(), ny_brukerdata.email.toLowerCase(), ny_brukerdata.password])
     },
     getBrukerdataFraDB: async (user_id) => {
         const query = `SELECT user_id, brukernavn, epost, locale, admin,
@@ -92,46 +79,30 @@ module.exports = {
                         FROM brukere
                         WHERE user_id = $1`
 
-        try {
-            const brukerdata = await db.query(query, [user_id])
-            return brukerdata[0]
-        } catch (error) {
-            throw error
-        }
+        const brukerdata = await db.query(query, [user_id])
+        return brukerdata[0]
     },
     getAllUserDataFromDB: async () => {
         const query = `SELECT *
                         FROM brukere
                         `
 
-        try {
-            const users = await db.query(query)
-            return users
-        } catch (error) {
-            throw error
-        }
+        const users = await db.query(query)
+        return users
     },
     updateEpostDB: async (user_id, epost) => {
 
         const query = `UPDATE brukere
                     SET epost = $1
                     WHERE user_id = $2`
-        try {
-            await db.query(query, [epost, user_id])
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [epost, user_id])
     },
     updateLocaleDB: async (user_id, locale) => {
 
         const query = `UPDATE brukere
                     SET locale = $1
                     WHERE user_id = $2`
-        try {
-            await db.query(query, [locale, user_id])
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [locale, user_id])
     },
     updatePassordDB: async (user_id, nytt_passord) => {
         const kryptert_passord = module.exports.krypterPassord(nytt_passord)
@@ -139,11 +110,7 @@ module.exports = {
         const query = `UPDATE brukere
                         SET passord_hash = $1
                         WHERE user_id = $2`
-        try {
-            await db.query(query, [kryptert_passord, user_id])
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [kryptert_passord, user_id])
     },
     updateOppdateringerDB: async (user_id, oppdateringer) => {
         const opp_periode = oppdateringer.opp_periode
@@ -153,11 +120,7 @@ module.exports = {
         const query = `UPDATE brukere
                         SET opp_periode = $1, opp_kommentar_eget = $2, opp_svar = $3
                         WHERE user_id = $4`
-        try {
-            await db.query(query, [opp_periode, opp_kommentar_eget, opp_svar, user_id])
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [opp_periode, opp_kommentar_eget, opp_svar, user_id])
     },
     getUlestOversiktFraDB: async (user_id) => {
 

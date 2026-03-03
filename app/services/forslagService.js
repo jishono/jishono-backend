@@ -41,12 +41,8 @@ module.exports = {
                         INNER JOIN brukere AS b USING (user_id)
                         WHERE f.status = $2
                         GROUP BY o.lemma_id, o.oppslag, o.boy_tabell`
-        try {
-            const forslag = await db.query(query, [user_id, status])
-            return forslag
-        } catch (error) {
-            throw error
-        }
+        const forslag = await db.query(query, [user_id, status])
+        return forslag
     },
     getMyForslagFromDB: async (user_id) => {
 
@@ -69,12 +65,8 @@ module.exports = {
                         WHERE f.user_id = $2
                         GROUP BY f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell,
                                  b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret`
-        try {
-            const forslag = await db.query(query, [user_id, user_id])
-            return forslag
-        } catch (error) {
-            throw error
-        }
+        const forslag = await db.query(query, [user_id, user_id])
+        return forslag
     },
     hentEnkeltForslagFraDB: async (forslag_id) => {
         const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell,
@@ -94,12 +86,8 @@ module.exports = {
                         INNER JOIN brukere AS b USING (user_id)
                         INNER JOIN oppslag AS o USING (lemma_id)
                         WHERE f.forslag_id = $1`
-        try {
-            const forslag = await db.query(query, [forslag_id])
-            return forslag[0]
-        } catch (error) {
-            throw error
-        }
+        const forslag = await db.query(query, [forslag_id])
+        return forslag[0]
     },
     settInnStemmeDB: async (forslag_id, user_id, type) => {
         const query = `INSERT INTO stemmer (forslag_id, user_id, type)
@@ -107,147 +95,93 @@ module.exports = {
                         ON CONFLICT (forslag_id, user_id) DO UPDATE
                         SET type = EXCLUDED.type
                         `
-        try {
-            await db.query(query, [forslag_id, user_id, type])
-
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [forslag_id, user_id, type])
     },
     slettStemmeFraDB: async (forslag_id, user_id) => {
         const query = `DELETE FROM stemmer
                         WHERE forslag_id = $1
                         AND user_id = $2`
-        try {
-            await db.query(query, [forslag_id, user_id])
-
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [forslag_id, user_id])
     },
     hentAntallStemmerPaaForslagFraDB: async (forslag_id) => {
         const query = `SELECT COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes,
                         COALESCE(SUM(CASE WHEN s.type = 0 THEN 1 ELSE 0 END),0) AS downvotes
                         FROM stemmer AS s
                         WHERE forslag_id = $1`
-        try {
-            const stemmer = await db.query(query, [forslag_id])
-            return stemmer[0]
-        } catch (error) {
-            throw error
-        }
+        const stemmer = await db.query(query, [forslag_id])
+        return stemmer[0]
     },
     hentForslagseierFraDB: async (forslag_id) => {
         const query = `SELECT user_id, status FROM forslag
                         WHERE forslag_id = $1`
-        try {
-            const forslagseier = await db.query(query, [forslag_id])
-            return forslagseier[0]
-        } catch (error) {
-            throw error
-        }
+        const forslagseier = await db.query(query, [forslag_id])
+        return forslagseier[0]
     },
     hentStemmerFraBruker: async (forslag_id, user_id) => {
-        try {
-            let query = `SELECT s.stemme_id, s.type
+        const query = `SELECT s.stemme_id, s.type
                         FROM stemmer AS s
                         WHERE s.forslag_id = $1
                         AND s.user_id = $2
                         `
-            const stemmer = await db.query(query, [forslag_id, user_id])
-            return stemmer
-
-        } catch (error) {
-            throw error
-        }
+        const stemmer = await db.query(query, [forslag_id, user_id])
+        return stemmer
     },
     slettForslagFraDB: async (forslag_id, user_id) => {
-        try {
-            let query1 = `DELETE FROM forslag
+        const query1 = `DELETE FROM forslag
                         WHERE forslag_id = $1
                         AND user_id = $2`
-            await db.query(query1, [forslag_id, user_id])
+        await db.query(query1, [forslag_id, user_id])
 
-            const query2 = `DELETE FROM stemmer
-                          WHERE forslag_id = $1`
-            await db.query(query2, [forslag_id])
-
-        } catch (error) {
-            throw error
-        }
+        const query2 = `DELETE FROM stemmer
+                      WHERE forslag_id = $1`
+        await db.query(query2, [forslag_id])
     },
     leggForslagTilDB: async (lemma_id, user_id, forslag, prioritet = 1) => {
-        try {
-            const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon, prioritet)
+        const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon, prioritet)
                             VALUES ($1, $2, $3, $4)
                             RETURNING forslag_id`
-            const result = await db.query(query, [lemma_id, user_id, forslag, prioritet])
-            return result[0].forslag_id
-
-        } catch (error) {
-            throw error
-        }
+        const result = await db.query(query, [lemma_id, user_id, forslag, prioritet])
+        return result[0].forslag_id
     },
     gjorForslagTilDefinisjonDB: async (forslag_id, redigert_forslag = null) => {
-        try {
-            const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id
-                          FROM forslag
-                          WHERE forslag_id = $1`
-            let forslag = await db.query(query1, [forslag_id])
-            forslag = forslag[0]
-            if (redigert_forslag) {
-                forslag.forslag_definisjon = redigert_forslag
-                const query2 = `UPDATE forslag SET forslag_definisjon = $1
-                                WHERE forslag_id = $2`
-                await db.query(query2, [redigert_forslag, forslag_id])
-            }
-            const query3 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = $1`
-            let result = await db.query(query3, [forslag.lemma_id])
-
-            const max_pri = result[0]['max_pri'] + 1
-            const query4 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av, source)
-                          VALUES ($1, $2, $3, $4, 'USER')`
-            await db.query(query4, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
-
-        } catch (error) {
-            throw error
+        const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id
+                      FROM forslag
+                      WHERE forslag_id = $1`
+        let forslag = await db.query(query1, [forslag_id])
+        forslag = forslag[0]
+        if (redigert_forslag) {
+            forslag.forslag_definisjon = redigert_forslag
+            const query2 = `UPDATE forslag SET forslag_definisjon = $1
+                            WHERE forslag_id = $2`
+            await db.query(query2, [redigert_forslag, forslag_id])
         }
+        const query3 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = $1`
+        let result = await db.query(query3, [forslag.lemma_id])
+
+        const max_pri = result[0]['max_pri'] + 1
+        const query4 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av, source)
+                      VALUES ($1, $2, $3, $4, 'USER')`
+        await db.query(query4, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
     },
     settStatusForslag: async (forslag_id, statuskode) => {
-        try {
-            const query = `UPDATE forslag
+        const query = `UPDATE forslag
                             SET status = $1, godkjent_avvist = CURRENT_TIMESTAMP
                             WHERE forslag_id = $2`
-
-            await db.query(query, [statuskode, forslag_id])
-
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [statuskode, forslag_id])
     },
     endreForslagDB: async (forslag_id, user_id, redigert_forslag) => {
-        try {
-            const query = `UPDATE forslag
+        const query = `UPDATE forslag
                             SET forslag_definisjon = $1, endret = 1
                             WHERE forslag_id = $2
                             AND user_id = $3
                            `
-            await db.query(query, [redigert_forslag, forslag_id, user_id])
-
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [redigert_forslag, forslag_id, user_id])
     },
     nullstillStemmerDB: async (forslag_id, user_id) => {
-        try {
-            const query = `DELETE FROM stemmer
+        const query = `DELETE FROM stemmer
                             WHERE forslag_id = $1
                             AND forslag_id IN (SELECT forslag_id FROM forslag WHERE user_id = $2)
                            `
-            await db.query(query, [forslag_id, user_id])
-
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [forslag_id, user_id])
     },
 }
