@@ -1,4 +1,5 @@
 const express = require("express");
+const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const { runner: migrate } = require("node-pg-migrate");
@@ -14,6 +15,7 @@ const corsOptions = {
     : ['https://www.jisho.no', 'https://jisho.no', 'https://baksida.jisho.no']
 }
 
+app.use(helmet())
 app.use(cors(corsOptions))
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, './app/views'))
