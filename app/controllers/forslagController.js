@@ -9,7 +9,7 @@ module.exports = {
         const user_id = res.locals.user_id
 
         if (nye_forslag.length > 0 && nye_forslag[0]['definisjon'] != '') {
-            for (forslag of nye_forslag) {
+            for (const forslag of nye_forslag) {
                 await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon, forslag.prioritet)
                 console.log(forslag)
             }
