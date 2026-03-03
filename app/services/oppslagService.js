@@ -5,16 +5,11 @@ module.exports = {
     hentAlleDefinisjonerPaaOppslag: async (lemma_id) => {
         const query = `SELECT definisjon FROM definisjon
                         WHERE lemma_id = $1`
-        try {
-            const definisjoner = await db.query(query, [lemma_id])
-            return definisjoner
-        } catch (error) {
-            throw error
-        }
+        const definisjoner = await db.query(query, [lemma_id])
+        return definisjoner
     },
     hentOppslagFraDB: async (lemma_id, user_id) => {
-        try {
-            const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult,
+        const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult,
                             (SELECT COALESCE(
                                 (SELECT JSON_AGG(
                                 JSON_BUILD_OBJECT('def_id', d.def_id,
@@ -67,11 +62,8 @@ module.exports = {
                             FROM oppslag AS o
                             WHERE o.lemma_id = $1`
 
-            const oppslag = await db.query(query, [lemma_id, user_id])
-            return oppslag
-        } catch (error) {
-            throw error
-        }
+        const oppslag = await db.query(query, [lemma_id, user_id])
+        return oppslag
     },
 
     getAllItemsFromDB: async () => {
@@ -263,12 +255,8 @@ module.exports = {
         }
 
         query += ` ORDER BY oppslag`
-        try {
-            const treff = await db.query(query, params)
-            return treff
-        } catch (error) {
-            throw error
-        }
+        const treff = await db.query(query, params)
+        return treff
     },
 
     searchByQuery: async (searchQuery) => {
@@ -297,23 +285,15 @@ module.exports = {
                         FROM oppslag_def AS od
                         WHERE od.oppslag = $1
                         LIMIT 5`
-        try {
-            const results = await db.query(query, [searchQuery])
-            return results
-        } catch (error) {
-            throw error
-        }
+        const results = await db.query(query, [searchQuery])
+        return results
     },
 
     getConjugationsFromDB: async (lemma_id, table) => {
         // NOTE: `table` must be a trusted, whitelisted identifier (see controller validation)
         const query = `SELECT * FROM ${table} WHERE lemma_id = $1 ORDER BY pos ASC`;
-        try {
-            const conjugations = await db.query(query, [lemma_id])
-            return conjugations
-        } catch (error) {
-            throw error
-        }
+        const conjugations = await db.query(query, [lemma_id])
+        return conjugations
     },
 
     getFlatConjugationsFromDB: async (lemma_id) => {
@@ -323,18 +303,14 @@ module.exports = {
                         WHERE lemma_id = $1
                         GROUP BY o.oppslag
                         `
-        try {
-            let conjugations = await db.query(query, [lemma_id])
-            if (!conjugations[0]) return []
-            if (conjugations[0].conjugations) {
-                conjugations = conjugations[0].conjugations.split(',')
-            } else {
-                conjugations = [conjugations[0].oppslag]
-            }
-            return conjugations
-        } catch (error) {
-            throw error
+        let conjugations = await db.query(query, [lemma_id])
+        if (!conjugations[0]) return []
+        if (conjugations[0].conjugations) {
+            conjugations = conjugations[0].conjugations.split(',')
+        } else {
+            conjugations = [conjugations[0].oppslag]
         }
+        return conjugations
     },
 
     getExampleSentencesFromDB: async (lemma_id) => {
@@ -347,11 +323,7 @@ module.exports = {
             WHERE eo.lemma_id = $1
             ORDER BY (ja.ja_setning IS NULL), ja.ja_setning DESC;
         `
-        try {
-            return await db.query(query, [lemma_id])
-        } catch (error) {
-            throw error
-        }
+        return await db.query(query, [lemma_id])
     },
     hentOppslagKommentarerFraDB: async (lemma_id) => {
         const query = `SELECT ok.oppslag_kommentar_id, ok.lemma_id, ok.opprettet,
@@ -360,55 +332,32 @@ module.exports = {
                         INNER JOIN brukere AS b USING(user_id)
                         WHERE lemma_id = $1
                         ORDER BY opprettet DESC`
-        try {
-            const kommentarer = await db.query(query, [lemma_id])
-            return kommentarer
-        } catch (error) {
-            throw error
-        }
+        const kommentarer = await db.query(query, [lemma_id])
+        return kommentarer
     },
     settOppslagKommentarerSomSettDB: async (kommentarer_sett) => {
-        try {
-            await db.bulkInsert(
-                `INSERT INTO oppslag_kommentarer_sett (oppslag_kommentar_id, user_id)`,
-                kommentarer_sett,
-                2,
-                `ON CONFLICT DO NOTHING`
-            )
-        } catch (error) {
-            throw error
-        }
+        await db.bulkInsert(
+            `INSERT INTO oppslag_kommentarer_sett (oppslag_kommentar_id, user_id)`,
+            kommentarer_sett,
+            2,
+            `ON CONFLICT DO NOTHING`
+        )
     },
     slettDefinisjonerFraDB: async (def_id_array) => {
         const query = `DELETE FROM definisjon
                         WHERE def_id = ANY($1)`
-        try {
-            await db.query(query, [def_id_array])
-        } catch (error) {
-            throw error
-        }
-
+        await db.query(query, [def_id_array])
     },
     slettUttaleFraDB: async (uttale_id_array) => {
         const query = `DELETE FROM uttale
                         WHERE uttale_id = ANY($1)`
-        try {
-            await db.query(query, [uttale_id_array])
-        } catch (error) {
-            throw error
-        }
-
+        await db.query(query, [uttale_id_array])
     },
     oppdaterOppslagDB: async (ledd, skjult, lemma_id) => {
         const query = `UPDATE oppslag
                         SET ledd = $1, skjult = $2, sist_endret = CURRENT_TIMESTAMP
                         WHERE lemma_id = $3`
-        try {
-            await db.query(query, [ledd, skjult, lemma_id])
-        } catch (error) {
-            throw error
-        }
-
+        await db.query(query, [ledd, skjult, lemma_id])
     },
     leggTilDefinisjonDB: async (def_array) => {
         await db.bulkInsert(
@@ -431,14 +380,9 @@ module.exports = {
         )
     },
     leggTilOppslagKommentarDB: async (lemma_id, user_id, ny_kommentar) => {
-        try {
-            const query = `INSERT INTO oppslag_kommentarer (lemma_id, user_id, kommentar)
+        const query = `INSERT INTO oppslag_kommentarer (lemma_id, user_id, kommentar)
                         VALUES ($1, $2, $3)`
-
-            await db.query(query, [lemma_id, user_id, ny_kommentar])
-        } catch (error) {
-            throw error
-        }
+        await db.query(query, [lemma_id, user_id, ny_kommentar])
     },
     addWordSuggestionToDB: async (word, wordClass, parts, userID) => {
         const query = `INSERT INTO oppslag_forslag(oppslag, boy_tabell, ledd, user_id)
