@@ -324,6 +324,7 @@ module.exports = {
                         `
         try {
             let conjugations = await db.query(query, [lemma_id])
+            if (!conjugations[0]) return []
             if (conjugations[0].conjugations) {
                 conjugations = conjugations[0].conjugations.split(',')
             } else {
