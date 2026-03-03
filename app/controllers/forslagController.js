@@ -80,6 +80,7 @@ module.exports = {
         } else {
             await Forslag.settStatusForslag(forslag_id, 2)
         }
+        console.log(`[AUDIT] user=${res.locals.user_id} action=godkjennForslag forslag_id=${forslag_id}`)
         res.status(200).send(msg.forslag.godkjent)
     },
     redigerForslag: async (req, res) => {
@@ -93,6 +94,7 @@ module.exports = {
     avvisForslag: async (req, res) => {
         const forslag_id = req.params.id
         await Forslag.settStatusForslag(forslag_id, 5)
+        console.log(`[AUDIT] user=${res.locals.user_id} action=avvisForslag forslag_id=${forslag_id}`)
         res.status(200).send(msg.forslag.avvist)
     },
     fjernForslag: async (req, res) => {
