@@ -46,7 +46,7 @@ module.exports = {
         const parent_id = req.body.parent_id
         const user_id = res.locals.user_id
         const innhold = req.body.innhold
-        if (innhold.length > 1000) {
+        if (!innhold || innhold.trim().length === 0 || innhold.length > 1000) {
             return res.status(400).send(msg.veggen.max_size)
         }
         await App.leggInnleggTilDB(parent_id, user_id, innhold)
@@ -74,11 +74,17 @@ module.exports = {
     postFeedback: async (req, res) => {
         const lemma_id = req.params.id
         const feedback = req.body.feedback
+        if (!feedback || feedback.length > 2000) {
+            return res.status(400).send(msg.generell_error)
+        }
         await App.writeFeedbackToDB(lemma_id, feedback)
         res.status(200).send("フィードバックを頂きました！")
     },
     postRequest: async (req, res) => {
         const request = req.body.request
+        if (!request || request.length > 500) {
+            return res.status(400).send(msg.generell_error)
+        }
         await App.writeRequestToDB(request)
         res.status(200).send("依頼を頂きました！")
     },

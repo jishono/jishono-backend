@@ -10,8 +10,10 @@ module.exports = {
 
         if (nye_forslag.length > 0 && nye_forslag[0]['definisjon'] != '') {
             for (const forslag of nye_forslag) {
-                await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon, forslag.prioritet)
-                console.log(forslag)
+                const prioritet = Number.isInteger(forslag.prioritet) && forslag.prioritet > 0
+                    ? forslag.prioritet
+                    : 1
+                await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon, prioritet)
             }
             return res.status(200).send(msg.forslag.lagt_til)
         }
