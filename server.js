@@ -18,8 +18,8 @@ app.use(cors(corsOptions))
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, './app/views'))
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '10kb' }));
+app.use(bodyParser.urlencoded({ extended: false, limit: '10kb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
