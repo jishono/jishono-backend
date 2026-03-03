@@ -1,6 +1,7 @@
 services:
   jishono-api:
     build: .
+    restart: always
     environment:
       - DB_HOST_NODE=${DB_HOST_NODE}
       - DB_PORT_NODE=${DB_PORT_NODE}
@@ -14,4 +15,3 @@ services:
       - DATABASE_URL=postgres://${DB_USER_ADMIN_NODE}:${DB_PASS_ADMIN_NODE}@${DB_HOST_NODE}:${DB_PORT_NODE}/${DB_NAME_NODE}
     ports:
       - 3001:3001
-    command: nodemon start
