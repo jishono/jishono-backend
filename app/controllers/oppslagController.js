@@ -9,8 +9,9 @@ const { ALLOWED_BOY_TABLES } = require("../constants/boyning")
 module.exports = {
   getOppslag: async (req, res) => {
     const lemma_id = req.params.id
-    let oppslag = await Oppslag.hentOppslagFraDB(lemma_id, res.locals.user_id)
-    oppslag = oppslag[0]
+    const result = await Oppslag.hentOppslagFraDB(lemma_id, res.locals.user_id)
+    const oppslag = result[0]
+    if (!oppslag) return res.status(404).send(msg.generell_error)
     oppslag['kommentarer'] = await Oppslag.hentOppslagKommentarerFraDB(lemma_id)
     res.status(200).send(oppslag)
   },

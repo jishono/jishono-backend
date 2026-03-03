@@ -39,6 +39,7 @@ module.exports = {
         const type = req.body.type
 
         const forslagseier = await Forslag.hentForslagseierFraDB(forslag_id)
+        if (!forslagseier) return res.status(404).send(msg.generell_error)
 
         if (forslagseier.status != 0) {
             return res.status(400).send(msg.forslag.avsluttet)
