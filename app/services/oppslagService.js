@@ -158,7 +158,8 @@ module.exports = {
                 }
             }
             for (const row2 of results) {
-                const regex = new RegExp('(?<![A-Za-zÆæØøÅå])' + row.oppslag + '(?![A-Za-zÆæØøÅå])')
+                const escapedOppslag = row.oppslag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                const regex = new RegExp('(?<![A-Za-zÆæØøÅå])' + escapedOppslag + '(?![A-Za-zÆæØøÅå])')
                 if (row2.oppslag.match(regex)) {
                     if (row2.oppslag != row.oppslag) {
                         const insertArray = [row.lemma_id, row2.oppslag]
