@@ -145,10 +145,16 @@ module.exports = {
   addWordSuggestion: async (req, res) => {
     const userID = res.locals.user_id
     const { word, wordClass, parts } = req.body
-    if (word !== '' && wordClass !== '') {
-      await oppslagService.addWordSuggestionToDB(word, wordClass, parts, userID)
+    const validWordClasses = ['adj', 'adv', 'det', 'egennavn', 'forkorting', 'interjeksjon',
+      'konjunksjon', 'prefiks', 'preposisjon', 'pron', 'subst', 'subjunksjon', 'verb', 'symbol']
+    if (!word || word.trim() === '') {
+      return res.status(400).send(msg.generell_error)
     }
-    res.status(200).send(msg.oppslag.forslag_opprettet)
+    if (!validWordClasses.includes(wordClass)) {
+      return res.status(400).send(msg.generell_error)
+    }
+    await oppslagService.addWordSuggestionToDB(word, wordClass, parts, userID)
+    res.status(201).send(msg.oppslag.forslag_opprettet)
   },
   getWordSuggestion: async (req, res) => {
     const wordID = req.params.id
