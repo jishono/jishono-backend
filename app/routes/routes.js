@@ -7,6 +7,9 @@ module.exports = app => {
   const { auth } = require("../routes/auth.js")
   const admin = require("../routes/admin.js")
   const msg = require("../locale/msg.json")
+  const rateLimit = require("express-rate-limit")
+
+  const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 })
 
   var router = require("express").Router();
 
@@ -75,9 +78,9 @@ module.exports = app => {
 
   // Bruker-ruter
 
-  router.post("/logg_inn", userController.loggInn)
+  router.post("/logg_inn", authLimiter, userController.loggInn)
 
-  router.post("/registrer", userController.registrerBruker)
+  router.post("/registrer", authLimiter, userController.registrerBruker)
 
   router.get("/bruker/:id", auth, userController.getBruker)
 
