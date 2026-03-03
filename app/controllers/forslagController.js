@@ -24,6 +24,9 @@ module.exports = {
         res.status(200).send(forslag)
     },
     getMyForslag: async (req, res) => {
+        if (parseInt(req.params.user_id) !== res.locals.user_id) {
+            return res.status(403).json({ error: msg.generell_error })
+        }
         const user_id = res.locals.user_id
         let forslag = await Forslag.getMyForslagFromDB(user_id)
         res.status(200).send(forslag)
