@@ -190,19 +190,19 @@ module.exports = {
         const q = query_string.q
         let meddef = (query_string.meddef == "true");
         let utendef = (query_string.utendef == "true");
-        if (meddef == true & utendef == true) {
+        if (meddef == true && utendef == true) {
             meddef = false; utendef = false;
         }
         let medut = (query_string.medut == "true");
         let utenut = (query_string.utenut == "true");
-        if (medut == true & utenut == true) {
+        if (medut == true && utenut == true) {
             medut = false; utenut = false;
         }
         let kun_skjult = (query_string.kun_skjult == "true");
 
         let kunwiki = (query_string.kunwiki == "true");
         let utenwiki = (query_string.utenwiki == "true");
-        if (kunwiki == true & utenwiki == true) {
+        if (kunwiki == true && utenwiki == true) {
             kunwiki = false; utenwiki = false;
         }
 
