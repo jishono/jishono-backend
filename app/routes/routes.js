@@ -59,9 +59,6 @@ module.exports = app => {
 
   router.get("/forslag/user/:user_id", auth, forslagController.getMyForslag)
 
-  // Ikke i bruk
-  /* router.get("/bruker/:id/forslag", auth, forslagController.getBrukerforslag) */
-
   router.get("/forslag/:id", auth, forslagController.hentForslag)
 
   router.post("/oppslag/:id/kommentarer", auth, oppslagController.postOppslagKommentar)
