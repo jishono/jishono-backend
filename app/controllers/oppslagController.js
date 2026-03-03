@@ -98,6 +98,7 @@ module.exports = {
   },
 
   oppdaterOppslag: async (req, res) => {
+    console.log(`[AUDIT] user=${res.locals.user_id} action=oppdaterOppslag lemma_id=${req.params.id}`)
     const lemma_id = req.params.id;
     const user_id = res.locals.user_id
     const uttale = req.body.oppslag.uttale
@@ -158,6 +159,7 @@ module.exports = {
     res.status(200).send(wordSuggestions)
   },
   acceptWordSuggestion: async (req, res) => {
+    console.log(`[AUDIT] user=${res.locals.user_id} action=acceptWordSuggestion id=${req.params.id}`)
     const wordSuggestionID = req.params.id
     const conjugations = req.body.conjugations
     const { word, wordClass, parts } = req.body
@@ -170,6 +172,7 @@ module.exports = {
     res.status(200).send(msg.oppslag.opprettet)
   },
   rejectWordSuggestion: async (req, res) => {
+    console.log(`[AUDIT] user=${res.locals.user_id} action=rejectWordSuggestion id=${req.params.id}`)
     const wordSuggestionID = req.params.id
     await oppslagService.setWordSuggestionsStatus(wordSuggestionID, 2)
     res.status(200).send(msg.oppslag.avvist)
