@@ -9,8 +9,6 @@ module.exports = {
         res.status(200).send(brukerdata)
     },
     loggInn: async (req, res) => {
-        console.log(req.body.username + " forsøker å logge inn...")
-
         let bruker = await User.hentBrukerMedBrukernavn(req.body.username)
 
         if (bruker.length === 0) {
