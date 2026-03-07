@@ -11,15 +11,29 @@ module.exports = {
             res.status(503).json({ status: 'error', message: error.message });
         }
     },
-    getStatistikk: async (req, res) => {
-        let statistikk = {}
-        statistikk['brukeroversettelser'] = await App.getBrukeroversettelser()
-        statistikk['oppslag_info'] = await App.getOppslagInfo()
-        statistikk['nye_oversettelser'] = await App.getNyeOversettelser()
-        statistikk['nye_forslag'] = await App.getNyeForslag()
-        statistikk['antall_kommentarer'] = await App.getAntallKommentarer()
-        statistikk['translated_by_day'] = await App.getWordsWithTranslationsByDay()
-        res.status(200).send(statistikk)
+    getBrukeroversettelser: async (req, res) => {
+        const data = await App.getBrukeroversettelser()
+        res.status(200).send(data)
+    },
+    getOppslagInfo: async (req, res) => {
+        const data = await App.getOppslagInfo()
+        res.status(200).send(data)
+    },
+    getNyeOversettelser: async (req, res) => {
+        const data = await App.getNyeOversettelser()
+        res.status(200).send(data)
+    },
+    getNyeForslag: async (req, res) => {
+        const data = await App.getNyeForslag()
+        res.status(200).send(data)
+    },
+    getAntallKommentarer: async (req, res) => {
+        const data = await App.getAntallKommentarer()
+        res.status(200).send(data)
+    },
+    getOversattPerDag: async (req, res) => {
+        const data = await App.getWordsWithTranslationsByDay()
+        res.status(200).send(data)
     },
     getAnbefalinger: async (req, res) => {
         const anbefalinger = await App.getAnbefalingerFraFrekvens()

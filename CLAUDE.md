@@ -79,6 +79,7 @@ npm run migrate:down
 ## Workflow
 
 - Never commit or push without explicit instruction from the user.
+- Do not include `Co-Authored-By` lines in commit messages.
 
 ## Architecture
 

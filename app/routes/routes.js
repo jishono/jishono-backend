@@ -94,7 +94,17 @@ module.exports = app => {
 
   // Andre app-ruter
 
-  router.get("/statistikk", appController.getStatistikk)
+  router.get("/statistikk/brukeroversettelser", appController.getBrukeroversettelser)
+
+  router.get("/statistikk/oppslag", appController.getOppslagInfo)
+  
+  router.get("/statistikk/nye-oversettelser", appController.getNyeOversettelser)
+  
+  router.get("/statistikk/nye-forslag", appController.getNyeForslag)
+  
+  router.get("/statistikk/kommentarer", appController.getAntallKommentarer)
+  
+  router.get("/statistikk/oversatt-per-dag", appController.getOversattPerDag)
 
   router.get("/veggen/innlegg", auth, appController.hentVegginnlegg)
   
