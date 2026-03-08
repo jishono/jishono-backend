@@ -200,6 +200,12 @@ module.exports = {
             kunwiki = false; utenwiki = false;
         }
 
+        let med_ai = (query_string.med_ai == "true");
+        let uten_ai = (query_string.uten_ai == "true");
+        if (med_ai == true && uten_ai == true) {
+            med_ai = false; uten_ai = false;
+        }
+
         const posarray = []
         const pos_val = ["adj", "adv", "det", "egennavn", "forkorting",
             "interjeksjon", "konjunksjon", "prefiks", "preposisjon",
@@ -241,6 +247,13 @@ module.exports = {
         }
         if (utenwiki) {
             query += " AND o.lemma_id NOT IN (SELECT lemma_id FROM definisjon WHERE source = 'WIKI')"
+        }
+
+        if (med_ai) {
+            query += " AND o.lemma_id IN (SELECT lemma_id FROM definisjon WHERE source NOT IN ('WIKI', 'USER'))"
+        }
+        if (uten_ai) {
+            query += " AND o.lemma_id NOT IN (SELECT lemma_id FROM definisjon WHERE source NOT IN ('WIKI', 'USER'))"
         }
 
         if (kun_skjult) {
