@@ -120,7 +120,11 @@ module.exports = {
                     (SELECT JSON_AGG(oppslag)
                     FROM relaterte_oppslag AS ro
                     WHERE ro.lemma_id = od.lemma_id),
-                '[]'::json) AS relatert
+                '[]'::json) AS relatert,
+                EXISTS (
+                    SELECT 1 FROM eksempler_no_oppslag AS eo
+                    WHERE eo.lemma_id = od.lemma_id
+                ) AS has_examples
             FROM oppslag_def AS od;
             `
 
