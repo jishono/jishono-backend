@@ -78,6 +78,10 @@ module.exports = app => {
 
   router.post("/forslag/:id/fjern", auth, forslagController.fjernForslag)
 
+  router.post("/definisjon/:def_id/ai-approval", auth, forslagController.addAiApproval)
+
+  router.delete("/definisjon/:def_id/ai-approval", auth, forslagController.removeAiApproval)
+
   // Bruker-ruter
 
   router.post("/logg_inn", authLimiter, userController.loggInn)

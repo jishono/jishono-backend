@@ -135,6 +135,16 @@
             "ja": "置き換え対象の定義が無効です。"
         }
     },
+    "ai_approval": {
+        "lagt_til": {
+            "no": "Godkjenning registrert.",
+            "ja": "承認が登録されました。"
+        },
+        "fjernet": {
+            "no": "Godkjenning fjernet.",
+            "ja": "承認を取り消しました。"
+        }
+    },
     "kommentarer": {
         "lagt_til": {
             "no": "Kommentar lagt til.",

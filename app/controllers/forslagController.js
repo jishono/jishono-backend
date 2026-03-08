@@ -125,4 +125,16 @@ module.exports = {
         await Forslag.slettForslagFraDB(forslag_id, user_id)
         res.status(200).send(msg.forslag.fjernet)
     },
+    addAiApproval: async (req, res) => {
+        const def_id = req.params.def_id
+        const user_id = res.locals.user_id
+        await Forslag.addAiApproval(def_id, user_id)
+        res.status(200).send(msg.ai_approval.lagt_til)
+    },
+    removeAiApproval: async (req, res) => {
+        const def_id = req.params.def_id
+        const user_id = res.locals.user_id
+        await Forslag.removeAiApproval(def_id, user_id)
+        res.status(200).send(msg.ai_approval.fjernet)
+    },
 }

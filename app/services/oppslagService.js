@@ -17,7 +17,17 @@ module.exports = {
                                             'prioritet', d.prioritet,
                                             'definisjon', d.definisjon,
                                             'source', d.source,
-                                            'brukernavn', (SELECT b.brukernavn FROM brukere b WHERE b.user_id = d.oversatt_av)
+                                            'brukernavn', (SELECT b.brukernavn FROM brukere b WHERE b.user_id = d.oversatt_av),
+                                            'ai_approvals', COALESCE(
+                                                (SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                                                    'user_id', b2.user_id,
+                                                    'username', b2.brukernavn
+                                                ))
+                                                FROM ai_approval a
+                                                INNER JOIN brukere b2 USING (user_id)
+                                                WHERE a.def_id = d.def_id),
+                                                '[]'::json
+                                            )
                                             ))
                                 FROM definisjon AS d
                                 WHERE o.lemma_id = d.lemma_id),

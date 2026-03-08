@@ -250,4 +250,15 @@ module.exports = {
                            `
         await db.query(query, [forslag_id, user_id])
     },
+    addAiApproval: async (def_id, user_id) => {
+        const query = `INSERT INTO ai_approval (def_id, user_id)
+                        VALUES ($1, $2)
+                        ON CONFLICT (def_id, user_id) DO NOTHING`
+        await db.query(query, [def_id, user_id])
+    },
+    removeAiApproval: async (def_id, user_id) => {
+        const query = `DELETE FROM ai_approval
+                        WHERE def_id = $1 AND user_id = $2`
+        await db.query(query, [def_id, user_id])
+    },
 }
