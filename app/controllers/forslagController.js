@@ -37,7 +37,7 @@ module.exports = {
         res.status(200).send(forslag)
     },
     getMyForslag: async (req, res) => {
-        if (parseInt(req.params.user_id) !== res.locals.user_id) {
+        if (parseInt(req.params.user_id) !== parseInt(res.locals.user_id)) {
             return res.status(403).json({ error: msg.generell_error })
         }
         const user_id = res.locals.user_id

@@ -4,7 +4,7 @@ const msg = require('../locale/msg.json')
 
 module.exports = {
     getBruker: async (req, res) => {
-        if (parseInt(req.params.id) !== res.locals.user_id) {
+        if (parseInt(req.params.id) !== parseInt(res.locals.user_id)) {
             return res.status(403).json({ error: msg.generell_error })
         }
         const user_id = res.locals.user_id
@@ -39,7 +39,7 @@ module.exports = {
         res.status(201).send(msg.user.registrer.ok)
     },
     updateBrukerdata: async (req, res) => {
-        if (parseInt(req.params.id) !== res.locals.user_id) {
+        if (parseInt(req.params.id) !== parseInt(res.locals.user_id)) {
             return res.status(403).json({ error: msg.generell_error })
         }
         const user_id = res.locals.user_id
