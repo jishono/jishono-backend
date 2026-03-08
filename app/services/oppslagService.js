@@ -92,7 +92,10 @@ module.exports = {
                             'def_id', d.def_id,
                             'prioritet', d.prioritet,
                             'definisjon', d.definisjon,
-                            'wiki', CASE WHEN d.source = 'WIKI' THEN 1 ELSE 0 END
+                            'source', d.source,
+                            'ai_approvals', CASE WHEN d.source = 'AI' THEN (
+                                SELECT COUNT(*) FROM ai_approval AS aa WHERE aa.def_id = d.def_id
+                            ) ELSE NULL END
                         )
                     )
                     FROM definisjon AS d
