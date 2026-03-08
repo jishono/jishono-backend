@@ -209,7 +209,7 @@ module.exports = {
             await db.query(query2, [redigert_forslag, forslag_id])
         }
         if (forslag.replaces_def_id) {
-            const queryUpdate = `UPDATE definisjon SET definisjon = $1, oversatt_av = $2, sist_endret = CURRENT_TIMESTAMP
+            const queryUpdate = `UPDATE definisjon SET definisjon = $1, oversatt_av = $2, source = 'USER', sist_endret = CURRENT_TIMESTAMP
                               WHERE def_id = $3`
             await db.query(queryUpdate, [forslag.forslag_definisjon, forslag.user_id, forslag.replaces_def_id])
         } else {
