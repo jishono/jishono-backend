@@ -1,6 +1,56 @@
 const db = require("../db/database")
 
 module.exports = {
+    getAiOppslagFraDB: async (user_id) => {
+        const query = `SELECT
+                        o.lemma_id,
+                        o.oppslag,
+                        o.boy_tabell,
+                        COALESCE(
+                            (SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                                'def_id', d.def_id,
+                                'prioritet', d.prioritet,
+                                'definisjon', d.definisjon
+                            ) ORDER BY d.prioritet)
+                            FROM definisjon AS d WHERE d.lemma_id = o.lemma_id),
+                            '[]'::json
+                        ) AS definisjoner,
+                        (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = o.lemma_id) AS antall_kommentarer,
+                        (CASE WHEN
+                            (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = o.lemma_id) >
+                            (SELECT COUNT(*) FROM oppslag_kommentarer_sett oks
+                             INNER JOIN oppslag_kommentarer ok USING(oppslag_kommentar_id)
+                             WHERE oks.user_id = $1 AND ok.lemma_id = o.lemma_id)
+                        THEN 0 ELSE 1 END) AS sett,
+                        COALESCE(
+                            (SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                                'forslag_id', f.forslag_id,
+                                'forslag_definisjon', f.forslag_definisjon,
+                                'prioritet', f.prioritet,
+                                'brukernavn', b.brukernavn,
+                                'user_id', b.user_id,
+                                'status', f.status,
+                                'opprettet', f.opprettet,
+                                'godkjent_avvist', f.godkjent_avvist,
+                                'endret', f.endret,
+                                'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
+                                'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
+                                'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $1 AND s.forslag_id = f.forslag_id),
+                                'replaces_def_id', f.replaces_def_id
+                            ) ORDER BY f.prioritet, f.opprettet)
+                            FROM forslag f INNER JOIN brukere b USING (user_id)
+                            WHERE f.lemma_id = o.lemma_id AND f.status = 0),
+                            '[]'::json
+                        ) AS forslag
+                        FROM oppslag AS o
+                        WHERE EXISTS (
+                            SELECT 1 FROM definisjon d
+                            WHERE d.lemma_id = o.lemma_id
+                            AND d.source NOT IN ('USER', 'WIKI')
+                        )
+                        ORDER BY o.oppslag`
+        return await db.query(query, [user_id])
+    },
     getAktiveForslagFraDB: async (user_id, status) => {
         const query = `SELECT
                         o.lemma_id,

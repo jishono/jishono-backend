@@ -30,7 +30,9 @@ module.exports = app => {
 
   router.post("/request-translation/", appController.postRequest)
 
-  // Baksida    
+  // Baksida
+  router.get("/oppslag/ai", auth, forslagController.getAiOppslag)
+
   router.get("/oppslag/:id", auth, oppslagController.getOppslag);
 
   router.get("/oppslag/:id/kommentarer", auth, oppslagController.getKommentarer);

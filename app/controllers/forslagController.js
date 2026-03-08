@@ -30,6 +30,11 @@ module.exports = {
         }
         res.status(400).send(msg.forslag.minst_ett)
     },
+    getAiOppslag: async (req, res) => {
+        const user_id = res.locals.user_id
+        const result = await Forslag.getAiOppslagFraDB(user_id)
+        res.status(200).send(result)
+    },
     getAllForslag: async (req, res) => {
         const user_id = res.locals.user_id
         const status = req.query.status || 0
