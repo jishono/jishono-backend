@@ -10,7 +10,8 @@ module.exports = {
                             (SELECT JSON_AGG(JSON_BUILD_OBJECT(
                                 'def_id', d.def_id,
                                 'prioritet', d.prioritet,
-                                'definisjon', d.definisjon
+                                'definisjon', d.definisjon,
+                                'source', d.source
                             ) ORDER BY d.prioritet)
                             FROM definisjon AS d WHERE d.lemma_id = o.lemma_id),
                             '[]'::json
@@ -60,7 +61,8 @@ module.exports = {
                             (SELECT JSON_AGG(JSON_BUILD_OBJECT(
                                 'def_id', d.def_id,
                                 'prioritet', d.prioritet,
-                                'definisjon', d.definisjon
+                                'definisjon', d.definisjon,
+                                'source', d.source
                             ) ORDER BY d.prioritet)
                             FROM definisjon AS d WHERE d.lemma_id = o.lemma_id),
                             '[]'::json
