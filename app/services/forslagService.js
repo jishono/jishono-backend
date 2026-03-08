@@ -34,7 +34,8 @@ module.exports = {
                             'endret', f.endret,
                             'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
                             'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
-                            'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $1 AND s.forslag_id = f.forslag_id)
+                            'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $1 AND s.forslag_id = f.forslag_id),
+                            'replaces_def_id', f.replaces_def_id
                         ) ORDER BY f.prioritet, f.opprettet) AS forslag
                         FROM forslag AS f
                         INNER JOIN oppslag AS o USING (lemma_id)
@@ -47,6 +48,7 @@ module.exports = {
     getMyForslagFromDB: async (user_id) => {
 
         const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon,
+                        f.replaces_def_id,
                         b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret,
                         COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes, COALESCE(SUM(CASE WHEN s.type = 0 THEN 1 ELSE 0 END), 0) AS downvotes,
                         (SELECT type FROM stemmer WHERE user_id = $1 AND forslag_id = f.forslag_id) AS minstemme,
@@ -64,13 +66,14 @@ module.exports = {
                         LEFT OUTER JOIN stemmer AS s USING (forslag_id)
                         WHERE f.user_id = $2
                         GROUP BY f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell,
-                                 b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret`
+                                 b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret, f.replaces_def_id`
         const forslag = await db.query(query, [user_id, user_id])
         return forslag
     },
     hentEnkeltForslagFraDB: async (forslag_id) => {
         const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell,
-                        f.forslag_definisjon, b.brukernavn, b.user_id, f.opprettet, f.status,
+                        f.forslag_definisjon, f.replaces_def_id,
+                        b.brukernavn, b.user_id, f.opprettet, f.status,
                         (SELECT COALESCE(
                             (SELECT JSON_AGG(
                             JSON_BUILD_OBJECT('def_id', d.def_id,
@@ -136,15 +139,15 @@ module.exports = {
                       WHERE forslag_id = $1`
         await db.query(query2, [forslag_id])
     },
-    leggForslagTilDB: async (lemma_id, user_id, forslag, prioritet = 1) => {
-        const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon, prioritet)
-                            VALUES ($1, $2, $3, $4)
+    leggForslagTilDB: async (lemma_id, user_id, forslag, prioritet = 1, replaces_def_id = null) => {
+        const query = `INSERT INTO forslag (lemma_id, user_id, forslag_definisjon, prioritet, replaces_def_id)
+                            VALUES ($1, $2, $3, $4, $5)
                             RETURNING forslag_id`
-        const result = await db.query(query, [lemma_id, user_id, forslag, prioritet])
+        const result = await db.query(query, [lemma_id, user_id, forslag, prioritet, replaces_def_id])
         return result[0].forslag_id
     },
     gjorForslagTilDefinisjonDB: async (forslag_id, redigert_forslag = null) => {
-        const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id
+        const query1 = `SELECT forslag_id, lemma_id, forslag_definisjon, user_id, replaces_def_id
                       FROM forslag
                       WHERE forslag_id = $1`
         let forslag = await db.query(query1, [forslag_id])
@@ -155,13 +158,19 @@ module.exports = {
                             WHERE forslag_id = $2`
             await db.query(query2, [redigert_forslag, forslag_id])
         }
-        const query3 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = $1`
-        let result = await db.query(query3, [forslag.lemma_id])
+        if (forslag.replaces_def_id) {
+            const queryUpdate = `UPDATE definisjon SET definisjon = $1, oversatt_av = $2, sist_endret = CURRENT_TIMESTAMP
+                              WHERE def_id = $3`
+            await db.query(queryUpdate, [forslag.forslag_definisjon, forslag.user_id, forslag.replaces_def_id])
+        } else {
+            const query3 = `SELECT COALESCE(MAX(prioritet), 0) AS max_pri FROM definisjon WHERE lemma_id = $1`
+            let result = await db.query(query3, [forslag.lemma_id])
 
-        const max_pri = result[0]['max_pri'] + 1
-        const query4 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av, source)
-                      VALUES ($1, $2, $3, $4, 'USER')`
-        await db.query(query4, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
+            const max_pri = result[0]['max_pri'] + 1
+            const query4 = `INSERT INTO definisjon (lemma_id, prioritet, definisjon, oversatt_av, source)
+                          VALUES ($1, $2, $3, $4, 'USER')`
+            await db.query(query4, [forslag.lemma_id, max_pri, forslag.forslag_definisjon, forslag.user_id])
+        }
     },
     settStatusForslag: async (forslag_id, statuskode) => {
         const query = `UPDATE forslag
@@ -176,6 +185,11 @@ module.exports = {
                             AND user_id = $3
                            `
         await db.query(query, [redigert_forslag, forslag_id, user_id])
+    },
+    validateReplacementDef: async (def_id, lemma_id) => {
+        const query = `SELECT def_id FROM definisjon WHERE def_id = $1 AND lemma_id = $2`
+        const result = await db.query(query, [def_id, lemma_id])
+        return result.length > 0
     },
     nullstillStemmerDB: async (forslag_id, user_id) => {
         const query = `DELETE FROM stemmer

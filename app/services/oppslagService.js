@@ -52,7 +52,8 @@ module.exports = {
                                     'endret', f.endret,
                                     'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
                                     'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
-                                    'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $2 AND s.forslag_id = f.forslag_id)
+                                    'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $2 AND s.forslag_id = f.forslag_id),
+                                    'replaces_def_id', f.replaces_def_id
                                 ) ORDER BY f.prioritet, f.opprettet)
                                 FROM forslag AS f
                                 INNER JOIN brukere AS b USING (user_id)

@@ -129,6 +129,10 @@
         "avsluttet": {
             "no": "Avstemning på dette forslaget er avsluttet",
             "ja": "この提案の投票は終了しました。"
+        },
+        "ugyldig_erstatning": {
+            "no": "Ugyldig definisjon å erstatte.",
+            "ja": "置き換え対象の定義が無効です。"
         }
     },
     "kommentarer": {

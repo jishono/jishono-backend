@@ -13,7 +13,18 @@ module.exports = {
                 const prioritet = Number.isInteger(forslag.prioritet) && forslag.prioritet > 0
                     ? forslag.prioritet
                     : 1
-                await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon, prioritet)
+                let replaces_def_id = null
+                if (forslag.replaces_def_id != null) {
+                    replaces_def_id = parseInt(forslag.replaces_def_id)
+                    if (!Number.isInteger(replaces_def_id) || replaces_def_id <= 0) {
+                        return res.status(400).send(msg.forslag.ugyldig_erstatning)
+                    }
+                    const valid = await Forslag.validateReplacementDef(replaces_def_id, lemma_id)
+                    if (!valid) {
+                        return res.status(400).send(msg.forslag.ugyldig_erstatning)
+                    }
+                }
+                await Forslag.leggForslagTilDB(lemma_id, user_id, forslag.definisjon, prioritet, replaces_def_id)
             }
             return res.status(200).send(msg.forslag.lagt_til)
         }
