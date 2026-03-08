@@ -83,8 +83,8 @@
             "ja": "登録済みの意味と重複する提案は追加できません。"
         },
         "lagt_til": {
-            "no": "Forslag lagt til. Videresender til forslagsoversikt...",
-            "ja": "提案が登録されました。提案一覧に転送されます..."
+            "no": "Forslag lagt til.",
+            "ja": "提案が登録されました。"
         },
         "minst_ett": {
             "no": "Du må komme med minst ett forslag",
