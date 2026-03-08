@@ -46,7 +46,7 @@ module.exports = {
                         WHERE EXISTS (
                             SELECT 1 FROM definisjon d
                             WHERE d.lemma_id = o.lemma_id
-                            AND d.source NOT IN ('USER', 'WIKI')
+                            AND d.source = 'AI'
                         )
                         ORDER BY o.oppslag`
         return await db.query(query, [user_id])
