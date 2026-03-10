@@ -456,7 +456,7 @@ module.exports = {
 
         await db.query(query, [status, wordSuggestionID])
     },
-    getRandomAiTranslationsFromDB: async (user_id, batch = 10) => {
+    getRandomAiTranslationsFromDB: async (user_id, batch = 50) => {
         const query = `
             SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult,
                 (SELECT COALESCE(
