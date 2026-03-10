@@ -495,7 +495,8 @@ module.exports = {
                   )
                 ORDER BY RANDOM()
                 LIMIT $2
-            )`
+            )
+            ORDER BY RANDOM()`
         return await db.query(query, [user_id, batch])
     },
     addConjugationToDB: async (wordID, insertTable, conjugations) => {
