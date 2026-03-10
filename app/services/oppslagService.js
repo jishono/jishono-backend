@@ -456,6 +456,48 @@ module.exports = {
 
         await db.query(query, [status, wordSuggestionID])
     },
+    getRandomAiTranslationsFromDB: async (user_id, batch = 10) => {
+        const query = `
+            SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult,
+                (SELECT COALESCE(
+                    (SELECT JSON_AGG(
+                    JSON_BUILD_OBJECT('def_id', d.def_id,
+                                'lemma_id', d.lemma_id,
+                                'prioritet', d.prioritet,
+                                'definisjon', d.definisjon,
+                                'source', d.source,
+                                'brukernavn', (SELECT b.brukernavn FROM brukere b WHERE b.user_id = d.oversatt_av),
+                                'ai_approvals', COALESCE(
+                                    (SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                                        'user_id', b2.user_id,
+                                        'username', b2.brukernavn
+                                    ))
+                                    FROM ai_approval a
+                                    INNER JOIN brukere b2 USING (user_id)
+                                    WHERE a.def_id = d.def_id),
+                                    '[]'::json
+                                )
+                                ))
+                    FROM definisjon AS d
+                    WHERE o.lemma_id = d.lemma_id),
+                    '[]'::json)
+                    ) AS definisjon
+            FROM oppslag AS o
+            WHERE o.lemma_id IN (
+                SELECT d.lemma_id
+                FROM definisjon d
+                WHERE d.source = 'AI'
+                  AND (SELECT COUNT(*) FROM ai_approval aa WHERE aa.def_id = d.def_id) < 2
+                  AND NOT EXISTS (
+                      SELECT 1 FROM ai_approval aa2
+                      INNER JOIN definisjon d2 ON d2.def_id = aa2.def_id
+                      WHERE d2.lemma_id = d.lemma_id AND aa2.user_id = $1
+                  )
+                ORDER BY RANDOM()
+                LIMIT $2
+            )`
+        return await db.query(query, [user_id, batch])
+    },
     addConjugationToDB: async (wordID, insertTable, conjugations) => {
         if (!ALLOWED_BOY_TABLES.includes(insertTable)) {
             throw new Error(`Invalid conjugation table: ${insertTable}`)

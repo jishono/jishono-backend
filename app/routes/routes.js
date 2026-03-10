@@ -82,6 +82,8 @@ module.exports = app => {
 
   router.delete("/definisjon/:def_id/ai-approval", auth, forslagController.removeAiApproval)
 
+  router.get("/random-ai-translations", auth, oppslagController.getAiTranslations)
+
   // Bruker-ruter
 
   router.post("/logg_inn", authLimiter, userController.loggInn)

@@ -29,6 +29,10 @@ module.exports = {
     const treff = await Oppslag.sokOppslagMedQuery(req.query)
     res.status(200).send(treff)
   },
+  getAiTranslations: async (req, res) => {
+    const results = await Oppslag.getRandomAiTranslationsFromDB(res.locals.user_id)
+    res.status(200).send(results)
+  },
   getSuggestionList: async (req, res) => {
     const searchWord = req.query.q
     const suggestions = await Oppslag.getSuggestionListFromDB(searchWord)
