@@ -62,7 +62,6 @@ module.exports = {
                                     'godkjent_avvist', f.godkjent_avvist,
                                     'endret', f.endret,
                                     'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
-                                    'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
                                     'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $2 AND s.forslag_id = f.forslag_id),
                                     'replaces_def_id', f.replaces_def_id
                                 ) ORDER BY f.prioritet, f.opprettet)

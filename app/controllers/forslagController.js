@@ -59,6 +59,8 @@ module.exports = {
         const forslag_id = req.params.id
         const type = req.body.type
 
+        if (type !== 1) return res.status(400).send(msg.generell_error)
+
         const forslagseier = await Forslag.hentForslagseierFraDB(forslag_id)
         if (!forslagseier) return res.status(404).send(msg.generell_error)
 
@@ -85,10 +87,6 @@ module.exports = {
             await Forslag.gjorForslagTilDefinisjonDB(forslag_id)
             await Forslag.settStatusForslag(forslag_id, 1)
             return res.status(200).send(msg.forslag.godkjent_upvotes)
-        }
-        if (antall_stemmer.downvotes >= 3) {
-            await Forslag.settStatusForslag(forslag_id, 4)
-            return res.status(200).send(msg.forslag.avvist_downvotes)
         }
         res.status(200).send(msg.forslag.stemme_mottatt)
     },

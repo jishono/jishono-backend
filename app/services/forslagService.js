@@ -35,7 +35,6 @@ module.exports = {
                                 'godkjent_avvist', f.godkjent_avvist,
                                 'endret', f.endret,
                                 'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
-                                'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
                                 'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $1 AND s.forslag_id = f.forslag_id),
                                 'replaces_def_id', f.replaces_def_id
                             ) ORDER BY f.prioritet, f.opprettet)
@@ -85,7 +84,6 @@ module.exports = {
                             'godkjent_avvist', f.godkjent_avvist,
                             'endret', f.endret,
                             'upvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 1), 0),
-                            'downvotes', COALESCE((SELECT COUNT(*) FROM stemmer s WHERE s.forslag_id = f.forslag_id AND s.type = 0), 0),
                             'minstemme', (SELECT s.type FROM stemmer s WHERE s.user_id = $1 AND s.forslag_id = f.forslag_id),
                             'replaces_def_id', f.replaces_def_id
                         ) ORDER BY f.prioritet, f.opprettet) AS forslag
@@ -102,7 +100,7 @@ module.exports = {
         const query = `SELECT f.forslag_id, o.lemma_id, o.oppslag, o.boy_tabell, f.forslag_definisjon,
                         f.replaces_def_id,
                         b.brukernavn, b.user_id, f.status, f.opprettet, f.godkjent_avvist, f.endret,
-                        COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes, COALESCE(SUM(CASE WHEN s.type = 0 THEN 1 ELSE 0 END), 0) AS downvotes,
+                        COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes,
                         (SELECT type FROM stemmer WHERE user_id = $1 AND forslag_id = f.forslag_id) AS minstemme,
                         (SELECT COUNT(*) FROM oppslag_kommentarer ok WHERE ok.lemma_id = o.lemma_id) AS antall_kommentarer,
                         (CASE WHEN
@@ -159,8 +157,7 @@ module.exports = {
         await db.query(query, [forslag_id, user_id])
     },
     hentAntallStemmerPaaForslagFraDB: async (forslag_id) => {
-        const query = `SELECT COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes,
-                        COALESCE(SUM(CASE WHEN s.type = 0 THEN 1 ELSE 0 END),0) AS downvotes
+        const query = `SELECT COALESCE(SUM(CASE WHEN s.type = 1 THEN 1 ELSE 0 END),0) AS upvotes
                         FROM stemmer AS s
                         WHERE forslag_id = $1`
         const stemmer = await db.query(query, [forslag_id])
