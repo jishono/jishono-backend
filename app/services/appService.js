@@ -76,42 +76,27 @@ module.exports = {
     },
     getOppslagInfo: async () => {
         try {
-
-            let oppslag_info = []
-            const query1 = `SELECT 'ord_med' AS tittel, COUNT(DISTINCT lemma_id) AS antall
-                            FROM definisjon AS d
-                            WHERE source = 'USER'
-                            `
-            const result1 = await db.query(query1)
-            oppslag_info.push(result1[0])
-
-            const query2 = `SELECT 'ord_wiki' AS tittel, COUNT(DISTINCT lemma_id) AS antall
-                            FROM definisjon AS d
-                            WHERE source = 'WIKI'
-                            `
-            const result2 = await db.query(query2)
-            oppslag_info.push(result2[0])
-
-            const query3 = `SELECT 'ord_uten' AS tittel,
-                            COUNT(DISTINCT lemma_id) AS antall
-                            FROM oppslag AS o
-                            WHERE lemma_id NOT IN (SELECT lemma_id FROM definisjon)
-                            `
-            const result3 = await db.query(query3)
-            oppslag_info.push(result3[0])
-
-            return oppslag_info
+            const query = `
+                SELECT 'ord_med'  AS tittel, COUNT(DISTINCT lemma_id) AS antall FROM definisjon WHERE source = 'USER'
+                UNION ALL
+                SELECT 'ord_wiki' AS tittel, COUNT(DISTINCT lemma_id) AS antall FROM definisjon WHERE source = 'WIKI'
+                UNION ALL
+                SELECT 'ord_ai'   AS tittel, COUNT(DISTINCT lemma_id) AS antall FROM definisjon WHERE source = 'AI'
+                UNION ALL
+                SELECT 'ord_uten' AS tittel, COUNT(DISTINCT lemma_id) AS antall FROM oppslag   WHERE lemma_id NOT IN (SELECT lemma_id FROM definisjon)
+            `
+            return await db.query(query)
         } catch (error) {
             throw error
         }
     },
     getNyeOversettelser: async () => {
         try {
-            const query = `SELECT TO_CHAR(opprettet, 'DD-FMMM') AS dato, count(*) AS antall
+            const query = `SELECT TO_CHAR(opprettet, 'DD-FMMM') AS dato, source, count(*) AS antall
                              FROM definisjon AS d
                              WHERE opprettet BETWEEN NOW() - INTERVAL '30 days' AND NOW()
-                             AND source = 'USER'
-                             GROUP BY dato
+                             AND source IN ('USER', 'AI')
+                             GROUP BY dato, source
                              `
             const nye_oversettelser = await db.query(query)
             return nye_oversettelser
@@ -153,7 +138,7 @@ module.exports = {
                                             FROM oppslag AS o
                                             INNER JOIN definisjon AS d USING (lemma_id)
                             WHERE d.opprettet <= fulldate
-                            AND d.source = 'USER'
+                            AND d.source IN ('USER', 'AI')
                             ) AS antall
                             FROM dates
                             WHERE fulldate >= '2020-08-01' AND fulldate <= CURRENT_DATE + 1
