@@ -112,8 +112,6 @@ module.exports = app => {
   
   router.get("/statistikk/kommentarer", appController.getAntallKommentarer)
   
-  router.get("/statistikk/oversatt-per-dag", appController.getOversattPerDag)
-
   router.get("/veggen/innlegg", auth, appController.hentVegginnlegg)
   
   router.get("/veggen/innlegg/:id", auth, appController.hentVegginnlegg)

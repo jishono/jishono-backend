@@ -132,25 +132,6 @@ module.exports = {
             throw error
         }
     },
-    getWordsWithTranslationsByDay: async () => {
-        try {
-            const query = ` SELECT fulldate, (SELECT COUNT(DISTINCT lemma_id)
-                                            FROM oppslag AS o
-                                            INNER JOIN definisjon AS d USING (lemma_id)
-                            WHERE d.opprettet <= fulldate
-                            AND d.source = 'USER'
-                            ) AS antall
-                            FROM dates
-                            WHERE fulldate >= '2020-08-01' AND fulldate <= CURRENT_DATE + 1
-                            GROUP BY fulldate;
-                             `
-            const antall_kommentarer = await db.query(query)
-
-            return antall_kommentarer
-        } catch (error) {
-            throw error
-        }
-    },
     hentVegginnleggFraDB: async (innlegg_id = null) => {
         try {
             const query = ` SELECT vi.innlegg_id, vi.parent_id, b.brukernavn,

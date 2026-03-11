@@ -31,10 +31,6 @@ module.exports = {
         const data = await App.getAntallKommentarer()
         res.status(200).send(data)
     },
-    getOversattPerDag: async (req, res) => {
-        const data = await App.getWordsWithTranslationsByDay()
-        res.status(200).send(data)
-    },
     getAnbefalinger: async (req, res) => {
         const anbefalinger = await App.getAnbefalingerFraFrekvens()
         res.status(200).send(anbefalinger)
