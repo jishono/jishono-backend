@@ -495,6 +495,10 @@ module.exports = {
                 ORDER BY RANDOM()
                 LIMIT $2
             )
+            AND NOT EXISTS (
+                SELECT 1 FROM forslag f
+                WHERE f.lemma_id = o.lemma_id AND f.status = 0
+            )
             ORDER BY RANDOM()`
         return await db.query(query, [user_id, batch])
     },
