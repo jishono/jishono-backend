@@ -79,7 +79,7 @@ module.exports = {
 
     getAllItemsFromDB: async () => {
         const query = `
-            WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon) AND o.oppslag.skjult != 0)
+            WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon) AND o.oppslag.skjult = 0)
             SELECT
                 od.lemma_id,
                 od.oppslag,
