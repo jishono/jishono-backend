@@ -117,7 +117,7 @@ module.exports = {
       await Oppslag.slettUttaleFraDB(deldata.uttale)
     }
 
-    await Oppslag.oppdaterOppslagDB(oppslag.ledd, oppslag.skjult, oppslag.lemma_id)
+    await Oppslag.oppdaterOppslagDB(oppslag.ledd, oppslag.is_hidden, oppslag.lemma_id)
 
     if (uttale.length > 0) {
       await Oppslag.leggTilUttaleDB(uttale.map(ut => [ut.uttale_id, lemma_id, ut.transkripsjon]))

@@ -9,7 +9,7 @@ module.exports = {
         return definisjoner
     },
     hentOppslagFraDB: async (lemma_id, user_id) => {
-        const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult,
+        const query = `SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.is_hidden,
                             (SELECT COALESCE(
                                 (SELECT JSON_AGG(
                                 JSON_BUILD_OBJECT('def_id', d.def_id,
@@ -79,7 +79,7 @@ module.exports = {
 
     getAllItemsFromDB: async () => {
         const query = `
-            WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon) AND o.skjult = 0)
+            WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon) AND o.is_hidden = false)
             SELECT
                 od.lemma_id,
                 od.oppslag,
@@ -274,9 +274,9 @@ module.exports = {
         }
 
         if (kun_skjult) {
-            query += ' AND o.skjult = 1'
+            query += ' AND o.is_hidden = true'
         } else {
-            query += ' AND o.skjult = 0'
+            query += ' AND o.is_hidden = false'
         }
 
         if (posarray.length > 0) {
@@ -384,11 +384,11 @@ module.exports = {
                         WHERE uttale_id = ANY($1)`
         await db.query(query, [uttale_id_array])
     },
-    oppdaterOppslagDB: async (ledd, skjult, lemma_id) => {
+    oppdaterOppslagDB: async (ledd, is_hidden, lemma_id) => {
         const query = `UPDATE oppslag
-                        SET ledd = $1, skjult = $2, sist_endret = CURRENT_TIMESTAMP
+                        SET ledd = $1, is_hidden = $2, sist_endret = CURRENT_TIMESTAMP
                         WHERE lemma_id = $3`
-        await db.query(query, [ledd, skjult ? 1 : 0, lemma_id])
+        await db.query(query, [ledd, !!is_hidden, lemma_id])
     },
     leggTilDefinisjonDB: async (def_array) => {
         await db.bulkInsert(
@@ -457,7 +457,7 @@ module.exports = {
     },
     getRandomAiTranslationsFromDB: async (user_id, batch = 50) => {
         const query = `
-            SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.skjult,
+            SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.is_hidden,
                 (SELECT COALESCE(
                     (SELECT JSON_AGG(
                     JSON_BUILD_OBJECT('def_id', d.def_id,
