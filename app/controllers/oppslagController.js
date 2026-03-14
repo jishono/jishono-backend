@@ -105,9 +105,7 @@ module.exports = {
   oppdaterOppslag: async (req, res) => {
     console.log(`[AUDIT] user=${res.locals.user_id} action=oppdaterOppslag lemma_id=${req.params.id}`)
     const lemma_id = req.params.id;
-    const user_id = res.locals.user_id
     const uttale = req.body.oppslag.uttale
-    const defs = req.body.oppslag.definisjon
     const oppslag = req.body.oppslag
     const deldata = req.body.deldata
 
@@ -120,15 +118,6 @@ module.exports = {
     }
 
     await Oppslag.oppdaterOppslagDB(oppslag.ledd, oppslag.skjult, oppslag.lemma_id)
-
-    let pri = 1
-    if (defs.length > 0) {
-      defs.forEach(def => {
-        def.prioritet = pri
-        pri++
-      })
-      await Oppslag.leggTilDefinisjonDB(defs.map(def => [def.def_id, def.lemma_id, def.prioritet, def.definisjon, user_id]))
-    }
 
     if (uttale.length > 0) {
       await Oppslag.leggTilUttaleDB(uttale.map(ut => [ut.uttale_id, lemma_id, ut.transkripsjon]))

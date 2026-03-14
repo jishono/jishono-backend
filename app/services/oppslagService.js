@@ -388,7 +388,7 @@ module.exports = {
         const query = `UPDATE oppslag
                         SET ledd = $1, skjult = $2, sist_endret = CURRENT_TIMESTAMP
                         WHERE lemma_id = $3`
-        await db.query(query, [ledd, skjult, lemma_id])
+        await db.query(query, [ledd, skjult ? 1 : 0, lemma_id])
     },
     leggTilDefinisjonDB: async (def_array) => {
         await db.bulkInsert(
