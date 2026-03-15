@@ -455,7 +455,10 @@ module.exports = {
 
         await db.query(query, [status, wordSuggestionID])
     },
-    getRandomAiTranslationsFromDB: async (user_id, batch = 50) => {
+    getRandomAiTranslationsFromDB: async (user_id, batch = 50, hasApprovals = false) => {
+        const approvalFilter = hasApprovals
+            ? 'AND EXISTS (SELECT 1 FROM ai_approval aa3 WHERE aa3.def_id = d.def_id)'
+            : ''
         const query = `
             SELECT o.lemma_id, o.oppslag, o.ledd, o.boy_tabell, o.is_hidden,
                 (SELECT COALESCE(
@@ -492,6 +495,7 @@ module.exports = {
                       INNER JOIN definisjon d2 ON d2.def_id = aa2.def_id
                       WHERE d2.lemma_id = d.lemma_id AND aa2.user_id = $1
                   )
+                  ${approvalFilter}
                 ORDER BY RANDOM()
                 LIMIT $2
             )

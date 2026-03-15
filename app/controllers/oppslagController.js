@@ -30,7 +30,8 @@ module.exports = {
     res.status(200).send(treff)
   },
   getAiTranslations: async (req, res) => {
-    const results = await Oppslag.getRandomAiTranslationsFromDB(res.locals.user_id)
+    const hasApprovals = req.query.has_approvals === 'true'
+    const results = await Oppslag.getRandomAiTranslationsFromDB(res.locals.user_id, 50, hasApprovals)
     res.status(200).send(results)
   },
   getSuggestionList: async (req, res) => {
