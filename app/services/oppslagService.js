@@ -514,6 +514,7 @@ module.exports = {
                 ORDER BY RANDOM()
                 LIMIT $2
             )
+            AND o.is_hidden IS false
             AND NOT EXISTS (
                 SELECT 1 FROM forslag f
                 WHERE f.lemma_id = o.lemma_id AND f.status = 0
