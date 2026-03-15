@@ -382,13 +382,15 @@ module.exports = {
         await db.query(query, [visitor_id || null])
     },
     getPageVisitStatsFromDB: async () => {
-        const query = `SELECT TO_CHAR(timestamp, 'DD.MM.YYYY') AS dato,
+        const byDateQuery = `SELECT TO_CHAR(timestamp, 'DD.MM.YYYY') AS dato,
                               COUNT(*) AS antall,
                               COUNT(DISTINCT visitor_id) AS unique_visitors
                         FROM page_traffic
                         GROUP BY TO_CHAR(timestamp, 'DD.MM.YYYY')
                         ORDER BY MIN(timestamp) DESC`
-        const result = await db.query(query)
-        return result
+        const totalQuery = `SELECT COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS unique_visitors FROM page_traffic`
+        const [by_date, totalResult] = await Promise.all([db.query(byDateQuery), db.query(totalQuery)])
+        const total = { visits: parseInt(totalResult[0].visits), unique_visitors: parseInt(totalResult[0].unique_visitors) }
+        return { by_date, total }
     }
 }

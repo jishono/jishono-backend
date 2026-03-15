@@ -103,7 +103,7 @@ module.exports = {
         res.status(200).send(requests)
     },
     getPageVisits: async (req, res) => {
-        const visits = await App.getPageVisitStatsFromDB()
-        res.status(200).send(visits)
+        const data = await App.getPageVisitStatsFromDB()
+        res.status(200).send(data)
     },
 }
