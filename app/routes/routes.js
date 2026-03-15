@@ -43,6 +43,14 @@ module.exports = app => {
 
   router.put("/update/:id", auth, admin, oppslagController.oppdaterOppslag);
 
+  router.post("/oppslag/:id/definisjon", auth, admin, oppslagController.createDefinisjon);
+
+  router.delete("/definisjon/:def_id", auth, admin, oppslagController.removeDefinisjon);
+
+  router.patch("/definisjon/:def_id", auth, admin, oppslagController.updateDefinisjon);
+
+  router.post("/definisjon/reorder", auth, admin, oppslagController.reorderDefinisjoner);
+
   router.get("/anbefalinger", auth, appController.getAnbefalinger)
 
   router.get("/requests", auth, appController.getRequests)

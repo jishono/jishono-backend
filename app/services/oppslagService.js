@@ -374,15 +374,39 @@ module.exports = {
             `ON CONFLICT DO NOTHING`
         )
     },
-    slettDefinisjonerFraDB: async (def_id_array) => {
-        const query = `DELETE FROM definisjon
-                        WHERE def_id = ANY($1)`
-        await db.query(query, [def_id_array])
+    writeDefinisjonToDB: async (lemma_id, definisjon, prioritet, user_id) => {
+        const query = `INSERT INTO definisjon (lemma_id, definisjon, prioritet, oversatt_av)
+                        VALUES ($1, $2, $3, $4)
+                        RETURNING def_id`
+        const result = await db.query(query, [lemma_id, definisjon, prioritet ?? 1, user_id])
+        return result[0]
     },
-    slettUttaleFraDB: async (uttale_id_array) => {
-        const query = `DELETE FROM uttale
-                        WHERE uttale_id = ANY($1)`
-        await db.query(query, [uttale_id_array])
+    deleteDefinisjonInDB: async (def_id) => {
+        const rows = await db.query(`DELETE FROM definisjon WHERE def_id = $1 RETURNING lemma_id`, [def_id])
+        if (rows.length === 0) return
+        const lemma_id = rows[0].lemma_id
+        await db.query(`
+            UPDATE definisjon SET prioritet = sub.new_prioritet, sist_endret = CURRENT_TIMESTAMP
+            FROM (
+                SELECT def_id, ROW_NUMBER() OVER (ORDER BY prioritet) AS new_prioritet
+                FROM definisjon
+                WHERE lemma_id = $1
+            ) sub
+            WHERE definisjon.def_id = sub.def_id
+        `, [lemma_id])
+    },
+    reorderDefinisjonerInDB: async (def_ids) => {
+        const priorities = def_ids.map((_, i) => i + 1)
+        const query = `UPDATE definisjon SET prioritet = v.prioritet, sist_endret = CURRENT_TIMESTAMP
+                        FROM unnest($1::int[], $2::int[]) AS v(def_id, prioritet)
+                        WHERE definisjon.def_id = v.def_id`
+        await db.query(query, [def_ids, priorities])
+    },
+    updateDefinisjonInDB: async (def_id, definisjon, prioritet) => {
+        const query = `UPDATE definisjon
+                        SET definisjon = $1, prioritet = $2, sist_endret = CURRENT_TIMESTAMP
+                        WHERE def_id = $3`
+        await db.query(query, [definisjon, prioritet, def_id])
     },
     oppdaterOppslagDB: async (ledd, is_hidden, lemma_id) => {
         const query = `UPDATE oppslag
@@ -390,25 +414,16 @@ module.exports = {
                         WHERE lemma_id = $3`
         await db.query(query, [ledd, !!is_hidden, lemma_id])
     },
-    leggTilDefinisjonDB: async (def_array) => {
-        await db.bulkInsert(
-            `INSERT INTO definisjon (def_id, lemma_id, prioritet, definisjon, oversatt_av)`,
-            def_array,
-            5,
-            `ON CONFLICT (def_id) DO UPDATE SET
-                prioritet = EXCLUDED.prioritet,
-                definisjon = EXCLUDED.definisjon,
-                sist_endret = CURRENT_TIMESTAMP`
-        )
-    },
-    leggTilUttaleDB: async (uttale_array) => {
-        await db.bulkInsert(
-            `INSERT INTO uttale (uttale_id, lemma_id, transkripsjon)`,
-            uttale_array,
-            3,
-            `ON CONFLICT (uttale_id) DO UPDATE SET
-                transkripsjon = EXCLUDED.transkripsjon`
-        )
+    setUttaleForLemmaDB: async (lemma_id, uttale_array) => {
+        await db.query('DELETE FROM uttale WHERE lemma_id = $1', [lemma_id])
+        if (uttale_array.length > 0) {
+            await db.bulkInsert(
+                `INSERT INTO uttale (lemma_id, transkripsjon)`,
+                uttale_array.map(ut => [lemma_id, ut.transkripsjon]),
+                2,
+                ''
+            )
+        }
     },
     leggTilOppslagKommentarDB: async (lemma_id, user_id, ny_kommentar) => {
         const query = `INSERT INTO oppslag_kommentarer (lemma_id, user_id, kommentar)

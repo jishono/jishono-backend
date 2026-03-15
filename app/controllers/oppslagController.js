@@ -106,24 +106,37 @@ module.exports = {
   oppdaterOppslag: async (req, res) => {
     console.log(`[AUDIT] user=${res.locals.user_id} action=oppdaterOppslag lemma_id=${req.params.id}`)
     const lemma_id = req.params.id;
-    const uttale = req.body.oppslag.uttale
-    const oppslag = req.body.oppslag
-    const deldata = req.body.deldata
+    const { uttale, ledd, is_hidden } = req.body
 
-    if (deldata.def.length > 0) {
-      await Oppslag.slettDefinisjonerFraDB(deldata.def)
-    }
+    await Oppslag.oppdaterOppslagDB(ledd, is_hidden, lemma_id)
+    await Oppslag.setUttaleForLemmaDB(lemma_id, uttale ?? [])
 
-    if (deldata.uttale.length > 0) {
-      await Oppslag.slettUttaleFraDB(deldata.uttale)
-    }
+    res.status(200).send(msg.oppdatert)
+  },
 
-    await Oppslag.oppdaterOppslagDB(oppslag.ledd, oppslag.is_hidden, oppslag.lemma_id)
+  createDefinisjon: async (req, res) => {
+    const lemma_id = req.params.id
+    const { definisjon, prioritet } = req.body
+    const result = await Oppslag.writeDefinisjonToDB(lemma_id, definisjon, prioritet, res.locals.user_id)
+    res.status(201).send(result)
+  },
 
-    if (uttale.length > 0) {
-      await Oppslag.leggTilUttaleDB(uttale.map(ut => [ut.uttale_id, lemma_id, ut.transkripsjon]))
-    }
+  removeDefinisjon: async (req, res) => {
+    const def_id = req.params.def_id
+    await Oppslag.deleteDefinisjonInDB(def_id)
+    res.status(200).send(msg.oppdatert)
+  },
 
+  reorderDefinisjoner: async (req, res) => {
+    const { def_ids } = req.body
+    await Oppslag.reorderDefinisjonerInDB(def_ids)
+    res.status(200).send(msg.oppdatert)
+  },
+
+  updateDefinisjon: async (req, res) => {
+    const def_id = req.params.def_id
+    const { definisjon, prioritet } = req.body
+    await Oppslag.updateDefinisjonInDB(def_id, definisjon, prioritet)
     res.status(200).send(msg.oppdatert)
   },
 
