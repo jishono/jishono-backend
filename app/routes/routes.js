@@ -16,15 +16,17 @@ module.exports = app => {
   router.get("/health", appController.getHealth);
 
   // jisho.no front og Discord
-  router.get("/items/all", oppslagController.getAllItems);
+  router.get("/search", oppslagController.searchOppslag);
 
-  router.get("/suggestion_list", oppslagController.getSuggestionList);
+  router.get("/suggestions", oppslagController.getSuggestionList);
 
   router.get("/example_sentences/:id", oppslagController.getExampleSentences);
 
   router.post("/conjugations/:id", oppslagController.getConjugations);
 
   router.get("/search/:query", oppslagController.searchDiscord);
+
+  router.post("/visit", appController.registerVisit);
 
   router.post("/words/:id/feedback",appController.postFeedback)
 

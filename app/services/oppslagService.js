@@ -77,9 +77,26 @@ module.exports = {
         return oppslag
     },
 
-    getAllItemsFromDB: async () => {
+    searchOppslag: async (q) => {
+        const params = []
+        let filterClause = ''
+        let orderClause = ''
+        if (q) {
+            params.push(`%${q}%`)
+            params.push(q)
+            filterClause = ` AND o.oppslag ILIKE $1`
+            orderClause = `
+            ORDER BY
+                CASE
+                    WHEN od.oppslag ILIKE $2 THEN 0
+                    WHEN od.oppslag ILIKE $2 || '%' THEN 1
+                    ELSE 2
+                END,
+                LENGTH(od.oppslag),
+                od.oppslag`
+        }
         const query = `
-            WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon) AND o.is_hidden = false)
+            WITH oppslag_def AS (SELECT * FROM oppslag AS o WHERE o.lemma_id IN (SELECT lemma_id FROM definisjon) AND o.is_hidden = false${filterClause})
             SELECT
                 od.lemma_id,
                 od.oppslag,
@@ -124,10 +141,10 @@ module.exports = {
                     SELECT 1 FROM eksempler_no_oppslag AS eo
                     WHERE eo.lemma_id = od.lemma_id
                 ) AS has_examples
-            FROM oppslag_def AS od;
+            FROM oppslag_def AS od${orderClause};
             `
 
-        const results = db.query(query)
+        const results = db.query(query, params)
 
         return results
     },

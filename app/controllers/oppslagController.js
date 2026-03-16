@@ -54,10 +54,9 @@ module.exports = {
     res.status(200).send(results)
   },
 
-  getAllItems: async (req, res) => {
-    const visitor_id = req.headers['x-visitor-id']
-    await App.registerVisit(visitor_id)
-    const results = await Oppslag.getAllItemsFromDB()
+  searchOppslag: async (req, res) => {
+    const q = req.query.q || null
+    const results = await Oppslag.searchOppslag(q)
     res.status(200).send(results)
   },
 

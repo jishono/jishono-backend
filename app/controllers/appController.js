@@ -11,6 +11,11 @@ module.exports = {
             res.status(503).json({ status: 'error', message: error.message });
         }
     },
+    registerVisit: async (req, res) => {
+        const visitor_id = req.headers['x-visitor-id'] || req.body.visitor_id || null
+        await App.registerVisit(visitor_id)
+        res.status(201).send({ ok: true })
+    },
     getBrukeroversettelser: async (req, res) => {
         const data = await App.getBrukeroversettelser()
         res.status(200).send(data)
