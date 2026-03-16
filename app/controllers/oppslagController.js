@@ -25,7 +25,7 @@ module.exports = {
     }
     res.status(200).send(kommentarer)
   },
-  searchOppslag: async (req, res) => {
+  searchBaksida: async (req, res) => {
     const treff = await Oppslag.sokOppslagMedQuery(req.query)
     res.status(200).send(treff)
   },

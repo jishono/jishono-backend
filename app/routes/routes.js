@@ -41,7 +41,7 @@ module.exports = app => {
 
   router.get("/boyning/:id", auth, oppslagController.findBoyning);
 
-  router.get("/search_baksida", auth, oppslagController.searchOppslag);
+  router.get("/search_baksida", auth, oppslagController.searchBaksida);
 
   router.put("/update/:id", auth, admin, oppslagController.oppdaterOppslag);
 
