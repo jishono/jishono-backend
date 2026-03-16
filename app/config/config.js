@@ -15,7 +15,10 @@ const config = {
   jwt: {
     secret: process.env.JWT_SECRET
   },
-  epost: {
+  email: {
+    enabled: process.env.NODEMAILER_ENABLED,
+    smtp_host: process.env.NODEMAILER_SMTP_HOST,
+    smtp_port: process.env.NODEMAILER_SMTP_PORT,
     user: process.env.NODEMAILER_USER,
     password: process.env.NODEMAILER_PASSWORD,
   }

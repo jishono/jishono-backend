@@ -274,6 +274,11 @@ module.exports = {
     },
 
     sendEpost: async (to, subject, template, bcc = '', options = {}) => {
+        if (config.email.enabled !== 'true') {
+            console.log(`[sendEpost] Email sending disabled. Skipping email (to: ${to}, subject: ${subject})`)
+            return
+        }
+
         if (config.app.node_env !== 'production') {
             console.log(`[sendEpost] Skipping email in non-production env (to: ${to}, subject: ${subject})`)
             return
@@ -282,12 +287,12 @@ module.exports = {
             options['title'] = subject
             const html = await ejs.renderFile(path.join(__dirname, '../views/') + template, options)
             const transporter = nodemailer.createTransport({
-                host: 'smtp.webhuset.no',
-                port: 465,
+                host: config.email.smtp_host,
+                port: parseInt(config.email.smtp_port),
                 secure: true,
                 auth: {
-                    user: config.epost.user,
-                    pass: config.epost.password
+                    user: config.email.user,
+                    pass: config.email.password
                 }
             })
 
