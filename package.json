@@ -9,11 +9,13 @@
     "migrate:down": "node-pg-migrate down",
     "migrate:create": "node-pg-migrate create",
     "migrate:status": "node-pg-migrate status",
-    "regen-examples": "node scripts/regenerate_example_data.js"
+    "regen-examples": "node scripts/regenerate_example_data.js",
+    "translate": "node scripts/translate.js"
   },
   "author": "PG",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
