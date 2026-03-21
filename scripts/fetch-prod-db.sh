@@ -30,8 +30,4 @@ ssh "${SSH_USER}@${SSH_HOST}" \
     --no-privileges" \
 | PGPASSWORD=example psql "$LOCAL_DB_URL"
 
-echo "Applying pending migrations..."
-cd "$ROOT"
-npm run migrate:up
-
 echo "Done. Local database restored from production."
