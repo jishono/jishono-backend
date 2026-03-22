@@ -25,8 +25,7 @@ app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
-    const timestamp = new Date().toISOString().replace('T', ' ').replace(/\.\d+Z$/, '');
-    console.log(`[${timestamp}] ${req.method.padEnd(6)} ${req.path.padEnd(30)} ${String(res.statusCode).padEnd(6)} ${duration}ms`);
+    console.log(`${req.method.padEnd(6)} ${req.path.padEnd(30)} ${String(res.statusCode).padEnd(6)} ${duration}ms`);
   });
   next();
 });
