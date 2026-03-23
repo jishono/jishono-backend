@@ -37,7 +37,7 @@ Ask the user for a short descriptive name (snake_case, e.g. `add_tags_to_oppslag
 npm run migrate:create -- <name>
 ```
 
-This creates `migrations/<timestamp>_<name>.sql`. Read the file and show the user the path, then tell them to fill in SQL under:
+This creates `migrations/<timestamp>_<name>.sql` where the timestamp is the real Unix millisecond clock at creation time. Read the file and show the user the path, then tell them to fill in SQL under:
 - `-- Up Migration` — the forward change
 - `-- Down Migration` — how to reverse it
 
@@ -75,6 +75,14 @@ SELECT name, run_on FROM pgmigrations ORDER BY run_on DESC LIMIT 20;
 ```
 DATABASE_URL=postgres://<user>:<pass>@<host>:<port>/<db>
 ```
+
+## Migration file naming
+
+Migration filenames use a real Unix millisecond timestamp — never a hand-crafted or guessed number. Always generate the timestamp with:
+```bash
+node -e "console.log(Date.now())"
+```
+Use that value as the prefix. Migrations with incorrect timestamps (e.g. in the past relative to already-run migrations) will fail with "Not run migration X is preceding already run migration Y".
 
 ## Rules
 

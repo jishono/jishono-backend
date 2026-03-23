@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate:up": "node-pg-migrate up",
     "migrate:down": "node-pg-migrate down",
-    "migrate:create": "node-pg-migrate create",
+    "migrate:create": "node-pg-migrate create --migration-file-language sql",
     "migrate:status": "node-pg-migrate status",
     "regen-examples": "node scripts/regenerate_example_data.js",
     "translate": "node scripts/translate.js"
