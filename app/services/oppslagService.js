@@ -243,7 +243,7 @@ module.exports = {
         const posarray = []
         const pos_val = ["adj", "adv", "det", "egennavn", "forkorting",
             "interjeksjon", "konjunksjon", "prefiks", "preposisjon",
-            "pron", "subst", "subjunksjon", "verb", "symbol"]
+            "pron", "subst", "subjunksjon", "uttrykk", "verb", "symbol"]
         pos_val.forEach(pos => {
             if (query_string[pos] == "true") {
                 posarray.push(pos)
