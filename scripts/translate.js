@@ -44,6 +44,9 @@ const BOY_TABELL_MAP = {
   interjeksjon:  { tag: 'INTJ' },
   symbol:        { tag: 'SYM' },
   egennavn:      { tag: 'PROPN' },
+  prefiks:       { tag: null },
+  uttrykk:       { tag: null },
+  forkorting:    { tag: null },
 };
 
 // ---------------------------------------------------------------------------
@@ -86,7 +89,13 @@ const WORD_CLASS_NAMES = {
   verb:          'verb (動詞)',
   symbol:        'symbol (記号)',
   interjeksjon:  'interjeksjon (間投詞)',
+  det:           'determinativ (限定詞)',
+  pron:          'pronomen (代名詞)',
   preposisjon:   'preposisjon (前置詞)',
+  prefiks:       'prefiks (接頭辞)',
+  uttrykk:       'uttrykk (表現・慣用句)',
+  subjunksjon:   'subjunksjon (従属接続詞)',
+  forkorting:    'forkorting (略語)',
 };
 
 const CLASS_SPECIFIC_RULES = {
@@ -117,8 +126,36 @@ const CLASS_SPECIFIC_RULES = {
   interjeksjon: `### Rules for interjeksjon
 - Translate naturally as Japanese interjections. Do NOT prefix with（間投詞として）— it is redundant for this word class.`,
 
+  pron: `### Rules for pronomen
+- Translate to the standard Japanese pronoun or equivalent expression. Example: jeg -> 私、僕、俺
+- Personal pronouns: reflect the range of Japanese equivalents (formal/informal, gender) where relevant.
+- Reflexive pronouns (seg, seg selv): translate to ～自身、自分. Example: seg selv -> 自分自身
+- Relative/interrogative pronouns (som, hva, hvem): translate to the closest Japanese equivalent. Example: hvem -> 誰`,
+
+  det: `### Rules for determinativ
+- Translate as the Japanese equivalent determiner or prenominal expression. Example: denne -> この、この…のこと
+- Demonstratives (denne, det, slik): use この/その/あの/こんな/そんな as appropriate.
+- Possessives (min, din, vår): translate to the Japanese possessive pronoun + の. Example: min -> 私の
+- Quantifiers (noen, all, ingen): translate to the closest Japanese quantifier. Example: ingen -> ない、何も…ない`,
+
   preposisjon: `### Rules for preposisjon
 - Translate the prepositional meaning. Japanese does not have prepositions as such — use the closest particle or expression.`,
+
+  prefiks: `### Rules for prefiks
+- Translate the meaning of the prefix element itself, not a full word. Use ～ to indicate attachment. Example: mis- -> ～し損なう、～を誤る`,
+
+  uttrykk: `### Rules for uttrykk
+- Translate as a natural Japanese phrase or set expression. Example: for eksempel -> 例えば
+- If the expression has multiple distinct uses, give each as a separate meaning.`,
+
+  subjunksjon: `### Rules for subjunksjon
+- Translate the conjunctional meaning as a natural Japanese subordinating conjunction or connective expression.
+- Example: fordi -> なぜなら、～だから　/ hvis -> もし～ならば / selv om -> ～にもかかわらず、たとえ～でも
+- If the conjunction introduces different clause types (conditional, concessive, temporal, etc.), give each as a separate meaning.`,
+
+  forkorting: `### Rules for forkorting
+- Translate to what the abbreviation stands for in Japanese. Include the expanded Norwegian form in parentheses if helpful. Example: f.eks. ->（for eksempelの略）例えば
+- If the abbreviation is a well-known loanword acronym, use katakana. Example: NB ->（nota beneの略）注意、ノーテーション`,
 };
 
 const BASE_PROMPT_END = `## Output format
@@ -269,12 +306,49 @@ function extractExamplesFromElements(elements) {
   return examples;
 }
 
-async function fetchBokmaalSenses(oppslag, boyTabell) {
+function extractArticleSenses(article) {
+  const definitions = article.body?.definitions || [];
+  const senses = [];
+  for (const def of definitions) {
+    if (def.sub_definition) continue;
+    const elements = def.elements || [];
+    const topExplanations = elements.filter((el) => el.type_ === 'explanation');
+    if (topExplanations.length > 0) {
+      const parts = [];
+      for (const el of topExplanations) {
+        const extracted = extractExplanations([el]);
+        if (extracted.length > 0) parts.push(extracted[0]);
+      }
+      if (parts.length > 0) {
+        const examples = extractExamplesFromElements(elements);
+        senses.push({ text: parts.join('; '), examples });
+      }
+    }
+    const senseElements = elements.filter((el) => el.type_ === 'definition');
+    for (const sense of senseElements) {
+      const explanations = extractExplanations(sense.elements || []);
+      if (explanations.length > 0) {
+        const examples = extractExamplesFromElements(sense.elements || []);
+        senses.push({ text: explanations[0], examples });
+      }
+    }
+  }
+  return senses;
+}
+
+async function fetchBokmaalSenses(oppslag, boyTabell, articleId) {
+  if (articleId) {
+    const artRes = await fetch(`https://ord.uib.no/bm/article/${articleId}.json`);
+    if (!artRes.ok) return [];
+    const article = await artRes.json();
+    return extractArticleSenses(article);
+  }
+
+  // Fallback: search by word and filter by POS tag
   const mapping = BOY_TABELL_MAP[boyTabell];
   if (!mapping) return [];
 
-  const searchUrl = `https://ord.uib.no/api/articles?w=${encodeURIComponent(oppslag)}&dict=bm&scope=e`;
-  const searchRes = await fetch(searchUrl);
+  const searchRes = await fetch(`https://ord.uib.no/api/articles?w=${encodeURIComponent(oppslag)}&dict=bm&scope=e`);
   if (!searchRes.ok) return [];
 
   const searchData = await searchRes.json();
@@ -287,46 +361,16 @@ async function fetchBokmaalSenses(oppslag, boyTabell) {
 
     const article = await artRes.json();
 
-    // Check if this article matches the word class
-    const lemmas = article.lemmas || [];
-    const matches = lemmas.some((lemma) =>
-      (lemma.paradigm_info || []).some((pi) =>
-        (pi.tags || []).includes(mapping.tag)
-      )
-    );
-    if (!matches) continue;
-
-    // Extract senses: each "definition"-typed element is a distinct sense
-    const definitions = article.body?.definitions || [];
-    const senses = [];
-    for (const def of definitions) {
-      // sub_definition entries at the top level are subordinate to the preceding sense, not standalone
-      if (def.sub_definition) continue;
-      const elements = def.elements || [];
-      // Extract top-level explanations and join into one sense (siblings are synonyms/cross-refs)
-      const topExplanations = elements.filter((el) => el.type_ === 'explanation');
-      if (topExplanations.length > 0) {
-        const parts = [];
-        for (const el of topExplanations) {
-          const extracted = extractExplanations([el]);
-          if (extracted.length > 0) parts.push(extracted[0]);
-        }
-        if (parts.length > 0) {
-          const examples = extractExamplesFromElements(elements);
-          senses.push({ text: parts.join('; '), examples });
-        }
-      }
-      // Extract from sub-definitions (e.g. "brukt som adv: ...")
-      const senseElements = elements.filter((el) => el.type_ === 'definition');
-      for (const sense of senseElements) {
-        const explanations = extractExplanations(sense.elements || []);
-        if (explanations.length > 0) {
-          const examples = extractExamplesFromElements(sense.elements || []);
-          senses.push({ text: explanations[0], examples });
-        }
-      }
+    if (mapping.tag !== null) {
+      const matches = (article.lemmas || []).some((lemma) =>
+        (lemma.paradigm_info || []).some((pi) =>
+          (pi.tags || []).includes(mapping.tag)
+        )
+      );
+      if (!matches) continue;
     }
-    return senses;
+
+    return extractArticleSenses(article);
   }
 
   return [];
@@ -341,7 +385,7 @@ async function fetchDictionaryContext(words) {
   const enriched = await Promise.all(
     words.map((word) =>
       sem(async () => {
-        const bokmaal = await fetchBokmaalSenses(word.oppslag, word.boy_tabell).catch(() => []);
+        const bokmaal = await fetchBokmaalSenses(word.oppslag, word.boy_tabell, word.bmo_article_id).catch(() => []);
         await sleep(200);
         return { ...word, bokmaal };
       })
@@ -376,7 +420,7 @@ function buildWordContext(word, { includeExamples = true } = {}) {
 async function fetchUntranslatedWords(boyTabell, limit) {
   const params = [boyTabell];
     let query = `
-    SELECT o.lemma_id, o.oppslag, o.boy_tabell
+    SELECT o.lemma_id, o.oppslag, o.boy_tabell, o.bmo_article_id
     FROM oppslag AS o
     LEFT JOIN frekvens AS f ON f.lemma = o.oppslag
     WHERE o.lemma_id NOT IN (SELECT lemma_id FROM definisjon)
@@ -425,6 +469,13 @@ async function translateBatch(client, words, systemPrompt, { includeExamples = t
   try {
     return JSON.parse(raw);
   } catch {
+    // Fallback: extract the first JSON array from the response (handles preamble/postamble text)
+    const arrayMatch = raw.match(/\[[\s\S]*\]/);
+    if (arrayMatch) {
+      try {
+        return JSON.parse(arrayMatch[0]);
+      } catch { /* fall through */ }
+    }
     console.error('[translate] Failed to parse JSON response for batch:');
     console.error(raw);
     return null;
@@ -494,8 +545,8 @@ async function main() {
   // Phase 1: Enrich all words with dictionary context
   let enrichedWords;
   if (opts.skipLookup) {
-    enrichedWords = words.map(({ lemma_id, oppslag, boy_tabell }) => ({
-      lemma_id, oppslag, boy_tabell, bokmaal: [],
+    enrichedWords = words.map(({ lemma_id, oppslag, boy_tabell, bmo_article_id }) => ({
+      lemma_id, oppslag, boy_tabell, bmo_article_id, bokmaal: [],
     }));
   } else {
     const lookupBatches = [];
@@ -516,7 +567,9 @@ async function main() {
           skippedWords.push(w);
         }
       }
-      console.log(`${enriched.filter((w) => w.bokmaal.length > 0).length}/${lookupBatches[i].length} found`);
+      const found = enriched.filter((w) => w.bokmaal.length > 0).length;
+      const noId = lookupBatches[i].filter((w) => !w.bmo_article_id).length;
+      console.log(`${found}/${lookupBatches[i].length} found${noId > 0 ? ` (${noId} had no bmo_article_id)` : ''}`);
     }
     if (skippedWords.length > 0) {
       console.log(`[translate] ${skippedWords.length} words skipped (no senses): ${skippedWords.map((w) => w.oppslag).join(', ')}`);
