@@ -164,6 +164,7 @@ module.exports = {
     },
 
     generateRelatedWords: async () => {
+        console.log('[generateRelatedWords] Starting...')
         const query = `SELECT o.lemma_id, o.oppslag, (SELECT COALESCE(
                             (SELECT JSON_AGG(ab.boyning)
                             FROM alle_boyninger AS ab
@@ -175,9 +176,11 @@ module.exports = {
                         `
 
         const results = await db.query(query)
+        console.log(`[generateRelatedWords] Fetched ${results.length} oppslag, building relations...`)
         let inserts = []
 
-        for (const row of results) {
+        for (let i = 0; i < results.length; i++) {
+            const row = results[i]
             if (row.oppslag.indexOf(' ') >= 0) {
                 const splits = row.oppslag.split(' ')
                 for (const split of splits) {
@@ -194,8 +197,12 @@ module.exports = {
                     }
                 }
             }
+            if ((i + 1) % 1000 === 0) {
+                console.log(`[generateRelatedWords] Processed ${i + 1}/${results.length} oppslag (${inserts.length} relations so far)`)
+            }
         }
 
+        console.log(`[generateRelatedWords] Done processing. ${inserts.length} relations found. Rebuilding table...`)
         await db.query(`DROP TABLE IF EXISTS relaterte_oppslag`)
         await db.query(`CREATE TABLE relaterte_oppslag (
                             relatert_id SERIAL PRIMARY KEY,
@@ -212,6 +219,7 @@ module.exports = {
             )
         }
 
+        console.log('[generateRelatedWords] Complete.')
     },
 
     sokOppslagMedQuery: async (query_string) => {

@@ -49,7 +49,7 @@ module.exports = {
         })
 
         cron.schedule("0 4 * * 0", async () => {
-            Oppslag.generateRelatedWords()
+            await Oppslag.generateRelatedWords()
         })
     }
 }
