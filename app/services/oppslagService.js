@@ -207,7 +207,7 @@ module.exports = {
         await db.query(`CREATE TABLE relaterte_oppslag (
                             relatert_id SERIAL PRIMARY KEY,
                             lemma_id INTEGER NOT NULL,
-                            oppslag VARCHAR(50) NOT NULL,
+                            oppslag VARCHAR(255) NOT NULL,
                             FOREIGN KEY (lemma_id) REFERENCES oppslag (lemma_id)
                         )`)
 
