@@ -1,6 +1,7 @@
 'use strict';
 
 const Anthropic = require('@anthropic-ai/sdk');
+const db = require('../db/database');
 
 const MODEL = 'claude-sonnet-4-6';
 const SOURCE_LABEL = 'AI';
