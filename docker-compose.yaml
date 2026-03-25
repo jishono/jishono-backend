@@ -1,6 +1,8 @@
 services:
   jishono-api:
-    build: .
+    build: 
+      context: .
+      pull: true 
     restart: always
     environment:
       - DB_HOST_NODE=${DB_HOST_NODE}
@@ -19,3 +21,13 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     ports:
       - 3001:3001
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 100
