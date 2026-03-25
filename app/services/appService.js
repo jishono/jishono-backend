@@ -297,7 +297,7 @@ module.exports = {
             })
 
             let mailOptions = {
-                from: '"baksida.jisho.no" <no-reply@jisho.no>',
+                from: '"baksida.jisho.no" <admin@jisho.no>',
                 to: to, // receiver Email
                 bcc: bcc,
                 subject: subject, // Subject line
