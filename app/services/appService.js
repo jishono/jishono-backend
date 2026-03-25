@@ -289,7 +289,7 @@ module.exports = {
             const transporter = nodemailer.createTransport({
                 host: config.email.smtp_host,
                 port: parseInt(config.email.smtp_port),
-                secure: true,
+                secure: false,
                 auth: {
                     user: config.email.user,
                     pass: config.email.password
