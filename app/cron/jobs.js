@@ -3,6 +3,7 @@ const User = require("../services/userService")
 const App = require("../services/appService");
 const moment = require("moment")
 const Oppslag = require("../services/oppslagService")
+const Translate = require("../services/translateService")
 
 async function getAllDataForDigest (user_id, periode) {
     const ulest = await User.getUlestOversiktFraDB(user_id)
@@ -50,6 +51,25 @@ module.exports = {
 
         cron.schedule("0 4 * * 0", async () => {
             await Oppslag.generateRelatedWords()
+        })
+
+        // Weekly translation of user-requested words (ønsker) — Sunday at 05:00
+        cron.schedule("0 5 * * 0", async () => {
+            if (!process.env.ANTHROPIC_API_KEY) {
+                console.log('[translateØnsker] No ANTHROPIC_API_KEY, skipping')
+                return
+            }
+
+            try {
+                const words = await App.getUntranslatedRequests()
+                if (words.length === 0) {
+                    console.log('[translateØnsker] No untranslated ønsker.')
+                    return
+                }
+                await Translate.translateAndInsertØnsker(words)
+            } catch (err) {
+                console.error('[translateØnsker] Fatal error:', err)
+            }
         })
     }
 }

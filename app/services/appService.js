@@ -39,11 +39,11 @@ module.exports = {
         }
     },
     getUntranslatedRequests: async () => {
-        const query = `SELECT o.lemma_id, o.oppslag, o.boy_tabell
+        const query = `SELECT o.lemma_id, o.oppslag, o.boy_tabell, o.bmo_article_id
                             FROM ønsker AS ø
                             INNER JOIN oppslag AS o ON o.oppslag = ø.oppslag
-                            WHERE o.oppslag NOT IN
-                                (SELECT oppslag FROM definisjon AS d
+                            WHERE o.lemma_id NOT IN
+                                (SELECT lemma_id FROM definisjon AS d
                                 INNER JOIN oppslag AS o
                                 USING (lemma_id))
                             AND o.is_hidden = false
