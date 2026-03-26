@@ -210,6 +210,7 @@ module.exports = {
                             oppslag VARCHAR(255) NOT NULL,
                             FOREIGN KEY (lemma_id) REFERENCES oppslag (lemma_id)
                         )`)
+        await db.query(`CREATE INDEX relaterte_oppslag_lemma_id_idx ON relaterte_oppslag (lemma_id)`)
 
         if (inserts.length > 0) {
             await db.bulkInsert(
