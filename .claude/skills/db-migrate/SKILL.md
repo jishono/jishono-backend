@@ -89,3 +89,6 @@ Use that value as the prefix. Migrations with incorrect timestamps (e.g. in the 
 - Never edit a migration file that has been applied to production — create a new one instead.
 - `relaterte_oppslag` is managed by a weekly cron job — do not create migrations for it.
 - Commit migration files in the same PR as the code that depends on them.
+- **Never run migrations after creating them.** After writing a migration file, stop and show the user the file contents. Let the user inspect and explicitly ask you to apply it.
+- Migrations run automatically on app startup (via `node-pg-migrate` called from the entrypoint) — so a migration created while the app is running will be applied on the next restart.
+- **Before creating a migration, run `docker compose down`** to prevent it from being auto-applied before the user has had a chance to inspect it.
