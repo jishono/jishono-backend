@@ -179,6 +179,8 @@ module.exports = {
         console.log(`[generateRelatedWords] Fetched ${results.length} oppslag, building relations...`)
         let inserts = []
 
+        const yieldToEventLoop = () => new Promise(resolve => setImmediate(resolve))
+
         for (let i = 0; i < results.length; i++) {
             const row = results[i]
             if (row.oppslag.indexOf(' ') >= 0) {
@@ -187,18 +189,16 @@ module.exports = {
                     inserts.push([row.lemma_id, split])
                 }
             }
+            const escapedOppslag = row.oppslag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            const regex = new RegExp('(?<![A-Za-zÆæØøÅå])' + escapedOppslag + '(?![A-Za-zÆæØøÅå])')
             for (const row2 of results) {
-                const escapedOppslag = row.oppslag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-                const regex = new RegExp('(?<![A-Za-zÆæØøÅå])' + escapedOppslag + '(?![A-Za-zÆæØøÅå])')
-                if (row2.oppslag.match(regex)) {
-                    if (row2.oppslag != row.oppslag) {
-                        const insertArray = [row.lemma_id, row2.oppslag]
-                        inserts.push(insertArray)
-                    }
+                if (row2.oppslag !== row.oppslag && row2.oppslag.match(regex)) {
+                    inserts.push([row.lemma_id, row2.oppslag])
                 }
             }
-            if ((i + 1) % 1000 === 0) {
+            if ((i + 1) % 100 === 0) {
                 console.log(`[generateRelatedWords] Processed ${i + 1}/${results.length} oppslag (${inserts.length} relations so far)`)
+                await yieldToEventLoop()
             }
         }
 
